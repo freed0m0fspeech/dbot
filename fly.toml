@@ -1,0 +1,9 @@
+# fly.toml file generated for discord-bot-freed0m0fspeech on 2022-09-14T03:20:59+03:00
+
+app = "discord-bot-freed0m0fspeech"
+kill_signal = "SIGINT"
+kill_timeout = 5
+processes = []
+
+[env]
+DEBUG="true"
