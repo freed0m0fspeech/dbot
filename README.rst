@@ -7,7 +7,7 @@ Discord bot for Freedom of speech, Python project.
 
 ---------------
 
-Additional info about ``tbot`` file, you can find `here <https://github.com/pr0stre1/dbot/releases>`_.
+Additional info about ``dbot`` file, you can find `here <https://github.com/pr0stre1/dbot/releases>`_.
 
 ---------------
 
