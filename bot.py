@@ -1,5 +1,3 @@
-version = 'v 1.000120'
-
 # IMPORTS --------------------------------------------------------------------------------------------------------------
 
 
@@ -34,6 +32,7 @@ from uuid import UUID
 from discord_slash import SlashCommand
 from discord_slash.utils import manage_commands
 from discord_slash import SlashCommandOptionType
+from version import __version__
 
 # VARIABLES ------------------------------------------------------------------------------------------------------------
 
@@ -378,7 +377,7 @@ async def get_playlist_youtube(ctx, message):
 async def on_ready():
     # os.getenv('prefix')
     await client.change_presence(status=discord.Status.online,
-                                 activity=discord.Game(f"/help in {len(client.guilds)} server(s) {version}"))
+                                 activity=discord.Game(f"/help in {len(client.guilds)} server(s) v{__version__}"))
 
 
 @client.event
