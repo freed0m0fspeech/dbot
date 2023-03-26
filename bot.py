@@ -11,6 +11,7 @@ import aiohttp
 import discord
 import requests
 import youtube_dl
+import yt_dlp
 import time
 import random
 import xml.etree.ElementTree as ET
@@ -255,7 +256,7 @@ async def get_videos_youtube(ctx, message):
     videos = {}
     # max_downloads = 10
 
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         if re.match(regex, f'{message}'):
             info = ydl.extract_info(message, download=False)
         else:
@@ -333,7 +334,7 @@ async def get_playlist_youtube(ctx, message):
 
     videos = {}
 
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         if re.match(regex, f'{message}'):
             info = ydl.extract_info(message, download=False)
 
