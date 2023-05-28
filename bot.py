@@ -1768,7 +1768,7 @@ async def bot_join(ctx):
         voice_client = ctx.guild.voice_client
 
         if not voice_client.is_connected():
-            voice_client.connect(reconnect=False, timeout=10000)
+            await voice_client.connect(reconnect=False, timeout=10000)
         else:
             voice_channel = ctx.author.voice.channel
 
