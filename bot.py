@@ -72,8 +72,8 @@ def get_connection_to_mongodb(user, passwd):
 
 def load_data_from_mongodb(db_client):
     try:
-        data_base = db_client.bot
-        init = data_base.init
+        data_base = db_client.get_database('bot')
+        init = data_base.get_collection('init')
 
         if init:
             for data in init.find_one({}, {'_id': 0, 'token': 1, 'prefix': 1}):
