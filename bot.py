@@ -37,7 +37,7 @@ from version import __version__
 
 # VARIABLES ------------------------------------------------------------------------------------------------------------
 
-load_dotenv()
+# load_dotenv()
 
 mongodb_username = os.getenv('mongodb_username')
 mongodb_password = os.getenv('mongodb_password')
