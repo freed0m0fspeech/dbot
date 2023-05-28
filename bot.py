@@ -62,7 +62,7 @@ async def determine_prefix(ctx, message):
 def get_connection_to_mongodb(user, passwd):
     try:
         mdb_client = MongoClient(
-            f"mongodb+srv://{user}:{passwd}@botcluster.iy7wi.mongodb.net/bot?retryWrites=true&w=majority")
+            f"mongodb+srv://{user}:{passwd}@botcluster.iy7wi.mongodb.net/bot?retryWrites=true&w=majority", server_api=ServerApi('1'))
 
         mdb_client.server_info()
     except errors.ConnectionFailure:
