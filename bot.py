@@ -18,6 +18,7 @@ import xml.etree.ElementTree as ET
 import io
 
 from discord.ext import commands
+from dotenv import load_dotenv
 from pymongo import MongoClient, errors, ReturnDocument
 from pymongo.server_api import ServerApi
 from discord import FFmpegPCMAudio
@@ -36,6 +37,7 @@ from version import __version__
 
 # VARIABLES ------------------------------------------------------------------------------------------------------------
 
+load_dotenv()
 
 mongodb_username = os.getenv('mongodb_username')
 mongodb_password = os.getenv('mongodb_password')
@@ -76,10 +78,10 @@ def load_data_from_mongodb(db_client):
         init = data_base.get_collection('init')
 
         # if init:
-        for data in init.find_one({}, {'_id': 0, 'token': 1, 'prefix': 1}):
-            os.environ['token'] = data.get('token', '')
-            # os.environ["token_test"] = data['token_test']
-            os.environ['prefix'] = data.get('prefix', '')
+        data = init.find_one({}, {'_id': 0, 'token': 1, 'prefix': 1}):
+        os.environ['token'] = data.get('token', '')
+        # os.environ["token_test"] = data['token_test']
+        os.environ['prefix'] = data.get('prefix', '')
     except errors.OperationFailure:
         pass
 
