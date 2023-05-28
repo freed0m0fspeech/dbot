@@ -78,7 +78,7 @@ def load_data_from_mongodb(db_client):
         init = data_base.get_collection('init')
 
         # if init:
-        data = init.find_one({}, {'_id': 0, 'token': 1, 'prefix': 1}):
+        data = init.find_one({}, {'_id': 0, 'token': 1, 'prefix': 1})
         os.environ['token'] = data.get('token', '')
         # os.environ["token_test"] = data['token_test']
         os.environ['prefix'] = data.get('prefix', '')
