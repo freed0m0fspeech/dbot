@@ -20,8 +20,6 @@ import io
 from discord.ext import commands
 from pymongo import MongoClient, errors, ReturnDocument
 from pymongo.server_api import ServerApi
-from pymongo import errors
-from pymongo import ReturnDocument
 from discord import FFmpegPCMAudio
 from discord.utils import get
 from dateutil.relativedelta import relativedelta
@@ -77,11 +75,9 @@ def load_data_from_mongodb(db_client):
         data_base = db_client.bot
         init = data_base.init
 
-        if init:
-            for data in init.find():
-                os.environ['token'] = data['token']
-                # os.environ["token_test"] = data['token_test']
-                os.environ['prefix'] = data['prefix']
+        os.environ['token'] = init.get('token')
+        # os.environ["token_test"] = data['token_test']
+        os.environ['prefix'] = init.get('prefix')
     except errors.OperationFailure:
         pass
 
