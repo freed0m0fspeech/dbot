@@ -18,7 +18,8 @@ import xml.etree.ElementTree as ET
 import io
 
 from discord.ext import commands
-from pymongo import MongoClient
+from pymongo import MongoClient, errors, ReturnDocument
+from pymongo.server_api import ServerApi
 from pymongo import errors
 from pymongo import ReturnDocument
 from discord import FFmpegPCMAudio
