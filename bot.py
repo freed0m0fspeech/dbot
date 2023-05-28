@@ -75,11 +75,11 @@ def load_data_from_mongodb(db_client):
         data_base = db_client.get_database('bot')
         init = data_base.get_collection('init')
 
-        if init:
-            for data in init.find_one({}, {'_id': 0, 'token': 1, 'prefix': 1}):
-                os.environ['token'] = data.get('token', '')
-                # os.environ["token_test"] = data['token_test']
-                os.environ['prefix'] = data.get('prefix', '')
+        # if init:
+        for data in init.find_one({}, {'_id': 0, 'token': 1, 'prefix': 1}):
+            os.environ['token'] = data.get('token', '')
+            # os.environ["token_test"] = data['token_test']
+            os.environ['prefix'] = data.get('prefix', '')
     except errors.OperationFailure:
         pass
 
