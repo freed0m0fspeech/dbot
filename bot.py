@@ -10,7 +10,7 @@ import re
 import aiohttp
 import discord
 import requests
-import youtube_dl
+# import youtube_dl
 import yt_dlp
 import time
 import random
@@ -379,7 +379,7 @@ async def get_playlist_youtube(ctx, message):
 async def on_ready():
     # os.getenv('prefix')
     await client.change_presence(status=discord.Status.online,
-                                 activity=discord.Game(f"/help in {len(client.guilds)} server(s) v{__version__}"))
+                                 activity=discord.Game(f"{len(client.guilds)} server(s) v{__version__}"))
 
 
 @client.event
