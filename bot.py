@@ -558,7 +558,7 @@ async def on_voice_state_update(member, before, after):
 
                 category = await guild.create_category(f'category-{member.name}', overwrites=overwrites,
                                                        position=position)
-                text_channel = await category.create_text_channel(f'text-{member.name}')
+                # text_channel = await category.create_text_channel(f'text-{member.name}')
                 # nsfw_text_channel = await category.create_text_channel(f'🔞text-{member.name}-18', overwrites=overwrites, nsfw=True)
                 voice_channel = await category.create_voice_channel(f'voice-{member.name}')
 
@@ -569,15 +569,15 @@ async def on_voice_state_update(member, before, after):
 
                 await member.move_to(channel=voice_channel)
 
-                await text_channel.send(
-                    f'This is temporary category. You can use allowed and category based commands (only for owner of category):\n'
-                    f'/temporary category lock - lock|unlock category\n'
-                    f'/temporary category invite_member @user - invite|kik member from category\n'
-                    f'/temporary category invite_role @role - invite|kick role from category\n'
-                    f'/temporary category disc_member @user - disconnect member\n'
-                    f'/temporary category rename @name - change name of category\n'
-                    f'/temporary category owner @user - check|set owner of category\n'
-                    f'Use /help for information about commands')
+                # await text_channel.send(
+                #     f'This is temporary category. You can use allowed and category based commands (only for owner of category):\n'
+                #     f'/temporary category lock - lock|unlock category\n'
+                #     f'/temporary category invite_member @user - invite|kik member from category\n'
+                #     f'/temporary category invite_role @role - invite|kick role from category\n'
+                #     f'/temporary category disc_member @user - disconnect member\n'
+                #     f'/temporary category rename @name - change name of category\n'
+                #     f'/temporary category owner @user - check|set owner of category\n'
+                #     f'Use /help for information about commands')
 
                 mongodb_guilds.find_one_and_update({'guildID': guild.id},
                                                    {'$addToSet':
