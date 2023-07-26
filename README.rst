@@ -48,7 +48,7 @@ Commands:
   * /skip - Skip current playing track
   * /now - Show currently playing track
   * /seek [hh:mm:ss] - Go to position in currently playing track
-  * /clear [count] - Clear music queue. Count of elements to delete (n > 0 from start, n < 0 from end, n = 4 clear all)
+  * /clear [count] - Clear music queue. Count of elements to delete (n > 0 from start, n < 0 from end, n = 0 clear all)
 
   Commands to interact with temporaries (/temporary):
 
