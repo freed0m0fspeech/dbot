@@ -1,7 +1,6 @@
 import asyncio
 import os
 
-import pyrogram
 from aiohttp.web import AppRunner, TCPSite
 from dotenv import load_dotenv
 from plugins.Bots.DiscordBot.bot import DiscordBot
