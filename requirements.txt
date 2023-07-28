@@ -6,7 +6,7 @@ future~=0.18.3
 docutils~=0.17.1
 asyncio~=3.4.3
 aiohttp~=3.8.4
-discord.py~=1.7.2
+# discord.py~=1.7.2
 requests~=2.31.0
 pymongo[srv]~=4.3.3
 python-dateutil~=2.8.2
@@ -18,3 +18,4 @@ discord-ext-slash==0.9.2
 PyNaCl
 python-dotenv==0.21.1
 yt_dlp~=2023.7.6
+discord.py[voice]~=2.3.1
