@@ -160,7 +160,10 @@ class DiscordBotHandler:
         if not os.getenv('DEBUG', '0').lower() in ['true', 't', '1']:
             guild = None
         else:
-            guild = self.discordBot.client.get_guild(806635399543652352)
+            try:
+                guild = self.discordBot.client.get_guild(int(os.getenv('TEST_GUILD_ID', '')))
+            except Exception:
+                guild = None
 
         await self.discordBot.set_default_commands(guild=guild)
         # await self.discordBot.clear_default_commands()
