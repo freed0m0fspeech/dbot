@@ -85,41 +85,41 @@ class DiscordBotCommand:
     #     except Exception as e:
     #         return await webhook.send(str(e))
 
-    async def fun_quote(self, interaction: discord.Interaction):
-        response = interaction.response
-        response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
+    # async def fun_quote(self, interaction: discord.Interaction):
+    #     response = interaction.response
+    #     response: discord.InteractionResponse
+    #     await response.defer(ephemeral=True)  # ephemeral - only you can see this
+    #
+    #     webhook = interaction.followup
+    #     webhook: discord.Webhook
+    #
+    #     try:
+    #         async with aiohttp.ClientSession() as session:
+    #             async with session.get('https://zenquotes.io/api/random') as web_response:
+    #                 if web_response.status == 200:
+    #                     json_text = await web_response.text()
+    #                     json_data = json.loads(json_text)
+    #                     quote_text = json_data[0]['q'] + ' (' + json_data[0]['a'] + ')'
+    #
+    #                     await webhook.send(f'{quote_text}')
+    #                 else:
+    #                     await webhook.send('Quote API not working properly')
+    #     except Exception as e:
+    #         return await webhook.send(str(e))
 
-        webhook = interaction.followup
-        webhook: discord.Webhook
-
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get('https://zenquotes.io/api/random') as web_response:
-                    if web_response.status == 200:
-                        json_text = await web_response.text()
-                        json_data = json.loads(json_text)
-                        quote_text = json_data[0]['q'] + ' (' + json_data[0]['a'] + ')'
-
-                        await webhook.send(f'{quote_text}')
-                    else:
-                        await webhook.send('Quote API not working properly')
-        except Exception as e:
-            return await webhook.send(str(e))
-
-    async def server_members(self, interaction: discord.Interaction):
-        response = interaction.response
-        response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
-
-        webhook = interaction.followup
-        webhook: discord.Webhook
-
-        try:
-            guild = interaction.guild
-            await webhook.send(f"{guild.member_count} members in {guild}")
-        except Exception as e:
-            return await webhook.send(str(e))
+    # async def server_members(self, interaction: discord.Interaction):
+    #     response = interaction.response
+    #     response: discord.InteractionResponse
+    #     await response.defer(ephemeral=True)  # ephemeral - only you can see this
+    #
+    #     webhook = interaction.followup
+    #     webhook: discord.Webhook
+    #
+    #     try:
+    #         guild = interaction.guild
+    #         await webhook.send(f"{guild.member_count} members in {guild}")
+    #     except Exception as e:
+    #         return await webhook.send(str(e))
 
     async def voice_lock(self, interaction: discord.Interaction):
         response = interaction.response
