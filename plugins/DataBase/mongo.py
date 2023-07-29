@@ -73,7 +73,7 @@ class MongoDataBase:
 
     def update_field(self, database_name: str, collection_name: str, action: str, query: dict,
                      filter: Optional[dict] = {},
-                     return_document: Optional[ReturnDocument] = ReturnDocument.BEFORE,
+                     return_document: Optional[str] = "after",
                      upsert: Optional[bool] = True, updateMany=False) -> Optional[dict]:
         """
         **Update document field in MongoDataBase**\n
@@ -82,7 +82,7 @@ class MongoDataBase:
         :param action: Action that applies to field
         :param query: query to replace in collection (example {'guilds.guildID': '228'})
         :param filter: Optional filter
-        :param return_document: Optional pymongo.ReturnDocument determine return document
+        :param return_document: Optional[str] determine return document
         :param upsert: Optional upsert value to upsert document if it does not exist
         :return: typing.Optional[dict]
 
@@ -156,7 +156,7 @@ class MongoDataBase:
 
     def delete_field(self, database_name: str, collection_name: str, query: dict,
                      filter: Optional[dict] = {},
-                     return_document: Optional[bool] = True) -> \
+                     return_document: Optional[str] = "after") -> \
             Optional[dict]:
         """
         **Delete document field from MongoDataBase**
@@ -165,7 +165,7 @@ class MongoDataBase:
         :param collection_name: Collection name
         :param query: {key: 1} to delete in collection
         :param filter: Optional filter
-        :param return_document: Optional pymongo.ReturnDocument determine return document
+        :param return_document: Optional[str] determine return document
         :param upsert: Optonal upsert value to upsert document if it does not exist
         :return: typing.Optaional[dict]
         """
@@ -230,7 +230,7 @@ class MongoDataBase:
 
     def update_document(self, database_name: str, collection_name: str, document: dict,
                         filter: Optional[dict] = {},
-                        return_document: Optional[bool] = True,
+                        return_document: Optional[str] = 'after',
                         upsert: Optional[bool] = True) -> Optional[dict]:
         """
         **Replace document from collection in MongoDataBase**
@@ -239,7 +239,7 @@ class MongoDataBase:
         :param collection_name: Collection name
         :param document: Document to replace
         :param filter: Optional filter
-        :param return_document: Optional pymongo.ReturnDocument determine return document
+        :param return_document: Optional[str] determine return document
         :param upsert: Optonal upsert value to upsert document if it does not exist
         :return: typing.Optaional[dict]
         """
