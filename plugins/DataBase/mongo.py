@@ -73,18 +73,16 @@ class MongoDataBase:
 
     def update_field(self, database_name: str, collection_name: str, action: str, query: dict,
                      filter: Optional[dict] = {},
-                     returnDocument: Optional[str] = "after",
-                     returnNewDocument: Optional[bool] = True,
+                     return_document: Optional[ReturnDocument] = ReturnDocument.AFTER,
                      upsert: Optional[bool] = True, updateMany=False) -> Optional[dict]:
         """
         **Update document field in MongoDataBase**\n
-        :param returnNewDocument: Optional[bool]
         :param database_name: MongoDataBase name
         :param collection_name: Collection name
         :param action: Action that applies to field
         :param query: query to replace in collection (example {'guilds.guildID': '228'})
         :param filter: Optional filter
-        :param returnDocument: Optional[str] determine return document
+        :param return_document: Optional[ReturnDocument] determine return document
         :param upsert: Optional upsert value to upsert document if it does not exist
         :return: typing.Optional[dict]
 
@@ -150,25 +148,24 @@ class MongoDataBase:
                 collection.update_many(filter=filter, update=update, upsert=upsert)
                 return {}
 
-            return collection.find_one_and_update(filter=filter, update=update, returnDocument=returnDocument,
-                                                  upsert=upsert, returnNewDocument=returnNewDocument)
+            return collection.find_one_and_update(filter=filter, update=update, return_document=return_document,
+                                                  upsert=upsert, returnNewDocument=True)
 
         except Exception as e:
             return None
 
     def delete_field(self, database_name: str, collection_name: str, query: dict,
                      filter: Optional[dict] = {},
-                     returnDocument: Optional[str] = "after",
-                     returnNewDocument: Optional[bool] = True) -> Optional[dict]:
+                     return_document: Optional[ReturnDocument] = ReturnDocument.AFTER) -> \
+            Optional[dict]:
         """
         **Delete document field from MongoDataBase**
 
-        :param returnNewDocument: Optional[bool]
         :param database_name: MongoDataBase name
         :param collection_name: Collection name
         :param query: {key: 1} to delete in collection
         :param filter: Optional filter
-        :param returnDocument: Optional[str] determine return document
+        :param return_document: Optional[ReturnDocument] determine return document
         :param upsert: Optonal upsert value to upsert document if it does not exist
         :return: typing.Optaional[dict]
         """
@@ -179,7 +176,7 @@ class MongoDataBase:
 
             update = {'$unset': query}
 
-            return collection.find_one_and_update(filter=filter, update=update, returnDocument=returnDocument, returnNewDocument=returnNewDocument)
+            return collection.find_one_and_update(filter=filter, update=update, return_document=return_document)
         except Exception as e:
             return None
 
@@ -234,18 +231,16 @@ class MongoDataBase:
 
     def update_document(self, database_name: str, collection_name: str, document: dict,
                         filter: Optional[dict] = {},
-                        returnDocument: Optional[str] = 'after',
-                        returnNewDocument: Optional[bool] = True,
+                        return_document: Optional[ReturnDocument] = ReturnDocument.AFTER,
                         upsert: Optional[bool] = True) -> Optional[dict]:
         """
         **Replace document from collection in MongoDataBase**
 
-        :param returnNewDocument: Optional[bool]
         :param database_name: MongoDataBase name
         :param collection_name: Collection name
         :param document: Document to replace
         :param filter: Optional filter
-        :param returnDocument: Optional[str] determine return document
+        :param return_document: Optional[ReturnDocument] determine return document
         :param upsert: Optonal upsert value to upsert document if it does not exist
         :return: typing.Optaional[dict]
         """
@@ -254,8 +249,8 @@ class MongoDataBase:
             database = self.client.get_database(database_name)
             collection = database.get_collection(collection_name)
 
-            return collection.find_one_and_replace(filter=filter, replacement=document, returnDocument=returnDocument,
-                                                   upsert=upsert, returnNewDocument=returnNewDocument)
+            return collection.find_one_and_replace(filter=filter, replacement=document, return_document=return_document,
+                                                   upsert=upsert)
         except Exception as e:
             return None
 
