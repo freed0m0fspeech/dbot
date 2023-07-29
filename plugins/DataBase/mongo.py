@@ -198,6 +198,9 @@ class MongoDataBase:
             collection = database.get_collection(collection_name)
 
             dict = collection.find_one(filter, query)
+
+            if not dict:
+                return {}
         except Exception as e:
             return {}
 
