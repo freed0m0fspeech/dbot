@@ -1,18 +1,10 @@
 """
 DiscordBot plugin to work with discord
 """
-import gettext
 import discord
 
-from typing import Union, Optional, Any
-from plugins.Bots.DiscordBot.handlers import DiscordBotHandler
+from typing import Any
 from plugins.Bots.DiscordBot.commands import DiscordBotCommand
-
-command_permission = {
-    'voice': {
-        'init': 'admin',
-    }
-}
 
 command_description = {
     'bot': {
@@ -76,14 +68,10 @@ class DiscordBot:
 
             for handler in [handler for handler in dir(DiscordBotCommand) if not handler.startswith('__')]:
                 group_name, name = handler.split(sep='_', maxsplit=1)
-                # name = handler
                 description = command_description.get(group_name, {}).get(name, name)
                 callback = getattr(self.discordBotCommand, handler)
 
                 command = discord.app_commands.Command(name=name, description=description, callback=callback)
-
-                if 'admin' == command_permission.get(group_name, {}).get(name, ''):
-                    command.default_permissions = None
 
                 if group_name:
                     group = groups.get(group_name, {})

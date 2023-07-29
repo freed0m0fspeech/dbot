@@ -1,3 +1,5 @@
+import os
+
 import discord.ext.commands
 import pytz
 import utils
@@ -155,8 +157,10 @@ class DiscordBotHandler:
     #         print('Guild not added to DataBase')
 
     async def on_ready(self):
-        # guild = self.discordBot.client.get_guild(806635399543652352)
-        guild = None
+        if not os.getenv('DEBUG', '0').lower() in ['true', 't', '1']:
+            guild = self.discordBot.client.get_guild(806635399543652352)
+        else:
+            guild = None
 
         await self.discordBot.set_default_commands(guild=guild)
         # await self.discordBot.clear_default_commands()
