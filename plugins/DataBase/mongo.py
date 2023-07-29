@@ -74,9 +74,11 @@ class MongoDataBase:
     def update_field(self, database_name: str, collection_name: str, action: str, query: dict,
                      filter: Optional[dict] = {},
                      return_document: Optional[str] = "after",
+                     returnNewDocument: Optional[bool] = True,
                      upsert: Optional[bool] = True, updateMany=False) -> Optional[dict]:
         """
         **Update document field in MongoDataBase**\n
+        :param returnNewDocument: Optional[bool]
         :param database_name: MongoDataBase name
         :param collection_name: Collection name
         :param action: Action that applies to field
@@ -149,18 +151,19 @@ class MongoDataBase:
                 return {}
 
             return collection.find_one_and_update(filter=filter, update=update, return_document=return_document,
-                                                  upsert=upsert)
+                                                  upsert=upsert, returnNewDocument=returnNewDocument)
 
         except Exception as e:
             return None
 
     def delete_field(self, database_name: str, collection_name: str, query: dict,
                      filter: Optional[dict] = {},
-                     return_document: Optional[str] = "after") -> \
-            Optional[dict]:
+                     return_document: Optional[str] = "after",
+                     returnNewDocument: Optional[bool] = True) -> Optional[dict]:
         """
         **Delete document field from MongoDataBase**
 
+        :param returnNewDocument: Optional[bool]
         :param database_name: MongoDataBase name
         :param collection_name: Collection name
         :param query: {key: 1} to delete in collection
@@ -176,7 +179,7 @@ class MongoDataBase:
 
             update = {'$unset': query}
 
-            return collection.find_one_and_update(filter=filter, update=update, return_document=return_document)
+            return collection.find_one_and_update(filter=filter, update=update, return_document=return_document, returnNewDocument=returnNewDocument)
         except Exception as e:
             return None
 
@@ -231,10 +234,12 @@ class MongoDataBase:
     def update_document(self, database_name: str, collection_name: str, document: dict,
                         filter: Optional[dict] = {},
                         return_document: Optional[str] = 'after',
+                        returnNewDocument: Optional[bool] = True,
                         upsert: Optional[bool] = True) -> Optional[dict]:
         """
         **Replace document from collection in MongoDataBase**
 
+        :param returnNewDocument: Optional[bool]
         :param database_name: MongoDataBase name
         :param collection_name: Collection name
         :param document: Document to replace
@@ -249,7 +254,7 @@ class MongoDataBase:
             collection = database.get_collection(collection_name)
 
             return collection.find_one_and_replace(filter=filter, replacement=document, return_document=return_document,
-                                                   upsert=upsert)
+                                                   upsert=upsert, returnNewDocument=returnNewDocument)
         except Exception as e:
             return None
 
