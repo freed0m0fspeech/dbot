@@ -158,9 +158,9 @@ class DiscordBotHandler:
 
     async def on_ready(self):
         if not os.getenv('DEBUG', '0').lower() in ['true', 't', '1']:
-            guild = self.discordBot.client.get_guild(806635399543652352)
-        else:
             guild = None
+        else:
+            guild = self.discordBot.client.get_guild(806635399543652352)
 
         await self.discordBot.set_default_commands(guild=guild)
         # await self.discordBot.clear_default_commands()
