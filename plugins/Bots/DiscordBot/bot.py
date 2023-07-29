@@ -8,6 +8,11 @@ from typing import Union, Optional, Any
 from plugins.Bots.DiscordBot.handlers import DiscordBotHandler
 from plugins.Bots.DiscordBot.commands import DiscordBotCommand
 
+command_permission = {
+    'voice': {
+        'init': 'admin',
+    }
+}
 
 command_description = {
     'bot': {
@@ -20,12 +25,12 @@ command_description = {
         'horoscope': 'Get horoscope for current day',
     },
     'voice': {
+        'init': 'Set/Unset voice channel as init channel',
         'mute': 'Mute or unmute someone in voice channel',
         'deaf': 'Deaf or undead someone in voice channel',
         'move': 'Move someone in your voice channel',
         'disconnect': 'Disconnect someone from voice channel',
         'owner': 'Show/Give owner of the category',
-        'init': 'Set/Unset voice channel as init channel',
         'rename': 'Rename voice channel',
         'member': 'Allow/Deny access for member to voice channel',
         'role': 'Allow/Deny access for role to voice channel',
@@ -76,6 +81,9 @@ class DiscordBot:
                 callback = getattr(self.discordBotCommand, handler)
 
                 command = discord.app_commands.Command(name=name, description=description, callback=callback)
+
+                if 'admin' == command_permission.get(group_name, {}).get(name, ''):
+                    command.default_permissions = None
 
                 if group_name:
                     group = groups.get(group_name, {})
