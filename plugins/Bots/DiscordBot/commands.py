@@ -132,7 +132,11 @@ class DiscordBotCommand:
         try:
             guild = interaction.guild
             user = interaction.user
-            voice_channel = user.voice.channel
+
+            try:
+                voice_channel = user.voice.channel
+            except Exception:
+                voice_channel = None
 
             if voice_channel:
                 query = {'_id': 0, 'temporary': 1}
@@ -148,15 +152,17 @@ class DiscordBotCommand:
                         overwrites = voice_channel.overwrites_for(guild.default_role)
                         if not overwrites.view_channel:
                             overwrites.view_channel = True
-                            await webhook.send('Category unlocked')
+                            await webhook.send('Voice channel unlocked')
                         else:
                             overwrites.view_channel = False
-                            await webhook.send('Category locked')
+                            await webhook.send('Voice channel locked')
 
                         await voice_channel.set_permissions(guild.default_role, overwrite=overwrites, reason='Lock')
 
                     else:
-                        await webhook.send('You are not category owner')
+                        await webhook.send('You are not voice channel owner')
+            else:
+                await webhook.send('You are not in voice channel')
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -171,7 +177,11 @@ class DiscordBotCommand:
         try:
             guild = interaction.guild
             user = interaction.user
-            voice_channel = user.voice.channel
+
+            try:
+                voice_channel = user.voice.channel
+            except Exception:
+                voice_channel = None
 
             if voice_channel:
                 query = {'_id': 0, 'temporary': 1}
@@ -188,15 +198,17 @@ class DiscordBotCommand:
 
                         if overwrites.view_channel:
                             overwrites = None
-                            await webhook.send(f'<@&{role.id}> kicked from category')
+                            await webhook.send(f'<@&{role.id}> kicked from voice channel')
                         else:
                             overwrites.view_channel = True
-                            await webhook.send(f'<@&{role.id}> invited to category')
+                            await webhook.send(f'<@&{role.id}> invited to voice channel')
 
                         await voice_channel.set_permissions(role, overwrite=overwrites, reason='Invite')
 
                     else:
-                        await webhook.send('You are not category owner')
+                        await webhook.send('You are not voice channel owner')
+            else:
+                await webhook.send('You are not in voice channel')
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -211,7 +223,11 @@ class DiscordBotCommand:
         try:
             guild = interaction.guild
             user = interaction.user
-            voice_channel = user.voice.channel
+
+            try:
+                voice_channel = user.voice.channel
+            except Exception:
+                voice_channel = None
 
             if voice_channel:
                 query = {'_id': 0, 'temporary': 1}
@@ -231,8 +247,14 @@ class DiscordBotCommand:
                             if member_voice.channel == voice_channel:
                                 await member.edit(voice_channel=None)
                                 await webhook.send(f'<@{member.id}> disconnected from voice channel')
+                            else:
+                                await webhook.send('Member is not in your voice channel')
+                        else:
+                            await webhook.send('Member is not in voice channel')
                     else:
-                        await webhook.send('You are not category owner')
+                        await webhook.send('You are not voice channel owner')
+            else:
+                await webhook.send('You are not in voice channel')
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -247,7 +269,11 @@ class DiscordBotCommand:
         try:
             guild = interaction.guild
             user = interaction.user
-            voice_channel = user.voice.channel
+
+            try:
+                voice_channel = user.voice.channel
+            except Exception:
+                voice_channel = None
 
             if voice_channel:
                 query = {'_id': 0, 'temporary': 1}
@@ -264,15 +290,17 @@ class DiscordBotCommand:
 
                         if overwrites.view_channel:
                             overwrites = None
-                            await webhook.send(f'<@{member.id}> kicked from category')
+                            await webhook.send(f'<@{member.id}> kicked from voice channel')
                         else:
                             overwrites.view_channel = True
-                            await webhook.send(f'<@{member.id}> invited to category')
+                            await webhook.send(f'<@{member.id}> invited to voice channel')
 
                         await voice_channel.set_permissions(member, overwrite=overwrites, reason='Invite')
 
                     else:
-                        await webhook.send('You are not category owner')
+                        await webhook.send('You are not voice channel owner')
+            else:
+                await webhook.send('You are not in voice channel')
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -287,7 +315,11 @@ class DiscordBotCommand:
         try:
             guild = interaction.guild
             user = interaction.user
-            voice_channel = user.voice.channel
+
+            try:
+                voice_channel = user.voice.channel
+            except Exception:
+                voice_channel = None
 
             if voice_channel:
                 query = {'_id': 0, 'temporary': 1}
@@ -301,9 +333,11 @@ class DiscordBotCommand:
                 if owner:
                     if owner.get('id', '') == user.id:
                         await voice_channel.edit(name=f'voice-{text}')
-                        await webhook.send(f'{voice_channel.mention} renamed')
+                        await webhook.send(f'Voice channel {voice_channel.mention} renamed')
                     else:
-                        await webhook.send('You are not category owner')
+                        await webhook.send('You are not voice channel owner')
+            else:
+                await webhook.send('You are not in voice channel')
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -319,15 +353,15 @@ class DiscordBotCommand:
             guild = interaction.guild
             user = interaction.user
             if not interaction.user.id == guild.owner_id:
-                return await webhook.send(f"Command can only be used by owner of the server")
+                return await webhook.send(f"This command can only be used by owner of the server")
 
             if voice_channel is None:
                 category = interaction.channel.category
 
                 if category:
-                    voice_channel = await category.create_voice_channel('JOIN to CREATE category')
+                    voice_channel = await category.create_voice_channel('JOIN to CREATE voice channel')
                 else:
-                    voice_channel = await guild.create_voice_channel('JOIN to CREATE category')
+                    voice_channel = await guild.create_voice_channel('JOIN to CREATE voice channel')
 
             query = {'_id': 0, 'temporary': 1}
             filter = {'id': guild.id}
@@ -368,7 +402,11 @@ class DiscordBotCommand:
         try:
             guild = interaction.guild
             user = interaction.user
-            voice_channel = user.voice.channel
+
+            try:
+                voice_channel = user.voice.channel
+            except Exception:
+                voice_channel = None
 
             if voice_channel:
                 query = {'_id': 0, 'temporary': 1}
@@ -392,10 +430,12 @@ class DiscordBotCommand:
                                                                query=query, filter=filter) is None:
                                 await webhook.send(f"Something wrong with DataBase")
                             else:
-                                await webhook.send(f'New owner is <@{member.id}> :)')
+                                await webhook.send(f'New owner the {voice_channel.mention} is <@{member.id}> :)')
+                        else:
+                            await webhook.send('You are not voice channel owner')
                     else:
                         await webhook.send(f"Owner of the {voice_channel.mention} is <@{owner.get('id', '')}>")
             else:
-                await webhook.send('It is not temporary voice channel')
+                await webhook.send('You are not in voice channel')
         except Exception as e:
             return await webhook.send(str(e))
