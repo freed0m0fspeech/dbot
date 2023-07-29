@@ -15,7 +15,6 @@ from bson import json_util
 from dotenv import load_dotenv
 from aiohttp.web import Response, Request, json_response
 from plugins.Bots.DiscordBot.handlers import DiscordBotHandler
-from pyrogram.types import ChatPrivileges
 
 load_dotenv()
 

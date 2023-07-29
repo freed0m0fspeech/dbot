@@ -19,3 +19,8 @@ PyNaCl
 python-dotenv==0.21.1
 yt_dlp~=2023.7.6
 discord.py[voice]~=2.3.1
+beautifulsoup4~=4.12.2
+requests-html~=0.10.0
+rsa~=4.9
+SpeechRecognition~=3.8.1
+
