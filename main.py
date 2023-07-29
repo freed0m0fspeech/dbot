@@ -6,9 +6,8 @@ from dotenv import load_dotenv
 from plugins.Bots.DiscordBot.bot import DiscordBot
 from plugins.Web.server import WebServer
 from plugins.DataBase.mongo import MongoDataBase
-# from utils import dataBases, discordBot
 
-# load_dotenv()
+load_dotenv()
 
 
 async def main():

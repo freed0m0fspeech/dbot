@@ -1,30 +1,9 @@
-import asyncio
-from datetime import datetime
-import gettext
-import math
-import os
-import random
-from typing import Union
-
 import discord.ext.commands
 import pytz
-import speech_recognition
-import time
-
-import tzlocal
-# import youtube_dl
-import yt_dlp
-
-from datetime import timedelta
-
-from discord import app_commands
-from pytz import utc
-
 import utils
-from plugins.Bots.DiscordBot.commands import DiscordBotCommand
-from plugins.Helpers import youtube_dl, media_convertor
+
+from datetime import datetime
 from plugins.DataBase.mongo import MongoDataBase
-from discord.ext import commands
 from version import __version__
 from utils import *
 

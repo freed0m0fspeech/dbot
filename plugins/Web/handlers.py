@@ -1,16 +1,10 @@
 """
 WebServerHandler plugin to work with Handler
 """
-import asyncio
 import json
 import os
-import textwrap
-import rsa
-import discord
 
-from discord.ext.commands import command
 from json import dumps, JSONDecodeError
-from math import sqrt
 from bson import json_util
 from dotenv import load_dotenv
 from aiohttp.web import Response, Request, json_response

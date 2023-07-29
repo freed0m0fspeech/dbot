@@ -23,4 +23,4 @@ beautifulsoup4~=4.12.2
 requests-html~=0.10.0
 rsa~=4.9
 SpeechRecognition~=3.8.1
-
+pytz~=2021.1
