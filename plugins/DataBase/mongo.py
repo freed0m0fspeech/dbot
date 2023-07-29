@@ -1,7 +1,7 @@
 """
 MongoDataBase plugin to work with MongoDataBase
 """
-from pymongo import MongoClient, errors, ReturnDocument
+from pymongo import MongoClient, errors, ReturnDocument, ReadPreference
 from pymongo.server_api import ServerApi
 from pymongo.cursor import Cursor
 from urllib.parse import quote_plus
@@ -37,17 +37,22 @@ class MongoDataBase:
         # mdb_client = pymongo.MongoClient(
         #    f"mongodb+srv://{user}:{passwd}@botcluster.iy7wi.mongodb.net/AiogramBot?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE")
         try:
-            mdb_client = MongoClient(uri, server_api=ServerApi('1'))
+            mdb_client = MongoClient(uri, server_api=ServerApi('1'), read_preference=ReadPreference.NEAREST)
+            # print(mdb_client.admin.command('replSetGetStatus'))
 
             # The ping command is cheap and does not require auth.
             mdb_client.admin.command('ping')
             # print("You successfully connected to MongoDB!")
             self.client = mdb_client
+
+            if not self.client.is_primary:
+                return False
+
             return True
         except Exception as e:
             print(e)
-            # print(e)
             self.client = None
+
             return False
             # return None
         # except errors.ConnectionFailure:
@@ -61,11 +66,15 @@ class MongoDataBase:
 
     def check_connection(self):
         if not self.client:
-            if not self.client.get_connection():
+            if not self.get_connection():
                 return False
         else:
             try:
                 self.client.admin.command('ping')
+
+                if not self.client.is_primary:
+                    return False
+
             except Exception as e:
                 return False
 

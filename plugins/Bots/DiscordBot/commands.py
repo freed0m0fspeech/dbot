@@ -144,6 +144,9 @@ class DiscordBotCommand:
                 document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
                                                            filter=filter)
 
+                if not document:
+                    return await webhook.send(f"Something wrong with DataBase")
+
                 owner = document.get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
                                                                                                              {})
 
@@ -161,6 +164,8 @@ class DiscordBotCommand:
 
                     else:
                         await webhook.send('You are not voice channel owner')
+                else:
+                    await webhook.send('No information about voice channel owner found')
             else:
                 await webhook.send('You are not in voice channel')
         except Exception as e:
@@ -189,6 +194,9 @@ class DiscordBotCommand:
                 document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
                                                            filter=filter)
 
+                if not document:
+                    return await webhook.send(f"Something wrong with DataBase")
+
                 owner = document.get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
                                                                                                              {})
 
@@ -207,6 +215,8 @@ class DiscordBotCommand:
 
                     else:
                         await webhook.send('You are not voice channel owner')
+                else:
+                    await webhook.send('No information about voice channel owner found')
             else:
                 await webhook.send('You are not in voice channel')
         except Exception as e:
@@ -235,6 +245,9 @@ class DiscordBotCommand:
                 document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
                                                            filter=filter)
 
+                if not document:
+                    return await webhook.send(f"Something wrong with DataBase")
+
                 owner = document.get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
                                                                                                              {})
 
@@ -253,6 +266,8 @@ class DiscordBotCommand:
                             await webhook.send('Member is not in voice channel')
                     else:
                         await webhook.send('You are not voice channel owner')
+                else:
+                    await webhook.send('No information about voice channel owner found')
             else:
                 await webhook.send('You are not in voice channel')
         except Exception as e:
@@ -281,6 +296,9 @@ class DiscordBotCommand:
                 document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
                                                            filter=filter)
 
+                if not document:
+                    return await webhook.send(f"Something wrong with DataBase")
+
                 owner = document.get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
                                                                                                              {})
 
@@ -299,6 +317,8 @@ class DiscordBotCommand:
 
                     else:
                         await webhook.send('You are not voice channel owner')
+                else:
+                    await webhook.send('No information about voice channel owner found')
             else:
                 await webhook.send('You are not in voice channel')
         except Exception as e:
@@ -327,6 +347,9 @@ class DiscordBotCommand:
                 document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
                                                            filter=filter)
 
+                if not document:
+                    return await webhook.send(f"Something wrong with DataBase")
+
                 owner = document.get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
                                                                                                              {})
 
@@ -336,6 +359,8 @@ class DiscordBotCommand:
                         await webhook.send(f'Voice channel {voice_channel.mention} renamed')
                     else:
                         await webhook.send('You are not voice channel owner')
+                else:
+                    await webhook.send('No information about voice channel owner found')
             else:
                 await webhook.send('You are not in voice channel')
         except Exception as e:
@@ -367,6 +392,9 @@ class DiscordBotCommand:
             filter = {'id': guild.id}
             document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
                                                        filter=filter)
+
+            if not document:
+                return await webhook.send(f"Something wrong with DataBase")
 
             temporary_channel = document.get('temporary', {}).get('inits', {}).get(f'{voice_channel.id}', {})
 
@@ -414,6 +442,9 @@ class DiscordBotCommand:
                 document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
                                                            filter=filter)
 
+                if not document:
+                    return await webhook.send(f"Something wrong with DataBase")
+
                 owner = document.get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
                                                                                                              {})
 
@@ -435,6 +466,8 @@ class DiscordBotCommand:
                             await webhook.send('You are not voice channel owner')
                     else:
                         await webhook.send(f"Owner of the {voice_channel.mention} is <@{owner.get('id', '')}>")
+                else:
+                    await webhook.send('No information about voice channel owner found')
             else:
                 await webhook.send('You are not in voice channel')
         except Exception as e:

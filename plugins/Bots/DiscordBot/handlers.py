@@ -166,10 +166,10 @@ class DiscordBotHandler:
                 guild = None
 
         await self.discordBot.set_default_commands(guild=guild)
-        # await self.discordBot.clear_default_commands()
+        # await self.discordBot.clear_default_commands(guild=guild)
 
         status = discord.Status.online
-        updated = datetime.now(tz=pytz.timezone('Europe/Kiev')).strftime('%H:%M:%S | %D')
-        activity = discord.Game(name=f"v{__version__} {updated}")
+        updated = datetime.now(tz=pytz.timezone('Europe/Kiev')).strftime('%H:%M:%S | %d/%m/%y')
+        activity = discord.Game(name=f"v{__version__} | {updated}")
 
         await self.discordBot.client.change_presence(status=status, activity=activity)
