@@ -149,7 +149,7 @@ class MongoDataBase:
                 return {}
 
             return collection.find_one_and_update(filter=filter, update=update, return_document=return_document,
-                                                  upsert=upsert, returnNewDocument=True)
+                                                  upsert=upsert)
 
         except Exception as e:
             return None
