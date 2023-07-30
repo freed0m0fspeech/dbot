@@ -82,7 +82,7 @@ class DiscordBotHandler:
                     category = voice_channel.category
 
                     if category:
-                        voice_channel = await category.create_voice_channel(name=f'voice-{member.name}', position=voice_channel.position, permissions_synced=True)
+                        voice_channel = await category.create_voice_channel(name=f'voice-{member.name}', position=voice_channel.position)
                     else:
                         voice_channel = await guild.create_voice_channel(name=f'voice-{member.name}', position=voice_channel.position)
 

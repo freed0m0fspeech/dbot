@@ -384,7 +384,7 @@ class DiscordBotCommand:
                 category = interaction.channel.category
 
                 if category:
-                    voice_channel = await category.create_voice_channel(name='JOIN to CREATE', permissions_synced=True)
+                    voice_channel = await category.create_voice_channel(name='JOIN to CREATE')
                 else:
                     voice_channel = await guild.create_voice_channel(name='JOIN to CREATE')
 
