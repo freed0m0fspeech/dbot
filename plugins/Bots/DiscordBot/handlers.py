@@ -82,9 +82,9 @@ class DiscordBotHandler:
                     category = voice_channel.category
 
                     if category:
-                        voice_channel = await category.create_voice_channel(name=f'voice-{member.name}', position=voice_channel.position)
+                        voice_channel = await category.create_voice_channel(name=f'@{member.name}', position=voice_channel.position)
                     else:
-                        voice_channel = await guild.create_voice_channel(name=f'voice-{member.name}', position=voice_channel.position)
+                        voice_channel = await guild.create_voice_channel(name=f'@{member.name}', position=voice_channel.position)
 
                     await voice_channel.set_permissions(member, overwrite=utils.default_role)
                     await member.move_to(channel=voice_channel)
@@ -138,7 +138,7 @@ class DiscordBotHandler:
                                 return
 
                             await voice_channel.set_permissions(new_owner, overwrite=utils.default_role)
-                            await voice_channel.edit(name=f'voice-{new_owner.name}')
+                            await voice_channel.edit(name=f'@{new_owner.name}')
 
                             query = {f'temporary.channels.{voice_channel.id}.owner.id': new_owner.id}
                             filter = {'id': guild.id}

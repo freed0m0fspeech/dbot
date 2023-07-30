@@ -324,7 +324,7 @@ class DiscordBotCommand:
         except Exception as e:
             return await webhook.send(str(e))
 
-    async def voice_rename(self, interaction: discord.Interaction, text: str):
+    async def voice_name(self, interaction: discord.Interaction, text: str):
         response = interaction.response
         response: discord.InteractionResponse
         await response.defer(ephemeral=True)  # ephemeral - only you can see this
@@ -355,7 +355,7 @@ class DiscordBotCommand:
 
                 if owner:
                     if owner.get('id', '') == user.id:
-                        await voice_channel.edit(name=f'voice-{text}')
+                        await voice_channel.edit(name=f'{text}')
                         await webhook.send(f'Voice channel {voice_channel.mention} renamed')
                     else:
                         await webhook.send('You are not voice channel owner')
@@ -452,7 +452,7 @@ class DiscordBotCommand:
                     if member is not None:
                         if owner.get('id', '') == user.id:
                             await voice_channel.set_permissions(member, overwrite=utils.default_role)
-                            await voice_channel.edit(name=f'voice-{member.name}')
+                            await voice_channel.edit(name=f'@{member.name}')
 
                             query = {f'temporary.channels.{voice_channel.id}.owner.id': member.id}
                             filter = {'id': guild.id}
