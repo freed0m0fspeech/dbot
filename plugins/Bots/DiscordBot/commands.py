@@ -452,6 +452,7 @@ class DiscordBotCommand:
                     if member is not None:
                         if owner.get('id', '') == user.id:
                             await voice_channel.set_permissions(member, overwrite=utils.default_role)
+                            await voice_channel.edit(name=f'voice-{member.name}')
 
                             query = {f'temporary.channels.{voice_channel.id}.owner.id': member.id}
                             filter = {'id': guild.id}

@@ -138,6 +138,7 @@ class DiscordBotHandler:
                                 return
 
                             await voice_channel.set_permissions(new_owner, overwrite=utils.default_role)
+                            await voice_channel.edit(name=f'voice-{new_owner.name}')
 
                             query = {f'temporary.channels.{voice_channel.id}.owner.id': new_owner.id}
                             filter = {'id': guild.id}
@@ -145,6 +146,7 @@ class DiscordBotHandler:
                             if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set',
                                                             query=query, filter=filter) is None:
                                 print('New owner not added to DataBase')
+
         except Exception as e:
             print(e)
 
