@@ -384,9 +384,9 @@ class DiscordBotCommand:
                 category = interaction.channel.category
 
                 if category:
-                    voice_channel = await category.create_voice_channel('JOIN to CREATE voice channel')
+                    voice_channel = await category.create_voice_channel(name='JOIN to CREATE', permissions_synced=True)
                 else:
-                    voice_channel = await guild.create_voice_channel('JOIN to CREATE voice channel')
+                    voice_channel = await guild.create_voice_channel(name='JOIN to CREATE')
 
             query = {'_id': 0, 'temporary': 1}
             filter = {'id': guild.id}

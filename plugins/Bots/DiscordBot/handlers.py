@@ -74,17 +74,17 @@ class DiscordBotHandler:
                 init_channel = document.get('temporary', {}).get('inits', {}).get(f'{voice_channel.id}', '')
 
                 if init_channel:
-                    overwrites = {
-                        guild.default_role: utils.default_role,
-                        guild.me: utils.owner_role,
-                    }
+                    # overwrites = {
+                    #     guild.default_role: utils.default_role,
+                    #     guild.me: utils.owner_role,
+                    # }
 
                     category = voice_channel.category
 
                     if category:
-                        voice_channel = await category.create_voice_channel(f'voice-{member.name}', overwrites=overwrites, position=voice_channel.position)
+                        voice_channel = await category.create_voice_channel(name=f'voice-{member.name}', position=voice_channel.position, permissions_synced=True)
                     else:
-                        voice_channel = await guild.create_voice_channel(f'voice-{member.name}', overwrites=overwrites, position=voice_channel.position)
+                        voice_channel = await guild.create_voice_channel(name=f'voice-{member.name}', position=voice_channel.position)
 
                     await voice_channel.set_permissions(member, overwrite=utils.default_role)
                     await member.move_to(channel=voice_channel)
