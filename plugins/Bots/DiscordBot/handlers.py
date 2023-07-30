@@ -139,7 +139,7 @@ class DiscordBotHandler:
 
                             await voice_channel.set_permissions(new_owner, overwrite=utils.default_role)
 
-                            query = {f'temporary.channels.$.owner.id': new_owner.id}
+                            query = {f'temporary.channels.{voice_channel.id}.owner.id': new_owner.id}
                             filter = {'id': guild.id}
 
                             if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set',
