@@ -37,7 +37,7 @@ class MongoDataBase:
         # mdb_client = pymongo.MongoClient(
         #    f"mongodb+srv://{user}:{passwd}@botcluster.iy7wi.mongodb.net/AiogramBot?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE")
         try:
-            self.client = MongoClient(uri, server_api=ServerApi('1'), read_preference=ReadPreference.NEAREST)
+            self.client = MongoClient(uri, server_api=ServerApi('1'), read_preference=ReadPreference.NEAREST, serverSelectionTimeoutMS=3000)
             # print(mdb_client.admin.command('replSetGetStatus'))
 
             # The ping command is cheap and does not require auth.
