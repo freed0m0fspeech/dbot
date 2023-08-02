@@ -71,6 +71,9 @@ class DiscordBotHandler:
                 filter = {'id': guild.id}
                 document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query, filter=filter)
 
+                if not document:
+                    return
+
                 init_channel = document.get('temporary', {}).get('inits', {}).get(f'{voice_channel.id}', '')
 
                 if init_channel:
@@ -78,6 +81,9 @@ class DiscordBotHandler:
                     #     guild.default_role: utils.default_role,
                     #     guild.me: utils.owner_role,
                     # }
+
+                    if not self.mongoDataBase.check_connection():
+                        return
 
                     category = voice_channel.category
 
@@ -89,12 +95,11 @@ class DiscordBotHandler:
                     await voice_channel.set_permissions(member, overwrite=utils.default_role)
                     await member.move_to(channel=voice_channel)
 
-                    if voice_channel:
-                        query = {f'temporary.channels.{voice_channel.id}.owner': {'id': member.id}}
-                        filter = {'id': guild.id}
+                    query = {f'temporary.channels.{voice_channel.id}.owner': {'id': member.id}}
+                    filter = {'id': guild.id}
 
-                        if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set', query=query, filter=filter) is None:
-                            print('Created voice channel not added to DataBase')
+                    if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set', query=query, filter=filter) is None:
+                        print('Created voice channel not added to DataBase')
 
             if before.channel:
                 # User moved or leaves voice channel
@@ -107,10 +112,16 @@ class DiscordBotHandler:
                 filter = {'id': guild.id}
                 document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query, filter=filter)
 
+                if not document:
+                    return
+
                 temporary_channel = document.get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', '')
 
                 if temporary_channel:
                     if len(members) == 0:
+                        if not self.mongoDataBase.check_connection():
+                            return
+
                         # Leaves last member in voice channel
                         await voice_channel.delete()
 
@@ -135,6 +146,9 @@ class DiscordBotHandler:
                                     new_owner = tmember
 
                             if not new_owner:
+                                return
+
+                            if not self.mongoDataBase.check_connection():
                                 return
 
                             await voice_channel.set_permissions(new_owner, overwrite=utils.default_role)
