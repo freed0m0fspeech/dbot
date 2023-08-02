@@ -37,13 +37,13 @@ class MongoDataBase:
         # mdb_client = pymongo.MongoClient(
         #    f"mongodb+srv://{user}:{passwd}@botcluster.iy7wi.mongodb.net/AiogramBot?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE")
         try:
-            mdb_client = MongoClient(uri, server_api=ServerApi('1'), read_preference=ReadPreference.NEAREST)
+            self.client = MongoClient(uri, server_api=ServerApi('1'), read_preference=ReadPreference.NEAREST)
             # print(mdb_client.admin.command('replSetGetStatus'))
 
             # The ping command is cheap and does not require auth.
-            mdb_client.admin.command('ping')
+            self.client.admin.command('ping')
             # print("You successfully connected to MongoDB!")
-            self.client = mdb_client
+            #self.client = mdb_client
 
             if not self.client.is_primary:
                 return False
@@ -51,7 +51,7 @@ class MongoDataBase:
             return True
         except Exception as e:
             print(e)
-            self.client = None
+            #self.client = None
 
             return False
             # return None
