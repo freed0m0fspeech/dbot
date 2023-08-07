@@ -204,6 +204,9 @@ class WebServerHandler:
             site_document = self.mongoDataBase.get_document(database_name='site', collection_name='freedom_of_speech',
                                                             query=query)
 
+            if not site_document:
+                Response(status=500)
+
             after = site_document.get('discord', {}).get('guild_parameters', {}).get('date', None)
             after = datetime.strptime(after, '%Y-%m-%d %H:%M:%S')
 
@@ -213,8 +216,12 @@ class WebServerHandler:
 
             for text_channel in guild.text_channels:
                 text_channel: discord.TextChannel
-                async for message in text_channel.history(limit=None, after=after):
-                    messages_count[f'{message.author.id}'] += 1
+                # Max 1000 messages to fetch per channel
+                async for message in text_channel.history(limit=1000, after=after):
+                    try:
+                        messages_count[f'{message.author.id}'] += 1
+                    except KeyError:
+                        messages_count[f'{message.author.id}'] = 1
 
             date = datetime.now(tz=utc)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -240,6 +247,9 @@ class WebServerHandler:
         query = {'_id': 0, 'members': 1, 'xp': 1}
         dbot_document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds',
                                                         filter={'id': guild.id}, query=query)
+
+        if not dbot_document:
+            Response(status=500)
 
         message_xp = dbot_document.get('xp', {}).get('message_xp', 100)
         voice_xp = dbot_document.get('xp', {}).get('voice_xp', 50)

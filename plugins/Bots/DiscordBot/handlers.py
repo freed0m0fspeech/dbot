@@ -67,7 +67,7 @@ class DiscordBotHandler:
                 guild = voice_channel.guild
 
                 # Get data from database
-                query = {'_id': 0, 'temporary': 1}
+                query = {'_id': 0, 'temporary': 1, 'members': 1}
                 filter = {'id': guild.id}
                 document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query, filter=filter)
 
@@ -101,6 +101,15 @@ class DiscordBotHandler:
                     if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set', query=query, filter=filter) is None:
                         print('Created voice channel not added to DataBase')
 
+                    date = datetime.now(tz=pytz.utc)
+                    date = date.strftime('%Y-%m-%d %H:%M:%S')
+
+                    query = {f'members.{member.id}.stats.joined': date}
+                    filter = {'id': guild.id}
+
+                    if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set', query=query, filter=filter) is None:
+                        print('Not updated joined value of member in DataBase')
+
             if before.channel:
                 # User moved or leaves voice channel
                 voice_channel = before.channel
@@ -108,12 +117,24 @@ class DiscordBotHandler:
                 guild = voice_channel.guild
 
                 # Get data from database
-                query = {'_id': 0, 'temporary': 1}
+                query = {'_id': 0, 'temporary': 1, 'members': 1}
                 filter = {'id': guild.id}
                 document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query, filter=filter)
 
                 if not document:
                     return
+
+                joined = document.get('members', {}).get('stats', {}).get('joined', '')
+
+                if joined:
+                    voicetime = (datetime.now(tz=pytz.utc).replace(tzinfo=None) - datetime.strptime(joined,
+                                                                                                    '%Y-%m-%d %H:%M:%S')).seconds
+
+                    query = {f'members.{member.id}.stats.voicetime': voicetime}
+                    filter = {'id': guild.id}
+
+                    if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$inc', filter=filter, query=query) is None:
+                        print('Not updated voicetime of member in DataBase')
 
                 temporary_channel = document.get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', '')
 
