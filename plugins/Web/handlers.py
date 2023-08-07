@@ -271,8 +271,8 @@ class WebServerHandler:
                     pass
 
             voicetime = dbot_document.get('members', {}).get(f'{member.id}', {}).get('stats', {}).get('voicetime', 0)
-
-            xp = (messages_count.get(f'{member.id}', 0) * message_xp) + ((voicetime // 60) * voice_xp)
+            messages_count = messages_count.get(f'{member.id}', 0)
+            xp = (messages_count * message_xp) + ((voicetime // 60) * voice_xp)
 
             date = datetime.now(tz=utc)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -280,6 +280,7 @@ class WebServerHandler:
             member_parameters['date'] = date
             member_parameters['voicetime'] = voicetime
             member_parameters['xp'] = xp
+            members_parameters['messages_count'] = messages_count
 
             members_parameters[f'{member.id}'] = member_parameters
 
