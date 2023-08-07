@@ -3,11 +3,16 @@ WebServerHandler plugin to work with Handler
 """
 import json
 import os
+from datetime import datetime
 
 from json import dumps, JSONDecodeError
+
+import discord
 from bson import json_util
 from dotenv import load_dotenv
 from aiohttp.web import Response, Request, json_response
+from pytz import utc
+
 from plugins.Bots.DiscordBot.handlers import DiscordBotHandler
 
 load_dotenv()
@@ -74,7 +79,7 @@ class WebServerHandler:
             guild = self.discordBot.client.get_guild(guild_id)
         except Exception as e:
             print(e)
-            guild = None
+            return Response(status=422)
 
         if not guild or not guild_id or not channel_id:
             return Response(status=422)
@@ -101,16 +106,19 @@ class WebServerHandler:
             return Response(status=403)
 
         try:
-            member = self.discordBot.client.get_guild(guild_id).get_member(member_id)
+            guild = self.discordBot.client.get_guild(guild_id)
+            member = guild.get_member(member_id)
+
+            date = datetime.now(tz=utc)
+            date = date.strftime('%Y-%m-%d %H:%M:%S')
         except Exception as e:
             print(e)
-            member = None
+            return Response(status=500)
 
-        if not member or not member_id or not guild_id:
+        if not member or not member_id or not guild_id or not guild:
             return Response(status=422)
 
         member_parameters = {}
-
         for attr in [attr for attr in dir(member) if not attr.startswith('_')]:
             value = getattr(member, attr)
 
@@ -119,6 +127,8 @@ class WebServerHandler:
             except Exception as e:
                 # Not serializable
                 pass
+
+        member_parameters['date'] = date
 
         response = {
             'member_parameters': member_parameters,
@@ -134,6 +144,9 @@ class WebServerHandler:
 
         try:
             data = await request.json()
+
+            date = datetime.now(tz=utc)
+            date = date.strftime('%Y-%m-%d %H:%M:%S')
         except JSONDecodeError:
             return Response(status=500)
 
@@ -144,7 +157,7 @@ class WebServerHandler:
             user = self.discordBot.client.get_user(user_id)
         except Exception as e:
             print(e)
-            user = None
+            return Response(status=500)
 
         if not user or not user_id:
             return Response(status=422)
@@ -159,6 +172,8 @@ class WebServerHandler:
             except Exception as e:
                 # Not serializable
                 pass
+
+        user_parameters['date'] = date
 
         response = {
             'user_parameters': user_parameters,
@@ -182,15 +197,32 @@ class WebServerHandler:
 
         try:
             guild = self.discordBot.client.get_guild(guild_id)
+
+            query = {'_id': 0, 'discord': 1}
+            site_document = self.mongoDataBase.get_document(database_name='site', collection_name='freedom_of_speech',
+                                                            query=query)
+
+            after = site_document.get('discord', {}).get('guild_parameters', {}).get('date', None)
+
+            messages_count = {}
+            for member in site_document.get('discord', {}).get('members_parameters', {}):
+                messages_count[member] = site_document.get(member, {}).get('messages_count', 0)
+
+            for text_channel in guild.text_channels:
+                text_channel: discord.TextChannel
+                async for message in text_channel.history(after=after):
+                    messages_count[message.author.id] += 1
+
+            date = datetime.now(tz=utc)
+            date = date.strftime('%Y-%m-%d %H:%M:%S')
         except Exception as e:
             print(e)
-            guild = None
+            return Response(status=500)
 
         if not guild or not guild_id:
             return Response(status=422)
 
         guild_parameters = {}
-
         for attr in [attr for attr in dir(guild) if not attr.startswith('_')]:
             value = getattr(guild, attr)
 
@@ -200,8 +232,64 @@ class WebServerHandler:
                 # Not serializable
                 pass
 
+        guild_parameters['date'] = date
+
+        query = {'_id': 0, 'members': 1, 'xp': 1}
+        dbot_document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds',
+                                                   filter={'id': guild.id}, query=query)
+
+        message_xp = dbot_document.get('xp', {}).get('message_xp', 100)
+        voice_xp = dbot_document.get('xp', {}).get('voice_xp', 50)
+        xp_factor = dbot_document.get('xp', {}).get('xp_factor', 100)  # threshold
+
+        guild_parameters['message_xp'] = message_xp
+        guild_parameters['voice_xp'] = voice_xp
+        guild_parameters['xp_factor'] = xp_factor
+
+        members_parameters = {}
+        for member in guild.members:
+            member_parameters = {}
+            for attr in [attr for attr in dir(member) if not attr.startswith('_')]:
+                value = getattr(member, attr)
+
+                try:
+                    member_parameters[attr] = json.dumps(value, default=json_util.default)
+                except Exception as e:
+                    # Not serializable
+                    pass
+
+            voicetime = dbot_document.get('members', {}).get(f'{member.id}', {}).get('stats', {}).get('voicetime', 0)
+
+            xp = (messages_count.get(member.id) * message_xp) + ((voicetime // 60) * voice_xp)
+
+            date = datetime.now(tz=utc)
+            date = date.strftime('%Y-%m-%d %H:%M:%S')
+
+            member_parameters['date'] = date
+            member_parameters['voicetime'] = voicetime
+            member_parameters['xp'] = xp
+
+            members_parameters[member.id] = member_parameters
+
+        stats = []
+
+        for member_id, parameters in members_parameters.items():
+            stat = (member_id, parameters.get('xp', 0))
+            stats.append(stat)
+
+        # Sort members by xp
+        stats.sort(reverse=True, key=lambda x: x[1])
+
+        i = 0
+        for stat in stats:
+            i += 1
+            # Position for member in chat by xp
+            member_id = stat[0]
+            members_parameters[member_id]['position'] = i
+
         response = {
             'guild_parameters': guild_parameters,
+            'members_parameters': members_parameters,
         }
 
         return json_response(response)
