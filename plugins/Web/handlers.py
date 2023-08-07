@@ -44,10 +44,10 @@ class WebServerHandler:
         self.webServer.client.router.add_route('GET', '/', self.__default_handler)
         self.webServer.client.router.add_route('POST', '/', self.__default_handler)
         self.webServer.client.router.add_route('GET', '/member/{guild_id:[^\\/]+}/{member_id:[^\\/]+}', self.__member_parameters_handler)
-        self.webServer.client.router.add_route('GET', '/user_id/{user_id:[^\\/]+}', self.__user_parameters_handler)
-        self.webServer.client.router.add_route('GET', '/guild_id/{guild_id:[^\\/]+}', self.__guild_parameters_handler)
+        self.webServer.client.router.add_route('GET', '/user/{user_id:[^\\/]+}', self.__user_parameters_handler)
+        self.webServer.client.router.add_route('GET', '/guild/{guild_id:[^\\/]+}', self.__guild_parameters_handler)
         self.webServer.client.router.add_route('POST', '/send/{guild_id:[^\\/]+}/{channel_id:[^\\/]+}', self.__send_message_handler)
-        self.webServer.client.router.add_route('POST', '/manage/{guild_id:[^\\/]+}/{user:[^\\/]+}', self.__manage_guild_handler)
+        self.webServer.client.router.add_route('POST', '/manage/{guild_id:[^\\/]+}/{member_id:[^\\/]+}', self.__manage_guild_handler)
 
     # Discord ----------------------------------------------------------------------------------------------------------
     def __register_handlers_discordmBot(self):
