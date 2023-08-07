@@ -136,6 +136,12 @@ class DiscordBotHandler:
                     if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$inc', filter=filter, query=query) is None:
                         print('Not updated voicetime of member in DataBase')
 
+                    query = {f'members.{member.id}.stats.joined': ''}
+                    filter = {'id': guild.id}
+
+                    if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$unset', filter=filter, query=query) is None:
+                        print('Not updated joined of member in DataBase')
+
                 temporary_channel = document.get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', '')
 
                 if temporary_channel:
