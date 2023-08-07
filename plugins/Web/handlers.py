@@ -32,7 +32,8 @@ class WebServerHandler:
 
         if webServer.discordBot:
             self.discordBot = webServer.discordBot
-            self.discordBotHandler = DiscordBotHandler(webSerber=self.webServer, discordBot=self.discordBot, mongoDataBase=self.mongoDataBase)
+            self.discordBotHandler = DiscordBotHandler(webSerber=self.webServer, discordBot=self.discordBot,
+                                                       mongoDataBase=self.mongoDataBase)
             # self.__register_handlers_discordmBot()
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -43,11 +44,14 @@ class WebServerHandler:
     def __register_routes(self):
         self.webServer.client.router.add_route('GET', '/', self.__default_handler)
         self.webServer.client.router.add_route('POST', '/', self.__default_handler)
-        self.webServer.client.router.add_route('GET', '/member/{guild_id:[^\\/]+}/{member_id:[^\\/]+}', self.__member_parameters_handler)
+        self.webServer.client.router.add_route('GET', '/member/{guild_id:[^\\/]+}/{member_id:[^\\/]+}',
+                                               self.__member_parameters_handler)
         self.webServer.client.router.add_route('GET', '/user/{user_id:[^\\/]+}', self.__user_parameters_handler)
         self.webServer.client.router.add_route('GET', '/guild/{guild_id:[^\\/]+}', self.__guild_parameters_handler)
-        self.webServer.client.router.add_route('POST', '/send/{guild_id:[^\\/]+}/{channel_id:[^\\/]+}', self.__send_message_handler)
-        self.webServer.client.router.add_route('POST', '/manage/{guild_id:[^\\/]+}/{member_id:[^\\/]+}', self.__manage_guild_handler)
+        self.webServer.client.router.add_route('POST', '/send/{guild_id:[^\\/]+}/{channel_id:[^\\/]+}',
+                                               self.__send_message_handler)
+        self.webServer.client.router.add_route('POST', '/manage/{guild_id:[^\\/]+}/{member_id:[^\\/]+}',
+                                               self.__manage_guild_handler)
 
     # Discord ----------------------------------------------------------------------------------------------------------
     def __register_handlers_discordmBot(self):
@@ -195,7 +199,6 @@ class WebServerHandler:
 
         try:
             guild = self.discordBot.client.get_guild(int(guild_id))
-            print(guild)
 
             query = {'_id': 0, 'discord': 1}
             site_document = self.mongoDataBase.get_document(database_name='site', collection_name='freedom_of_speech',
@@ -211,17 +214,13 @@ class WebServerHandler:
             for text_channel in guild.text_channels:
                 text_channel: discord.TextChannel
                 async for message in text_channel.history(limit=None, after=after):
-                    try:
-                        messages_count[message.author.id] += 1
-                    except KeyError:
-                        messages_count[message.author.id] = 1
+                    messages_count[f'{message.author.id}'] += 1
 
             date = datetime.now(tz=utc)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
         except Exception as e:
             print(e)
             return Response(status=500)
-
 
         if not guild or not guild_id:
             return Response(status=422)
@@ -240,7 +239,7 @@ class WebServerHandler:
 
         query = {'_id': 0, 'members': 1, 'xp': 1}
         dbot_document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds',
-                                                   filter={'id': guild.id}, query=query)
+                                                        filter={'id': guild.id}, query=query)
 
         message_xp = dbot_document.get('xp', {}).get('message_xp', 100)
         voice_xp = dbot_document.get('xp', {}).get('voice_xp', 50)
@@ -263,7 +262,7 @@ class WebServerHandler:
 
             voicetime = dbot_document.get('members', {}).get(f'{member.id}', {}).get('stats', {}).get('voicetime', 0)
 
-            xp = (messages_count.get(member.id, 0) * message_xp) + ((voicetime // 60) * voice_xp)
+            xp = (messages_count.get(f'{member.id}', 0) * message_xp) + ((voicetime // 60) * voice_xp)
 
             date = datetime.now(tz=utc)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -272,7 +271,7 @@ class WebServerHandler:
             member_parameters['voicetime'] = voicetime
             member_parameters['xp'] = xp
 
-            members_parameters[member.id] = member_parameters
+            members_parameters[f'{member.id}'] = member_parameters
 
         stats = []
 
