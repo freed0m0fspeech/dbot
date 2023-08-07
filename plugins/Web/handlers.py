@@ -76,7 +76,7 @@ class WebServerHandler:
             return Response(status=403)
 
         try:
-            guild = self.discordBot.client.get_guild(guild_id)
+            guild = self.discordBot.client.get_guild(int(guild_id))
         except Exception as e:
             print(e)
             return Response(status=422)
@@ -86,7 +86,7 @@ class WebServerHandler:
 
         text = data.get('text', '')
         if text:
-            await guild.get_channel(channel_id).send(text)
+            await guild.get_channel(int(channel_id)).send(text)
 
         return Response()
 
@@ -106,8 +106,8 @@ class WebServerHandler:
             return Response(status=403)
 
         try:
-            guild = self.discordBot.client.get_guild(guild_id)
-            member = guild.get_member(member_id)
+            guild = self.discordBot.client.get_guild(int(guild_id))
+            member = guild.get_member(int(member_id))
 
             date = datetime.now(tz=utc)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -120,9 +120,8 @@ class WebServerHandler:
 
         member_parameters = {}
         for attr in [attr for attr in dir(member) if not attr.startswith('_')]:
-            value = getattr(member, attr)
-
             try:
+                value = getattr(member, attr)
                 member_parameters[attr] = json.dumps(value, default=json_util.default)
             except Exception as e:
                 # Not serializable
@@ -154,7 +153,7 @@ class WebServerHandler:
             return Response(status=403)
 
         try:
-            user = self.discordBot.client.get_user(user_id)
+            user = self.discordBot.client.get_user(int(user_id))
         except Exception as e:
             print(e)
             return Response(status=500)
@@ -165,9 +164,8 @@ class WebServerHandler:
         user_parameters = {}
 
         for attr in [attr for attr in dir(user) if not attr.startswith('_')]:
-            value = getattr(user, attr)
-
             try:
+                value = getattr(user, attr)
                 user_parameters[attr] = json.dumps(value, default=json_util.default)
             except Exception as e:
                 # Not serializable
@@ -196,13 +194,15 @@ class WebServerHandler:
             return Response(status=403)
 
         try:
-            guild = self.discordBot.client.get_guild(guild_id)
+            guild = self.discordBot.client.get_guild(int(guild_id))
+            print(guild)
 
             query = {'_id': 0, 'discord': 1}
             site_document = self.mongoDataBase.get_document(database_name='site', collection_name='freedom_of_speech',
                                                             query=query)
 
             after = site_document.get('discord', {}).get('guild_parameters', {}).get('date', None)
+            after = datetime.strptime(after, '%Y-%m-%d %H:%M:%S')
 
             messages_count = {}
             for member in site_document.get('discord', {}).get('members_parameters', {}):
@@ -210,14 +210,18 @@ class WebServerHandler:
 
             for text_channel in guild.text_channels:
                 text_channel: discord.TextChannel
-                async for message in text_channel.history(after=after):
-                    messages_count[message.author.id] += 1
+                async for message in text_channel.history(limit=None, after=after):
+                    try:
+                        messages_count[message.author.id] += 1
+                    except KeyError:
+                        messages_count[message.author.id] = 1
 
             date = datetime.now(tz=utc)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
         except Exception as e:
             print(e)
             return Response(status=500)
+
 
         if not guild or not guild_id:
             return Response(status=422)
@@ -250,9 +254,8 @@ class WebServerHandler:
         for member in guild.members:
             member_parameters = {}
             for attr in [attr for attr in dir(member) if not attr.startswith('_')]:
-                value = getattr(member, attr)
-
                 try:
+                    value = getattr(member, attr)
                     member_parameters[attr] = json.dumps(value, default=json_util.default)
                 except Exception as e:
                     # Not serializable
@@ -260,7 +263,7 @@ class WebServerHandler:
 
             voicetime = dbot_document.get('members', {}).get(f'{member.id}', {}).get('stats', {}).get('voicetime', 0)
 
-            xp = (messages_count.get(member.id) * message_xp) + ((voicetime // 60) * voice_xp)
+            xp = (messages_count.get(member.id, 0) * message_xp) + ((voicetime // 60) * voice_xp)
 
             date = datetime.now(tz=utc)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -316,8 +319,8 @@ class WebServerHandler:
             return Response(status=422)
 
         try:
-            guild = self.discordBot.client.get_guild(guild_id)
-            member = guild.get_member(member_id)
+            guild = self.discordBot.client.get_guild(int(guild_id))
+            member = guild.get_member(int(member_id))
         except Exception as e:
             member = None
             guild = None
