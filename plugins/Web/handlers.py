@@ -280,7 +280,7 @@ class WebServerHandler:
             member_parameters['date'] = date
             member_parameters['voicetime'] = voicetime
             member_parameters['xp'] = xp
-            members_parameters['messages_count'] = member_messages_count
+            member_parameters['messages_count'] = member_messages_count
 
             members_parameters[f'{member.id}'] = member_parameters
 
