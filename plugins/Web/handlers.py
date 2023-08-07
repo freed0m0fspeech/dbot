@@ -211,13 +211,14 @@ class WebServerHandler:
             after = datetime.strptime(after, '%Y-%m-%d %H:%M:%S')
 
             messages_count = {}
-            for member in site_document.get('discord', {}).get('members_parameters', {}):
-                messages_count[member] = site_document.get(member, {}).get('messages_count', 0)
+            discord_members_parameters = site_document.get('discord', {}).get('members_parameters', {})
+            for member in discord_members_parameters:
+                messages_count[member] = discord_members_parameters.get(member, {}).get('messages_count', 0)
 
             for text_channel in guild.text_channels:
                 text_channel: discord.TextChannel
-                # Max 1000 messages to fetch per channel
-                async for message in text_channel.history(limit=1000, after=after):
+                # Max 1000 messages to fetch per channel limit=None, no restriction to number of messages
+                async for message in text_channel.history(limit=None, after=after):
                     try:
                         messages_count[f'{message.author.id}'] += 1
                     except KeyError:
@@ -299,6 +300,11 @@ class WebServerHandler:
             # Position for member in chat by xp
             member_id = stat[0]
             members_parameters[member_id]['position'] = i
+
+        # query = {'discord.guild_parameters': guild_parameters,
+        #          'discord.members_parameters': members_parameters}
+        # self.mongoDataBase.update_field(database_name='site', collection_name='freedom_of_speech',
+        #                               action='$set', query=query)
 
         response = {
             'guild_parameters': guild_parameters,
