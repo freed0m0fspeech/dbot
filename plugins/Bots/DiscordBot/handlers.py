@@ -74,6 +74,15 @@ class DiscordBotHandler:
                 if not document:
                     return
 
+                date = datetime.now(tz=pytz.utc)
+                date = date.strftime('%Y-%m-%d %H:%M:%S')
+
+                query = {f'members.{member.id}.stats.joined': date}
+                filter = {'id': guild.id}
+
+                if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set', query=query, filter=filter) is None:
+                    print('Not updated joined value of member in DataBase')
+
                 init_channel = document.get('temporary', {}).get('inits', {}).get(f'{voice_channel.id}', '')
 
                 if init_channel:
@@ -100,15 +109,6 @@ class DiscordBotHandler:
 
                     if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set', query=query, filter=filter) is None:
                         print('Created voice channel not added to DataBase')
-
-                    date = datetime.now(tz=pytz.utc)
-                    date = date.strftime('%Y-%m-%d %H:%M:%S')
-
-                    query = {f'members.{member.id}.stats.joined': date}
-                    filter = {'id': guild.id}
-
-                    if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set', query=query, filter=filter) is None:
-                        print('Not updated joined value of member in DataBase')
 
             if before.channel:
                 # User moved or leaves voice channel
