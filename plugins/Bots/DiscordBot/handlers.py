@@ -61,55 +61,6 @@ class DiscordBotHandler:
                 # print('mute')
                 return
 
-            # User join voice channel
-            if after.channel is not None:
-                voice_channel = after.channel
-                guild = voice_channel.guild
-
-                # Get data from database
-                query = {'_id': 0, 'temporary': 1, 'members': 1}
-                filter = {'id': guild.id}
-                document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query, filter=filter)
-
-                if not document:
-                    return
-
-                date = datetime.now(tz=pytz.utc)
-                date = date.strftime('%Y-%m-%d %H:%M:%S')
-
-                query = {f'members.{member.id}.stats.joined': date}
-                filter = {'id': guild.id}
-
-                if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set', query=query, filter=filter) is None:
-                    print('Not updated joined value of member in DataBase')
-
-                init_channel = document.get('temporary', {}).get('inits', {}).get(f'{voice_channel.id}', '')
-
-                if init_channel:
-                    # overwrites = {
-                    #     guild.default_role: utils.default_role,
-                    #     guild.me: utils.owner_role,
-                    # }
-
-                    if not self.mongoDataBase.check_connection():
-                        return
-
-                    category = voice_channel.category
-
-                    if category:
-                        voice_channel = await category.create_voice_channel(name=f'@{member.name}', position=voice_channel.position)
-                    else:
-                        voice_channel = await guild.create_voice_channel(name=f'@{member.name}', position=voice_channel.position)
-
-                    await voice_channel.set_permissions(member, overwrite=utils.default_role)
-                    await member.move_to(channel=voice_channel)
-
-                    query = {f'temporary.channels.{voice_channel.id}.owner': {'id': member.id}}
-                    filter = {'id': guild.id}
-
-                    if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set', query=query, filter=filter) is None:
-                        print('Created voice channel not added to DataBase')
-
             if before.channel:
                 # User moved or leaves voice channel
                 voice_channel = before.channel
@@ -187,6 +138,56 @@ class DiscordBotHandler:
                             if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set',
                                                             query=query, filter=filter) is None:
                                 print('New owner not added to DataBase')
+
+            # User join voice channel
+            if after.channel is not None:
+                voice_channel = after.channel
+                guild = voice_channel.guild
+
+                # Get data from database
+                query = {'_id': 0, 'temporary': 1, 'members': 1}
+                filter = {'id': guild.id}
+                document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query, filter=filter)
+
+                if not document:
+                    return
+
+                init_channel = document.get('temporary', {}).get('inits', {}).get(f'{voice_channel.id}', '')
+
+                if init_channel:
+                    # overwrites = {
+                    #     guild.default_role: utils.default_role,
+                    #     guild.me: utils.owner_role,
+                    # }
+
+                    if not self.mongoDataBase.check_connection():
+                        return
+
+                    category = voice_channel.category
+
+                    if category:
+                        voice_channel = await category.create_voice_channel(name=f'@{member.name}', position=voice_channel.position)
+                    else:
+                        voice_channel = await guild.create_voice_channel(name=f'@{member.name}', position=voice_channel.position)
+
+                    await voice_channel.set_permissions(member, overwrite=utils.default_role)
+                    await member.move_to(channel=voice_channel)
+
+                    query = {f'temporary.channels.{voice_channel.id}.owner': {'id': member.id}}
+                    filter = {'id': guild.id}
+
+                    if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set', query=query, filter=filter) is None:
+                        print('Created voice channel not added to DataBase')
+                else:
+                    date = datetime.now(tz=pytz.utc)
+                    date = date.strftime('%Y-%m-%d %H:%M:%S')
+
+                    query = {f'members.{member.id}.stats.joined': date}
+                    filter = {'id': guild.id}
+
+                    if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set',
+                                                       query=query, filter=filter) is None:
+                        print('Not updated joined value of member in DataBase')
 
         except Exception as e:
             print(e)
