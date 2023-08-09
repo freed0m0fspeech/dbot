@@ -124,7 +124,7 @@ class DiscordBotHandler:
                 if not document:
                     return
 
-                joined = document.get('members', {}).get(f'{member.id}').get('stats', {}).get('joined', '')
+                joined = document.get('members', {}).get(f'{member.id}', {}).get('stats', {}).get('joined', '')
 
                 if joined:
                     voicetime = (datetime.now(tz=pytz.utc).replace(tzinfo=None) - datetime.strptime(joined,
