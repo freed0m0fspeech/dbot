@@ -1,13 +1,17 @@
+<p align="left"> 
+  <img src="https://github.com/freed0m0fspeech/dbot/actions/workflows/fly.yml/badge.svg" />
+</p>
+
 discord-bot-freed0m0fspeech
 ========================
 
 Discord bot for Freedom of speech, Python project.
 
-`Learn more about bot <https://github.com/pr0stre1/dbot/releases>`_.
+Learn more about [bot](https://github.com/pr0stre1/dbot/releases).
 
 ---------------
 
-Additional info about ``dbot``, you can find `here <https://github.com/pr0stre1/dbot/releases>`_.
+Additional info about ``dbot``, you can find [here](https://github.com/pr0stre1/dbot/releases).
 
 ---------------
 
