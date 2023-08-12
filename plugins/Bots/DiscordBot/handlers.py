@@ -1,5 +1,4 @@
 import os
-
 import discord.ext.commands
 import pytz
 import utils
@@ -217,3 +216,11 @@ class DiscordBotHandler:
         activity = discord.Game(name=f"v{__version__} | {updated}")
 
         await self.discordBot.client.change_presence(status=status, activity=activity)
+
+    async def on_message(self, message: discord.Message):
+        query = {f'members.{message.author.id}.stats.messages_count': 1}
+        filter = {'id': message.guild.id}
+
+        if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$inc', filter=filter,
+                                           query=query) is None:
+            print('Not updated messages count of member in DataBase')

@@ -200,29 +200,29 @@ class WebServerHandler:
         try:
             guild = self.discordBot.client.get_guild(int(guild_id))
 
-            query = {'_id': 0, 'discord': 1}
-            site_document = self.mongoDataBase.get_document(database_name='site', collection_name='freedom_of_speech',
-                                                            query=query)
-
-            if not site_document:
-                Response(status=500)
-
-            after = site_document.get('discord', {}).get('guild_parameters', {}).get('date', None)
-            after = datetime.strptime(after, '%Y-%m-%d %H:%M:%S')
-
-            messages_count = {}
-            discord_members_parameters = site_document.get('discord', {}).get('members_parameters', {})
-            for member in discord_members_parameters:
-                messages_count[member] = discord_members_parameters.get(member, {}).get('messages_count', 0)
-
-            for text_channel in guild.text_channels:
-                text_channel: discord.TextChannel
-                # Max 1000 messages to fetch per channel limit=None, no restriction to number of messages
-                async for message in text_channel.history(limit=None, after=after):
-                    try:
-                        messages_count[f'{message.author.id}'] += 1
-                    except KeyError:
-                        messages_count[f'{message.author.id}'] = 1
+            # query = {'_id': 0, 'discord': 1}
+            # site_document = self.mongoDataBase.get_document(database_name='site', collection_name='freedom_of_speech',
+            #                                                 query=query)
+            #
+            # if not site_document:
+            #     Response(status=500)
+            #
+            # after = site_document.get('discord', {}).get('guild_parameters', {}).get('date', None)
+            # after = datetime.strptime(after, '%Y-%m-%d %H:%M:%S')
+            #
+            # messages_count = {}
+            # discord_members_parameters = site_document.get('discord', {}).get('members_parameters', {})
+            # for member in discord_members_parameters:
+            #     messages_count[member] = discord_members_parameters.get(member, {}).get('messages_count', 0)
+            #
+            # for text_channel in guild.text_channels:
+            #     text_channel: discord.TextChannel
+            #     # Max 1000 messages to fetch per channel limit=None, no restriction to number of messages
+            #     async for message in text_channel.history(limit=None, after=after):
+            #         try:
+            #             messages_count[f'{message.author.id}'] += 1
+            #         except KeyError:
+            #             messages_count[f'{message.author.id}'] = 1
 
             date = datetime.now(tz=utc)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -272,8 +272,9 @@ class WebServerHandler:
                     pass
 
             voicetime = dbot_document.get('members', {}).get(f'{member.id}', {}).get('stats', {}).get('voicetime', 0)
-            member_messages_count = messages_count.get(f'{member.id}', 0)
-            xp = (member_messages_count * message_xp) + ((voicetime // 60) * voice_xp)
+            messages_count = dbot_document.get('members', {}).get(f'{member.id}', {}).get('stats', {}).get('messages_count', 0)
+            # member_messages_count = messages_count.get(f'{member.id}', 0)
+            xp = (messages_count * message_xp) + ((voicetime // 60) * voice_xp)
 
             date = datetime.now(tz=utc)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
@@ -281,7 +282,7 @@ class WebServerHandler:
             member_parameters['date'] = date
             member_parameters['voicetime'] = voicetime
             member_parameters['xp'] = xp
-            member_parameters['messages_count'] = member_messages_count
+            member_parameters['messages_count'] = messages_count
 
             members_parameters[f'{member.id}'] = member_parameters
 
