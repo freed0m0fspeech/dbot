@@ -21,14 +21,16 @@ Commands:
 
   * /disconnect @member- Disconnect someone from the voice channel
   * /init #voice-channel - Set/Unset/Create voice channel as init voice channel
-  * /lock - Lock/Unlock voice channel
+  * /lock - Lock/Unlock the voice channel
   * /member @member - Allow/Deny access for member to the voice channel
   * /name [text] - Change name of the voice channel
   * /owner @member - Show/Give owner of the voice channel
-  * /role @role - Allow/Deny access for role to the voice channel
+  * /role @role - Allow/Deny access for role to the voice channel 
+  * limit [int] - Change user limit of the voice channel
 
 ---------------
 
 Functionality:
 
   * Temporary voice channels
+  * Stats (voicetime, messages count)

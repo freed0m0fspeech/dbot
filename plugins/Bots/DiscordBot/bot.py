@@ -26,7 +26,8 @@ command_description = {
         'name': 'Change name of the voice channel',
         'member': 'Allow/Deny access for member to the voice channel',
         'role': 'Allow/Deny access for role to the voice channel',
-        'lock': 'Lock/Unlock voice channel',
+        'lock': 'Lock/Unlock the voice channel',
+        'limit': 'Change user limit of the voice channel'
     },
     'server': {
         'prefix': 'Change prefix of the server',
@@ -59,7 +60,14 @@ class DiscordBot:
     def __init__(self, intents=discord.Intents.all(), mongoDataBase=None, **options: Any):
         self.client = discord.Client(intents=intents)
         self.mongoDataBase = mongoDataBase
-        self.discordBotCommand = DiscordBotCommand(mongoDataBase=mongoDataBase)
+        self.discordBotCommand = DiscordBotCommand(self, mongoDataBase=mongoDataBase)
+
+        # Cached guilds
+        self.guilds = {}
+
+        query = {'_id': 0, 'id': 1, 'temporary': 1, 'members': 1}
+        for guild in self.mongoDataBase.get_documents(database_name='dbot', collection_name='guilds', query=query):
+            self.guilds[guild.get('id', '')] = guild
 
     async def set_default_commands(self, guild=None):
         try:

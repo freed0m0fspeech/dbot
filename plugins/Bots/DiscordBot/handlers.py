@@ -8,7 +8,6 @@ from plugins.DataBase.mongo import MongoDataBase
 from version import __version__
 from utils import *
 
-
 class DiscordBotHandler:
     """
     DiscordBot Handler
@@ -67,18 +66,19 @@ class DiscordBotHandler:
                 guild = voice_channel.guild
 
                 # Get data from database
-                query = {'_id': 0, 'temporary': 1, 'members': 1}
-                filter = {'id': guild.id}
-                document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query, filter=filter)
-
-                if not document:
+                # query = {'_id': 0, 'temporary': 1, 'members': 1}
+                # filter = {'id': guild.id}
+                # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query, filter=filter)
+                if not self.discordBot.guilds:
                     return
+                # if not document:
+                #     return
 
-                joined = document.get('members', {}).get(f'{member.id}', {}).get('stats', {}).get('joined', '')
+                joined = self.discordBot.guilds.get(guild.id, {}).get('members', {}).get(f'{member.id}', {}).get('stats', {}).get('joined', '')
 
                 if joined:
                     voicetime = (datetime.now(tz=pytz.utc).replace(tzinfo=None) - datetime.strptime(joined,
-                                                                                                    '%Y-%m-%d %H:%M:%S')).seconds
+                                                                                                    '%Y-%m-%d %H:%M:%S')).total_seconds()
 
                     query = {f'members.{member.id}.stats.voicetime': voicetime}
                     filter = {'id': guild.id}
@@ -92,27 +92,26 @@ class DiscordBotHandler:
                     if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$unset', filter=filter, query=query) is None:
                         print('Not updated joined of member in DataBase')
 
-                temporary_channel = document.get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', '')
+                temporary_channel = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', '')
 
                 if temporary_channel:
                     if len(members) == 0:
-                        if not self.mongoDataBase.check_connection():
-                            return
-
                         # Leaves last member in voice channel
-                        await voice_channel.delete()
-
                         query = {f'temporary.channels.{voice_channel.id}': ''}
                         filter = {'id': guild.id}
 
                         if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$unset', query=query, filter=filter) is None:
-                            print('Deleted voice channel not deleted from DataBase')
+                            print('Voice channel not deleted from DataBase')
+                        else:
+                            del self.discordBot.guilds[guild.id]['temporary']['channels'][f'{voice_channel.id}']
+
+                            await voice_channel.delete()
                     else:
                         if member.bot:
                             return
 
                         # Leaves not last member in voice channel
-                        owner = document.get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner', {})
+                        owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner', {})
 
                         if owner.get('id', '') == member.id:
                             # Leaves owner of voice channel
@@ -125,18 +124,18 @@ class DiscordBotHandler:
                             if not new_owner:
                                 return
 
-                            if not self.mongoDataBase.check_connection():
-                                return
-
-                            await voice_channel.set_permissions(new_owner, overwrite=utils.default_role)
-                            await voice_channel.edit(name=f'@{new_owner.name}')
-
                             query = {f'temporary.channels.{voice_channel.id}.owner.id': new_owner.id}
                             filter = {'id': guild.id}
 
                             if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set',
                                                             query=query, filter=filter) is None:
                                 print('New owner not added to DataBase')
+                            else:
+                                self.discordBot.guilds[guild.id]['temporary']['channels'][f'{voice_channel.id}']['owner']['id'] = new_owner.id
+
+                                await voice_channel.set_permissions(new_owner, overwrite=utils.default_role)
+                                await voice_channel.edit(name=f'@{new_owner.name}')
+
 
             # User join voice channel
             if after.channel is not None:
@@ -144,14 +143,14 @@ class DiscordBotHandler:
                 guild = voice_channel.guild
 
                 # Get data from database
-                query = {'_id': 0, 'temporary': 1, 'members': 1}
-                filter = {'id': guild.id}
-                document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query, filter=filter)
+                # query = {'_id': 0, 'temporary': 1, 'members': 1}
+                # filter = {'id': guild.id}
+                # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query, filter=filter)
 
-                if not document:
+                if not self.discordBot.guilds:
                     return
 
-                init_channel = document.get('temporary', {}).get('inits', {}).get(f'{voice_channel.id}', '')
+                init_channel = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('inits', {}).get(f'{voice_channel.id}', '')
 
                 if init_channel:
                     # overwrites = {
@@ -177,7 +176,10 @@ class DiscordBotHandler:
 
                     if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set', query=query, filter=filter) is None:
                         print('Created voice channel not added to DataBase')
+                    else:
+                        self.discordBot.guilds[guild.id]['temporary']['channels'][f'{voice_channel.id}']= {'owner': {'id': member.id}}
                 else:
+                    # Joined not in init channel
                     date = datetime.now(tz=pytz.utc)
                     date = date.strftime('%Y-%m-%d %H:%M:%S')
 
@@ -187,7 +189,8 @@ class DiscordBotHandler:
                     if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set',
                                                        query=query, filter=filter) is None:
                         print('Not updated joined value of member in DataBase')
-
+                    else:
+                        self.discordBot.guilds[guild.id]['members'][f'{member.id}']['stats']['joined'] = date
         except Exception as e:
             print(e)
 

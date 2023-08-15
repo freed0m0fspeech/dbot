@@ -11,8 +11,9 @@ class DiscordBotCommand:
     DiscordBot Command
     """
 
-    def __init__(self, mongoDataBase: MongoDataBase = None):
+    def __init__(self, discordBot, mongoDataBase: MongoDataBase = None):
         self.mongoDataBase = mongoDataBase
+        self.discordBot = discordBot
 
     # ------------------------------------------------------------------------------------------------------------------
     # SLASH COMMANDS ---------------------------------------------------------------------------------------------------
@@ -139,15 +140,15 @@ class DiscordBotCommand:
                 voice_channel = None
 
             if voice_channel:
-                query = {'_id': 0, 'temporary': 1}
-                filter = {'id': guild.id}
-                document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
-                                                           filter=filter)
+                # query = {'_id': 0, 'temporary': 1}
+                # filter = {'id': guild.id}
+                # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
+                #                                            filter=filter)
 
-                if not document:
+                if not self.discordBot.guilds:
                     return await webhook.send(f"Something wrong with DataBase")
 
-                owner = document.get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
+                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
                                                                                                              {})
 
                 if owner:
@@ -189,15 +190,15 @@ class DiscordBotCommand:
                 voice_channel = None
 
             if voice_channel:
-                query = {'_id': 0, 'temporary': 1}
-                filter = {'id': guild.id}
-                document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
-                                                           filter=filter)
+                # query = {'_id': 0, 'temporary': 1}
+                # filter = {'id': guild.id}
+                # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
+                #                                            filter=filter)
 
-                if not document:
+                if not self.discordBot.guilds:
                     return await webhook.send(f"Something wrong with DataBase")
 
-                owner = document.get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
+                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
                                                                                                              {})
 
                 if owner:
@@ -240,15 +241,15 @@ class DiscordBotCommand:
                 voice_channel = None
 
             if voice_channel:
-                query = {'_id': 0, 'temporary': 1}
-                filter = {'id': guild.id}
-                document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
-                                                           filter=filter)
+                # query = {'_id': 0, 'temporary': 1}
+                # filter = {'id': guild.id}
+                # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
+                #                                            filter=filter)
 
-                if not document:
+                if not self.discordBot.guilds:
                     return await webhook.send(f"Something wrong with DataBase")
 
-                owner = document.get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
+                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
                                                                                                              {})
 
                 if owner:
@@ -291,15 +292,15 @@ class DiscordBotCommand:
                 voice_channel = None
 
             if voice_channel:
-                query = {'_id': 0, 'temporary': 1}
-                filter = {'id': guild.id}
-                document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
-                                                           filter=filter)
+                # query = {'_id': 0, 'temporary': 1}
+                # filter = {'id': guild.id}
+                # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
+                #                                            filter=filter)
 
-                if not document:
+                if not self.discordBot.guilds:
                     return await webhook.send(f"Something wrong with DataBase")
 
-                owner = document.get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
+                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
                                                                                                              {})
 
                 if owner:
@@ -342,15 +343,15 @@ class DiscordBotCommand:
                 voice_channel = None
 
             if voice_channel:
-                query = {'_id': 0, 'temporary': 1}
-                filter = {'id': guild.id}
-                document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
-                                                           filter=filter)
+                # query = {'_id': 0, 'temporary': 1}
+                # filter = {'id': guild.id}
+                # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
+                #                                            filter=filter)
 
-                if not document:
+                if not self.discordBot.guilds:
                     return await webhook.send(f"Something wrong with DataBase")
 
-                owner = document.get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
+                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
                                                                                                              {})
 
                 if owner:
@@ -388,15 +389,15 @@ class DiscordBotCommand:
                 else:
                     voice_channel = await guild.create_voice_channel(name='JOIN to CREATE')
 
-            query = {'_id': 0, 'temporary': 1}
-            filter = {'id': guild.id}
-            document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
-                                                       filter=filter)
+            # query = {'_id': 0, 'temporary': 1}
+            # filter = {'id': guild.id}
+            # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
+            #                                            filter=filter)
 
-            if not document:
+            if not self.discordBot.guilds:
                 return await webhook.send(f"Something wrong with DataBase")
 
-            temporary_channel = document.get('temporary', {}).get('inits', {}).get(f'{voice_channel.id}', {})
+            temporary_channel = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('inits', {}).get(f'{voice_channel.id}', {})
 
             if temporary_channel:
                 query = {f'temporary.inits.{voice_channel.id}': ''}
@@ -406,6 +407,7 @@ class DiscordBotCommand:
                                                    query=query, filter=filter) is None:
                     await webhook.send(f"Something wrong with DataBase")
                 else:
+                    del self.discordBot.guilds[guild.id]['temporary']['inits'][f'{voice_channel.id}']
                     await webhook.send(f"Voice channel <#{voice_channel.id}> is unset")
             else:
                 query = {f'temporary.inits.{voice_channel.id}.owner': {'id': user.id}}
@@ -415,6 +417,7 @@ class DiscordBotCommand:
                                                    query=query, filter=filter) is None:
                     await webhook.send(f"Something wrong with DataBase")
                 else:
+                    self.discordBot.guilds[guild.id]['temporary']['inits'][f'{voice_channel.id}'] = {'owner': {'id': user.id}}
                     await webhook.send(f"Voice channel <#{voice_channel.id}> is set")
         except Exception as e:
             return await webhook.send(str(e))
@@ -437,15 +440,15 @@ class DiscordBotCommand:
                 voice_channel = None
 
             if voice_channel:
-                query = {'_id': 0, 'temporary': 1}
-                filter = {'id': guild.id}
-                document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
-                                                           filter=filter)
+                # query = {'_id': 0, 'temporary': 1}
+                # filter = {'id': guild.id}
+                # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
+                #                                            filter=filter)
 
-                if not document:
+                if not self.discordBot.guilds:
                     return await webhook.send(f"Something wrong with DataBase")
 
-                owner = document.get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
+                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
                                                                                                              {})
 
                 if owner:
@@ -462,11 +465,56 @@ class DiscordBotCommand:
                                                                query=query, filter=filter) is None:
                                 await webhook.send(f"Something wrong with DataBase")
                             else:
+                                self.discordBot.guilds[guild.id]['temporary']['channels'][f'{voice_channel.id}'] = {'owner': {'id': member.id}}
                                 await webhook.send(f'New owner the {voice_channel.mention} is <@{member.id}> :)')
                         else:
                             await webhook.send('You are not voice channel owner')
                     else:
                         await webhook.send(f"Owner of the {voice_channel.mention} is <@{owner.get('id', '')}>")
+                else:
+                    await webhook.send('No information about voice channel owner found')
+            else:
+                await webhook.send('You are not in voice channel')
+        except Exception as e:
+            return await webhook.send(str(e))
+
+
+    async def voice_limit(self, interaction: discord.Interaction, user_limit: int):
+        response = interaction.response
+        response: discord.InteractionResponse
+        await response.defer(ephemeral=True)  # ephemeral - only you can see this
+
+        webhook = interaction.followup
+        webhook: discord.Webhook
+
+        try:
+            guild = interaction.guild
+            user = interaction.user
+
+            try:
+                voice_channel = user.voice.channel
+            except Exception:
+                voice_channel = None
+
+            if voice_channel:
+                # query = {'_id': 0, 'temporary': 1}
+                # filter = {'id': guild.id}
+                # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
+                #                                            filter=filter)
+
+                if not self.discordBot.guilds:
+                    return await webhook.send(f"Something wrong with DataBase")
+
+                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
+                    f'{voice_channel.id}', {}).get('owner',
+                                                   {})
+
+                if owner:
+                    if owner.get('id', '') == user.id:
+                        await voice_channel.edit(user_limit=user_limit)
+                        await webhook.send(f'Voice channel {voice_channel.mention} user limit chaned to {user_limit}')
+                    else:
+                        await webhook.send('You are not voice channel owner')
                 else:
                     await webhook.send('No information about voice channel owner found')
             else:
