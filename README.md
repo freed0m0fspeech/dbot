@@ -1,5 +1,6 @@
 <p align="left"> 
-  <img src="https://github.com/freed0m0fspeech/dbot/actions/workflows/fly.yml/badge.svg" />
+    <img src="https://github.com/freed0m0fspeech/dbot/actions/workflows/fly.yml/badge.svg" />
+    <img src="https://uptime.betterstack.com/status-badges/v1/monitor/sjz7.svg">
 </p>
 
 discord-bot-freed0m0fspeech
