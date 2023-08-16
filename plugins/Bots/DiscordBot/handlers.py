@@ -1,4 +1,4 @@
-import asyncio
+# import asyncio
 import os
 import discord.ext.commands
 import pytz

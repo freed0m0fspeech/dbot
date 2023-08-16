@@ -5,10 +5,10 @@ from aiohttp.web import AppRunner, TCPSite
 from dotenv import load_dotenv
 from plugins.Bots.DiscordBot.bot import DiscordBot
 from plugins.Web.server import WebServer
-from plugins.DataBase.mongo import MongoDataBase
 from jobs.updater import start
+from utils import dataBases
 
-load_dotenv()
+mongoDataBase = dataBases.mongodb_client
 
 
 async def main():
@@ -21,16 +21,16 @@ async def main():
 
     DISCORD_BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 
-    MONGODATABASE_HOST = os.getenv('MONGODATABASE_HOST', '')
-    MONGODATABASE_USER = os.getenv('MONGODATABASE_USER', '')
-    MONGODATABASE_PASSWORD = os.getenv('MONGODATABASE_PASSWORD', '')
+    # MONGODATABASE_HOST = os.getenv('MONGODATABASE_HOST', '')
+    # MONGODATABASE_USER = os.getenv('MONGODATABASE_USER', '')
+    # MONGODATABASE_PASSWORD = os.getenv('MONGODATABASE_PASSWORD', '')
 
     WEBAPP_HOST = '0.0.0.0'
     WEBAPP_PORT = int(os.getenv('PORT', '8000'))
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    mongoDataBase = MongoDataBase(host=MONGODATABASE_HOST, user=MONGODATABASE_USER, passwd=MONGODATABASE_PASSWORD)
+    # mongoDataBase = MongoDataBase(host=MONGODATABASE_HOST, user=MONGODATABASE_USER, passwd=MONGODATABASE_PASSWORD)
 
     discordBot = DiscordBot(mongoDataBase=mongoDataBase)
 

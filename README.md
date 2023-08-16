@@ -26,7 +26,7 @@ Commands:
   * /name [text] - Change name of the voice channel
   * /owner @member - Show/Give owner of the voice channel
   * /role @role - Allow/Deny access for role to the voice channel 
-  * limit [int] - Change user limit of the voice channel
+  * /limit [user_limit] - Change user limit of the voice channel
 
 ---------------
 
@@ -34,3 +34,7 @@ Functionality:
 
   * Temporary voice channels
   * Stats (voicetime, messages count)
+  * Scheduled tasks
+  * Cached guilds information
+  * DataBase
+  * Multiple DataBases support
