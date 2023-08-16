@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from plugins.Bots.DiscordBot.bot import DiscordBot
 from plugins.Web.server import WebServer
 from plugins.DataBase.mongo import MongoDataBase
+from jobs.updater import start
 
 load_dotenv()
 
@@ -40,6 +41,9 @@ async def main():
 
     site = TCPSite(runner=runner, host=WEBAPP_HOST, port=WEBAPP_PORT, shutdown_timeout=60)
     await site.start()
+
+    # if not os.getenv('DEBUG', '0').lower() in ['true', 't', '1']:
+    #     start()
 
     await discordBot.client.start(token=DISCORD_BOT_TOKEN)
 

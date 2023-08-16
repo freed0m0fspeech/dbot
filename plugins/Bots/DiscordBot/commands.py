@@ -403,21 +403,26 @@ class DiscordBotCommand:
                 query = {f'temporary.inits.{voice_channel.id}': ''}
                 filter = {'id': guild.id}
 
-                if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$unset',
-                                                   query=query, filter=filter) is None:
+                mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$unset',
+                                                   query=query, filter=filter)
+
+                if mongoUpdate is None:
                     await webhook.send(f"Something wrong with DataBase")
                 else:
-                    del self.discordBot.guilds[guild.id]['temporary']['inits'][f'{voice_channel.id}']
+                    self.discordBot.guilds[guild.id] = mongoUpdate
                     await webhook.send(f"Voice channel <#{voice_channel.id}> is unset")
             else:
                 query = {f'temporary.inits.{voice_channel.id}.owner': {'id': user.id}}
                 filter = {'id': guild.id}
 
-                if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set',
-                                                   query=query, filter=filter) is None:
+                mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set',
+                                                   query=query, filter=filter)
+
+                if mongoUpdate is None:
                     await webhook.send(f"Something wrong with DataBase")
                 else:
-                    self.discordBot.guilds[guild.id]['temporary']['inits'][f'{voice_channel.id}'] = {'owner': {'id': user.id}}
+                    # self.discordBot.guilds[guild.id]['temporary']['inits'][f'{voice_channel.id}'] = {'owner': {'id': user.id}}
+                    self.discordBot.guilds[guild.id] = mongoUpdate
                     await webhook.send(f"Voice channel <#{voice_channel.id}> is set")
         except Exception as e:
             return await webhook.send(str(e))
@@ -460,13 +465,15 @@ class DiscordBotCommand:
                             query = {f'temporary.channels.{voice_channel.id}.owner.id': member.id}
                             filter = {'id': guild.id}
 
-                            if self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds',
+                            mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds',
                                                                action='$set',
-                                                               query=query, filter=filter) is None:
+                                                               query=query, filter=filter)
+                            if mongoUpdate is None:
                                 await webhook.send(f"Something wrong with DataBase")
                             else:
-                                self.discordBot.guilds[guild.id]['temporary']['channels'][f'{voice_channel.id}'] = {'owner': {'id': member.id}}
-                                await webhook.send(f'New owner the {voice_channel.mention} is <@{member.id}> :)')
+                                # self.discordBot.guilds[guild.id]['temporary']['channels'][f'{voice_channel.id}'] = {'owner': {'id': member.id}}
+                                self.discordBot.guilds[guild.id] = mongoUpdate
+                                await webhook.send(f'New owner of the {voice_channel.mention} is <@{member.id}> :)')
                         else:
                             await webhook.send('You are not voice channel owner')
                     else:

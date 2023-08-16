@@ -24,3 +24,5 @@ requests-html~=0.10.0
 rsa~=4.9
 SpeechRecognition~=3.8.1
 pytz~=2021.1
+
+APScheduler~=3.10.1
