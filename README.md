@@ -15,11 +15,8 @@ Learn more about [bot](https://github.com/pr0stre1/dbot/releases).
 Additional info about ``dbot``, you can find [here](https://github.com/pr0stre1/dbot/releases).
 
 ---------------
+Commands to interact with voice channels (/voice):
 
-Commands:
-
-
-    Commands to interact with voice channels (/voice):
   * /disconnect @member- Disconnect someone from the voice channel
   * /init #voice-channel - Set/Unset/Create voice channel as init voice channel
   * /lock - Lock/Unlock the voice channel
@@ -29,8 +26,8 @@ Commands:
   * /role @role - Allow/Deny access for role to the voice channel 
   * /limit [user_limit] - Change user limit of the voice channel
 
+Commands to interact with music (/music):
 
-    Commands to interact with voice channels (/voice):
   * /now - Show currently playing music
   * /play [text] - Play music from YouTube
   * /queue - Show queue of the server
