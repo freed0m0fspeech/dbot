@@ -16,11 +16,13 @@ WORKDIR /app
 # RUN pip install --upgrade pip
 
 # install dependencies
+RUN apt-get update && apt-get install -y ffmpeg
+
+# install dependencies
 COPY requirements.txt /tmp/requirements.txt
 # RUN pip install -r requirements.txt
 RUN set -ex && \
     pip install --upgrade pip && \
-    pip install --upgrade ffmpeg && \
     pip install -r /tmp/requirements.txt && \
     rm -rf /root/.cache/
 
