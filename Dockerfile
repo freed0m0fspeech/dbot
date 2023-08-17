@@ -20,6 +20,7 @@ COPY requirements.txt /tmp/requirements.txt
 # RUN pip install -r requirements.txt
 RUN set -ex && \
     pip install --upgrade pip && \
+    pip install --upgrade ffmpeg && \
     pip install -r /tmp/requirements.txt && \
     rm -rf /root/.cache/
 
