@@ -18,8 +18,8 @@ Additional info about ``dbot``, you can find [here](https://github.com/pr0stre1/
 
 Commands:
 
-  Commands to interact with voice channels (/voice):
 
+    Commands to interact with voice channels (/voice):
   * /disconnect @member- Disconnect someone from the voice channel
   * /init #voice-channel - Set/Unset/Create voice channel as init voice channel
   * /lock - Lock/Unlock the voice channel
@@ -28,6 +28,14 @@ Commands:
   * /owner @member - Show/Give owner of the voice channel
   * /role @role - Allow/Deny access for role to the voice channel 
   * /limit [user_limit] - Change user limit of the voice channel
+
+
+    Commands to interact with voice channels (/voice):
+  * /now - Show currently playing music
+  * /play [text] - Play music from YouTube
+  * /queue - Show queue of the server
+  * /skip - Skip currently playing music
+  * /clear [count] - Clear music queue
 
 ---------------
 
@@ -39,3 +47,4 @@ Functionality:
   * Cached guilds information
   * DataBase
   * Multiple DataBases support
+  * Music player

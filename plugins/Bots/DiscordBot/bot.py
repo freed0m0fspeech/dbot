@@ -4,6 +4,7 @@ DiscordBot plugin to work with discord
 import discord
 
 from typing import Any
+from collections import defaultdict
 from plugins.Bots.DiscordBot.commands import DiscordBotCommand
 
 command_description = {
@@ -41,10 +42,10 @@ command_description = {
         'play': 'Play music from YouTube',
         'queue': 'Show queue of the server',
         'pause': 'Pause or resume playing music',
-        'skip': 'Skip currently playing track',
-        'now': 'Show currently playing track',
-        'seek': 'Go to position in currently playing track',
-        'clear': 'Clear music queue. Count of elements to delete (n > 0 from start, n < 0 from end, n = 0 clear all)',
+        'skip': 'Skip currently playing music',
+        'now': 'Show currently playing music',
+        'seek': 'Go to position in currently playing music',
+        'clear': 'Clear music queue',
     },
     'member': {
         'avatar': 'Get avatar of user',
@@ -69,13 +70,19 @@ class DiscordBot:
         for guild in self.mongoDataBase.get_documents(database_name='dbot', collection_name='guilds', query=query):
             self.guilds[guild.get('id', '')] = guild
 
+        self.music = defaultdict(lambda: defaultdict(list))
+
     async def set_default_commands(self, guild=None):
         try:
             commandTree = discord.app_commands.CommandTree(self.client)
             groups = {}
 
-            for handler in [handler for handler in dir(DiscordBotCommand) if not handler.startswith('__')]:
-                group_name, name = handler.split(sep='_', maxsplit=1)
+            for handler in [handler for handler in dir(DiscordBotCommand) if not handler.startswith('_')]:
+                try:
+                    group_name, name = handler.split(sep='_', maxsplit=1)
+                except Exception as e:
+                    continue
+
                 description = command_description.get(group_name, {}).get(name, name)
                 callback = getattr(self.discordBotCommand, handler)
 

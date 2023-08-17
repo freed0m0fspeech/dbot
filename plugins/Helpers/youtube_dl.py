@@ -3,11 +3,13 @@ import subprocess
 import re
 import speech_recognition
 #import streamlink
-import youtube_dl
+# import youtube_dl
+import yt_dlp as youtube_dl
+from yt_dlp import DownloadError
 
 from datetime import datetime
 from datetime import timedelta
-from youtube_dl import DownloadError
+# from youtube_dl import DownloadError
 #from streamlink import NoPluginError, PluginError, StreamlinkError, NoStreamsError, StreamError
 
 regex_link = re.compile(
@@ -55,7 +57,7 @@ ydl_opts_soundcloud = {
 }
 
 
-def is_supported_url_youtube(url):
+async def is_supported_url_youtube(url):
     """
     Check if url is supported by youtube_dl
     :param url:
@@ -68,7 +70,7 @@ def is_supported_url_youtube(url):
     return False
 
 
-def get_info_media(title: str, ydl_opts=None, search_engine=None, result_count=1):
+async def get_info_media(title: str, ydl_opts=None, search_engine=None, result_count=1):
     """
 
     :param title:
@@ -121,7 +123,7 @@ def get_info_media(title: str, ydl_opts=None, search_engine=None, result_count=1
         return info
 
 
-def get_best_info_media(title: str, ydl_opts=None, search_engine=None, result_count=1):
+async def get_best_info_media(title: str, ydl_opts=None, search_engine=None, result_count=1):
     """
 
     :param title:

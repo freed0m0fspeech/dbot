@@ -1,8 +1,15 @@
+import asyncio
 import json
+import math
+import datetime
 import aiohttp
 import discord
+import pytz
+
+import plugins.Helpers.youtube_dl
 import utils
 
+from discord import FFmpegPCMAudio
 from plugins.DataBase.mongo import MongoDataBase
 
 
@@ -148,8 +155,9 @@ class DiscordBotCommand:
                 if not self.discordBot.guilds:
                     return await webhook.send(f"Something wrong with DataBase")
 
-                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
-                                                                                                             {})
+                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
+                    f'{voice_channel.id}', {}).get('owner',
+                                                   {})
 
                 if owner:
                     if owner.get('id', '') == user.id:
@@ -198,8 +206,9 @@ class DiscordBotCommand:
                 if not self.discordBot.guilds:
                     return await webhook.send(f"Something wrong with DataBase")
 
-                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
-                                                                                                             {})
+                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
+                    f'{voice_channel.id}', {}).get('owner',
+                                                   {})
 
                 if owner:
                     if owner.get('id', '') == user.id:
@@ -249,8 +258,9 @@ class DiscordBotCommand:
                 if not self.discordBot.guilds:
                     return await webhook.send(f"Something wrong with DataBase")
 
-                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
-                                                                                                             {})
+                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
+                    f'{voice_channel.id}', {}).get('owner',
+                                                   {})
 
                 if owner:
                     if owner.get('id', '') == user.id:
@@ -300,8 +310,9 @@ class DiscordBotCommand:
                 if not self.discordBot.guilds:
                     return await webhook.send(f"Something wrong with DataBase")
 
-                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
-                                                                                                             {})
+                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
+                    f'{voice_channel.id}', {}).get('owner',
+                                                   {})
 
                 if owner:
                     if owner.get('id', '') == user.id:
@@ -351,8 +362,9 @@ class DiscordBotCommand:
                 if not self.discordBot.guilds:
                     return await webhook.send(f"Something wrong with DataBase")
 
-                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
-                                                                                                             {})
+                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
+                    f'{voice_channel.id}', {}).get('owner',
+                                                   {})
 
                 if owner:
                     if owner.get('id', '') == user.id:
@@ -397,14 +409,16 @@ class DiscordBotCommand:
             if not self.discordBot.guilds:
                 return await webhook.send(f"Something wrong with DataBase")
 
-            temporary_channel = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('inits', {}).get(f'{voice_channel.id}', {})
+            temporary_channel = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('inits', {}).get(
+                f'{voice_channel.id}', {})
 
             if temporary_channel:
                 query = {f'temporary.inits.{voice_channel.id}': ''}
                 filter = {'id': guild.id}
 
-                mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$unset',
-                                                   query=query, filter=filter)
+                mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds',
+                                                              action='$unset',
+                                                              query=query, filter=filter)
 
                 if mongoUpdate is None:
                     await webhook.send(f"Something wrong with DataBase")
@@ -415,8 +429,9 @@ class DiscordBotCommand:
                 query = {f'temporary.inits.{voice_channel.id}.owner': {'id': user.id}}
                 filter = {'id': guild.id}
 
-                mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set',
-                                                   query=query, filter=filter)
+                mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds',
+                                                              action='$set',
+                                                              query=query, filter=filter)
 
                 if mongoUpdate is None:
                     await webhook.send(f"Something wrong with DataBase")
@@ -453,8 +468,9 @@ class DiscordBotCommand:
                 if not self.discordBot.guilds:
                     return await webhook.send(f"Something wrong with DataBase")
 
-                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(f'{voice_channel.id}', {}).get('owner',
-                                                                                                             {})
+                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
+                    f'{voice_channel.id}', {}).get('owner',
+                                                   {})
 
                 if owner:
                     if member is not None:
@@ -465,9 +481,10 @@ class DiscordBotCommand:
                             query = {f'temporary.channels.{voice_channel.id}.owner.id': member.id}
                             filter = {'id': guild.id}
 
-                            mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds',
-                                                               action='$set',
-                                                               query=query, filter=filter)
+                            mongoUpdate = self.mongoDataBase.update_field(database_name='dbot',
+                                                                          collection_name='guilds',
+                                                                          action='$set',
+                                                                          query=query, filter=filter)
                             if mongoUpdate is None:
                                 await webhook.send(f"Something wrong with DataBase")
                             else:
@@ -484,7 +501,6 @@ class DiscordBotCommand:
                 await webhook.send('You are not in voice channel')
         except Exception as e:
             return await webhook.send(str(e))
-
 
     async def voice_limit(self, interaction: discord.Interaction, user_limit: int):
         response = interaction.response
@@ -526,5 +542,245 @@ class DiscordBotCommand:
                     await webhook.send('No information about voice channel owner found')
             else:
                 await webhook.send('You are not in voice channel')
+        except Exception as e:
+            return await webhook.send(str(e))
+
+    async def _play(self, guild):
+        if not guild.voice_client:
+            return
+
+        if guild.voice_client.channel.members == 1:
+            return await guild.voice_client.disconnect()
+
+        music_queue = self.discordBot.music.get(guild.id, {}).get('queue', [])
+
+        try:
+            title = music_queue.pop(0)[0]
+        except Exception as e:
+            return await guild.voice_client.disconnect()
+
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'quiet': True,
+            'ignoreerrors': True,
+            'noplaylist': True,
+        }
+
+        ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+                          'options': '-vn'}
+
+        info = await plugins.Helpers.youtube_dl.get_best_info_media(title=title, ydl_opts=ydl_opts)
+
+        if isinstance(info, list):
+            info = info[0]
+
+        self.discordBot.music['now'] = info
+
+        url = info.get('url', '')
+
+        guild.voice_client.play(FFmpegPCMAudio(url, **ffmpeg_options),
+                          after=lambda ex: asyncio.run(self._play(guild=guild)))
+
+    async def music_play(self, interaction: discord.Interaction, text: str):
+        response = interaction.response
+        response: discord.InteractionResponse
+        await response.defer(ephemeral=True)  # ephemeral - only you can see this
+
+        webhook = interaction.followup
+        webhook: discord.Webhook
+
+        try:
+            guild = interaction.guild
+            user = interaction.user
+
+            try:
+                voice_channel = user.voice.channel
+            except Exception:
+                voice_channel = None
+
+            if voice_channel:
+                voice_client = guild.voice_client
+                voice_client: discord.VoiceClient
+
+                if voice_client:
+                    if voice_channel:
+                        if voice_client.channel == voice_channel:
+                            if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) < 20:
+                                self.discordBot.music[guild.id]['queue'].append((text, user))
+                                return await webhook.send(f'`{text}` added to music queue')
+                            else:
+                                return await webhook.send(f'Music queue max length is 20 items')
+                        else:
+                            return await webhook.send('Someone already using me')
+                else:
+                    if voice_channel:
+                        voice_client = await voice_channel.connect(reconnect=True, timeout=3000)
+
+                        if voice_client.channel == voice_channel:
+                            if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) < 20:
+                                self.discordBot.music[guild.id]['queue'].append((text, user))
+                                await webhook.send(f'`{text}` added to music queue')
+                            else:
+                                return await webhook.send(f'Music queue max length is 20 items')
+                        # await guild.change_voice_state(channel=voice_channel)
+                    else:
+                        return await webhook.send(f"Connect to voice channel to use this command")
+
+                return await self._play(guild=guild)
+            else:
+                await webhook.send('You are not in voice channel')
+        except Exception as e:
+            return await webhook.send(str(e))
+
+    async def music_queue(self, interaction: discord.Interaction):
+        response = interaction.response
+        response: discord.InteractionResponse
+        await response.defer(ephemeral=True)  # ephemeral - only you can see this
+
+        webhook = interaction.followup
+        webhook: discord.Webhook
+
+        try:
+            client = interaction.client
+            guild = interaction.guild
+            user = interaction.user
+
+            try:
+                voice_channel = user.voice.channel
+            except Exception:
+                voice_channel = None
+
+            if voice_channel:
+                music_queue = self.discordBot.music.get(guild.id, {}).get('queue', {})
+
+                if not music_queue:
+                    return await webhook.send(f"Music queue is empty")
+                else:
+                    # content = f"Music queue ({guild.name}) - {len(music_queue)} total:\n\n"
+                    content = ''
+
+                    # music_queue = [f'`{queue[0]}` added by {queue[1].display_name}\n' for queue in music_queue][0:20]
+                    # First 20 queue items
+                    for i in range(0, 20):
+                        try:
+                            music = music_queue[i]
+                            title = music[0]
+                            user = music[1]
+                        except Exception as e:
+                            break
+
+                        user: discord.User
+
+                        content = f'{content}{i}. `{title}` added by {user.mention}\n'
+
+                    queue_embed = discord.Embed(title=f"Music queue ({guild.name}) - {len(music_queue)} total",
+                                              description=f"{content}",
+                                              color=discord.Color.random(),
+                                              timestamp=datetime.datetime.now(tz=pytz.timezone('Europe/Kiev')))
+
+                    return await webhook.send(embed=queue_embed)
+            else:
+                await webhook.send('You are not in voice channel')
+        except Exception as e:
+            return await webhook.send(str(e))
+
+    async def music_skip(self, interaction: discord.Interaction):
+        response = interaction.response
+        response: discord.InteractionResponse
+        await response.defer(ephemeral=True)  # ephemeral - only you can see this
+
+        webhook = interaction.followup
+        webhook: discord.Webhook
+
+        try:
+            guild = interaction.guild
+            user = interaction.user
+
+            voice_channel = user.voice.channel
+            voice_client = guild.voice_client
+
+            if voice_client.channel == voice_channel:
+                if voice_client.is_paused() or voice_client.is_playing():
+                    voice_client.stop()
+                    return await webhook.send('Music skipped')
+                else:
+                    return await webhook.send('Not playing')
+            else:
+                return await webhook.send('You are not in the same voice channel')
+
+        except Exception as e:
+            return await webhook.send(str(e))
+
+    async def music_clear(self, interaction: discord.Interaction, count: int):
+        response = interaction.response
+        response: discord.InteractionResponse
+        await response.defer(ephemeral=True)  # ephemeral - only you can see this
+
+        webhook = interaction.followup
+        webhook: discord.Webhook
+
+        try:
+            guild = interaction.guild
+            user = interaction.user
+
+            voice_channel = user.voice.channel
+            voice_client = guild.voice_client
+
+            if voice_client.channel == voice_channel:
+                if count == 0:
+                    self.discordBot.music[guild.id]['queue'] = []
+                    return await webhook.send('Music queue cleared')
+
+                if count > 0:
+                    for _ in range(count):
+                        self.discordBot.music[guild.id]['queue'].pop(0)
+                    return await webhook.send(f'{count} items deleted from start of music queue')
+                else:
+                    for _ in range(abs(count)):
+                        self.discordBot.music[guild.id]['queue'].pop()
+                    return await webhook.send(f'{abs(count)} items deleted from end of music queue')
+            else:
+                return await webhook.send('You are not in the same voice channel')
+        except Exception as e:
+            return await webhook.send(str(e))
+
+    async def music_now(self, interaction: discord.Interaction):
+        response = interaction.response
+        response: discord.InteractionResponse
+        await response.defer(ephemeral=True)  # ephemeral - only you can see this
+
+        webhook = interaction.followup
+        webhook: discord.Webhook
+
+        try:
+            client = self.discordBot.client
+            guild = interaction.guild
+            user = interaction.user
+
+            voice_channel = user.voice.channel
+            voice_client = guild.voice_client
+
+            if voice_client.channel == voice_channel:
+                if voice_client.is_paused() or voice_client.is_playing():
+                    info = self.discordBot.music.get('now', {})
+
+                    now_embed = discord.Embed(title=f"{info['title']}",
+                                                      description=f"[{info['channel']}]({info['channel_url']})",
+                                                      color=discord.Color.random(),
+                                                      timestamp=datetime.datetime.now(tz=pytz.timezone('Europe/Kiev')),
+                                                      url=info['webpage_url'])
+                    now_embed.add_field(name='Duration',
+                                        value=f"{datetime.timedelta(seconds=info['duration'])}",
+                                        inline=True)
+                    # now_embed.set_author(icon_url=client.user.avatar.url, name="Now playing")
+                    thumbnail_url = info['thumbnails'][len(info['thumbnails']) - 1]['url']
+                    now_embed.set_thumbnail(url=thumbnail_url)
+
+                    return await webhook.send(embed=now_embed)
+                else:
+                    return await webhook.send('Not playing')
+            else:
+                return await webhook.send('You are not in the same voice channel')
+
         except Exception as e:
             return await webhook.send(str(e))

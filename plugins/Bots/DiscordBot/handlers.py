@@ -20,7 +20,7 @@ class DiscordBotHandler:
         self.mongoDataBase = mongoDataBase
 
         # register handlers
-        for handler in [handler for handler in dir(DiscordBotHandler) if not handler.startswith('__')]:
+        for handler in [handler for handler in dir(DiscordBotHandler) if not handler.startswith('_')]:
             callback = getattr(self, handler)
             self.discordBot.client.event(callback)
 
@@ -134,23 +134,21 @@ class DiscordBotHandler:
                                 if not tmember.bot:
                                     new_owner = tmember
 
-                            if not new_owner:
-                                return
+                            if new_owner:
+                                query = {f'temporary.channels.{voice_channel.id}.owner.id': new_owner.id}
+                                filter = {'id': guild.id}
 
-                            query = {f'temporary.channels.{voice_channel.id}.owner.id': new_owner.id}
-                            filter = {'id': guild.id}
+                                mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set',
+                                                                query=query, filter=filter)
 
-                            mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$set',
-                                                            query=query, filter=filter)
+                                if mongoUpdate is None:
+                                    print('New owner not added to DataBase')
+                                else:
+                                    self.discordBot.guilds[guild.id] = mongoUpdate
+                                    # self.discordBot.guilds[guild.id]['temporary']['channels'][f'{voice_channel.id}']['owner']['id'] = new_owner.id
 
-                            if mongoUpdate is None:
-                                print('New owner not added to DataBase')
-                            else:
-                                self.discordBot.guilds[guild.id] = mongoUpdate
-                                # self.discordBot.guilds[guild.id]['temporary']['channels'][f'{voice_channel.id}']['owner']['id'] = new_owner.id
-
-                                await voice_channel.set_permissions(new_owner, overwrite=utils.default_role)
-                                await voice_channel.edit(name=f'@{new_owner.name}')
+                                    await voice_channel.set_permissions(new_owner, overwrite=utils.default_role)
+                                    await voice_channel.edit(name=f'@{new_owner.name}')
 
 
             # User join voice channel
