@@ -16,7 +16,7 @@ WORKDIR /app
 # RUN pip install --upgrade pip
 
 # install dependencies
-RUN apt-get update && apt-get install -y ffmpeg
+RUN apt-get -y update && apt-get install -y ffmpeg
 
 # install dependencies
 COPY requirements.txt /tmp/requirements.txt

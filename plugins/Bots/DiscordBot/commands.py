@@ -602,7 +602,7 @@ class DiscordBotCommand:
                 voice_client = guild.voice_client
                 voice_client: discord.VoiceClient
 
-                if voice_client:
+                if voice_client and voice_client.is_connected():
                     if voice_channel:
                         if voice_client.channel == voice_channel:
                             if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) < 20:
