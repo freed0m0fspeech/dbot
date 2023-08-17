@@ -46,8 +46,8 @@ async def main():
     # if not os.getenv('DEBUG', '0').lower() in ['true', 't', '1']:
     #     start()
 
-    if not discord.opus.is_loaded():
-        discord.opus.load_opus('./libopus.so.0.8.0')
+    # if not discord.opus.is_loaded():
+    #     discord.opus.load_opus('./libopus.so.0.8.0')
 
     await discordBot.client.start(token=DISCORD_BOT_TOKEN)
 
