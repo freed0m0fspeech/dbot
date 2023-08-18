@@ -550,14 +550,14 @@ class DiscordBotCommand:
             return
 
         if guild.voice_client.channel.members == 1:
-            return await guild.voice_client.disconnect()
+            return await guild.voice_client.voice_disconnect()
 
         music_queue = self.discordBot.music.get(guild.id, {}).get('queue', [])
 
         try:
             title = music_queue.pop(0)[0]
-        except Exception as e:
-            return await guild.voice_client.disconnect()
+        except Exception:
+            return await guild.voice_client.voice_disconnect()
 
         ydl_opts = {
             'format': 'bestaudio/best',
@@ -602,31 +602,30 @@ class DiscordBotCommand:
                 voice_client = guild.voice_client
                 voice_client: discord.VoiceClient
 
-                if voice_client and voice_client.is_connected():
-                    if voice_channel:
-                        if voice_client.channel == voice_channel:
-                            if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) < 20:
-                                self.discordBot.music[guild.id]['queue'].append((text, user))
-                                return await webhook.send(f'`{text}` added to music queue')
-                            else:
-                                return await webhook.send(f'Music queue max length is 20 items')
-                        else:
-                            return await webhook.send('Someone already using me')
+                if not voice_client:
+                    voice_client = await voice_channel.connect(reconnect=True, timeout=3000)
+                    await guild.change_voice_state(channel=voice_channel)
                 else:
-                    if voice_channel:
-                        voice_client = await voice_channel.connect(reconnect=True, timeout=3000)
+                    if not voice_client.is_connected():
+                        voice_client = await voice_client.connect(reconnect=True, timeout=3000)
+                        await guild.change_voice_state(channel=voice_channel)
 
-                        if voice_client.channel == voice_channel:
-                            if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) < 20:
-                                self.discordBot.music[guild.id]['queue'].append((text, user))
-                                await webhook.send(f'`{text}` added to music queue')
-                            else:
-                                return await webhook.send(f'Music queue max length is 20 items')
-                        # await guild.change_voice_state(channel=voice_channel)
+                voice_client_is_busy = voice_client.is_playing() or voice_client.is_paused()
+
+                if not voice_client_is_busy:
+                    await voice_client.move_to(channel=voice_channel)
+
+                if voice_client.channel.id == voice_channel.id:
+                    if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) < 20:
+                        self.discordBot.music[guild.id]['queue'].append((text, user))
+                        await webhook.send(f'`{text}` added to music queue')
                     else:
-                        return await webhook.send(f"Connect to voice channel to use this command")
+                        await webhook.send(f'Music queue max length is 20 items')
+                else:
+                    return await webhook.send('Someone already using me in another voice channel')
 
-                return await self._play(guild=guild)
+                if not voice_client_is_busy:
+                    return await self._play(guild=guild)
             else:
                 await webhook.send('You are not in voice channel')
         except Exception as e:
