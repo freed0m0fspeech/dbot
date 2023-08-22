@@ -2,6 +2,8 @@ import asyncio
 import json
 import math
 import datetime
+import random
+
 import aiohttp
 import discord
 import pytz
@@ -592,6 +594,16 @@ class DiscordBotCommand:
         try:
             guild = interaction.guild
             user = interaction.user
+
+            # Unique role for using this command (1 in 1.000)
+            if round(random.random(), 3) == 0.001:
+                if not discord.utils.get(user.roles, name='🎵Диджей'):
+                    role = discord.utils.get(guild.roles, name='🎵Диджей')
+
+                    if not role:
+                        role = await guild.create_role(name='🎵Диджей', color=discord.Color.dark_orange(),
+                                                       hoist=True)
+                    await user.add_roles(role)
 
             try:
                 voice_channel = user.voice.channel

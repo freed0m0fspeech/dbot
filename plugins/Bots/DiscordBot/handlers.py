@@ -1,13 +1,44 @@
 # import asyncio
 import os
 import discord.ext.commands
+import discord.utils
 import pytz
 import utils
+import random
 
 from datetime import datetime
 from plugins.DataBase.mongo import MongoDataBase
 from version import __version__
 from utils import *
+
+bad_words = {
+    'a': 'ебал',
+    'b': 'пидар',
+    'c': 'хуй',
+    'd': 'пиздец',
+    'e': 'блять',
+    'f': 'пизда',
+    'g': 'залупа',
+    'h': 'гандон',
+    'i': 'еблан',
+    'j': 'ублюдок',
+    'k': 'сука',
+    'l': 'долбаеб',
+    'm': 'блядина',
+    'n': 'шлюха',
+    'o': 'анус',
+    'p': 'ебу',
+    'q': 'ебать',
+    'r': 'хуйня',
+    's': 'проебали',
+    't': 'похуй',
+    'u': 'проебал',
+    'v': 'нахуй',
+    'w': 'пздц',
+    'x': 'ахуеть',
+    'y': 'пиздос',
+    'z': 'хуита',
+}
 
 class DiscordBotHandler:
     """
@@ -46,10 +77,40 @@ class DiscordBotHandler:
 
             if not before.self_video == after.self_video:
                 # print('video')
+                if after.self_video:
+                    guild = member.guild
+
+                    if not guild:
+                        return
+
+                    if round(random.random(), 3) == 0.001:
+                        if not discord.utils.get(member.roles, name='🔞Порнозвезда'):
+                            role = discord.utils.get(guild.roles, name='🔞Порнозвезда')
+
+                            if not role:
+                                role = await guild.create_role(name='🔞Порнозвезда', color=discord.Color.fuchsia(),
+                                                               hoist=True)
+                            await member.add_roles(role)
+
                 return
 
             if not before.self_stream == after.self_stream:
                 # print('stream')
+
+                if after.self_stream:
+                    guild = member.guild
+
+                    if not guild:
+                        return
+
+                    if round(random.random(), 3) == 0.001:
+                        if not discord.utils.get(member.roles, name='🎬Режиссер'):
+                            role = discord.utils.get(guild.roles, name='🎬Режиссер')
+
+                            if not role:
+                                role = await guild.create_role(name='🎬Режиссер', color=discord.Color.orange(),
+                                                               hoist=True)
+                            await member.add_roles(role)
                 return
 
             if not before.deaf == after.deaf:
@@ -81,6 +142,15 @@ class DiscordBotHandler:
                 if joined:
                     voicetime = (datetime.now(tz=pytz.utc).replace(tzinfo=None) - datetime.strptime(joined,
                                                                                                     '%Y-%m-%d %H:%M:%S')).total_seconds()
+
+                    if voicetime >= 248400:
+                        if not discord.utils.get(member.roles, name='♋Живая легенда'):
+                            role = discord.utils.get(guild.roles, name='♋Живая легенда')
+
+                            if not role:
+                                role = await guild.create_role(name='♋Живая легенда', color=discord.Color.purple(),
+                                                                       hoist=True)
+                            await member.add_roles(role)
 
                     query = {f'members.{member.id}.stats.voicetime': voicetime}
                     filter = {'id': guild.id}
@@ -242,15 +312,56 @@ class DiscordBotHandler:
         await self.discordBot.client.change_presence(status=status, activity=activity)
 
     async def on_message(self, message: discord.Message):
-        query = {f'members.{message.author.id}.stats.messages_count': 1}
-        filter = {'id': message.guild.id}
+        try:
+            if not message.guild:
+                return
 
-        mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$inc', filter=filter,
-                                           query=query)
-        if mongoUpdate is None:
-            print('Not updated messages count of member in DataBase')
-        else:
-            self.discordBot.guilds[message.guild.id] = mongoUpdate
+            query = {f'members.{message.author.id}.stats.messages_count': 1}
+            filter = {'id': message.guild.id}
+
+            mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds', action='$inc', filter=filter,
+                                               query=query)
+            if mongoUpdate is None:
+                print('Not updated messages count of member in DataBase')
+            else:
+                self.discordBot.guilds[message.guild.id] = mongoUpdate
+
+            # Unique roles
+            # Lucky message (1 in 100.000)
+            if round(random.random(), 5) == 0.00001:
+                if not discord.utils.get(message.author.roles, name='🍀Лакер'):
+                    role = discord.utils.get(message.guild.roles, name='🍀Лакер')
+
+                    if not role:
+                        role = await message.guild.create_role(name='🍀Лакер', color=discord.Color.green(),
+                                                               hoist=True)
+
+                    await message.guild.get_member(message.author.id).add_roles(role)
+
+            # Toxic words (1 in 1.000)
+            if any(word in bad_words.values() for word in message.content.split(' ')):
+                if round(random.random(), 3) == 0.001:
+                    role = discord.utils.get(message.guild.roles, name='🤢Токсик')
+
+                    if not role:
+                        role = await message.guild.create_role(name='🤢Токсик', color=discord.Color.brand_green(),
+                                                               hoist=True)
+
+                    await message.guild.get_member(message.author.id).add_roles(role)
+
+            # . in the end of sentence (1 in 1.000)
+            if message.content.endswith('.'):
+                if round(random.random(), 3) == 0.001:
+                    role = discord.utils.get(message.guild.roles, name='🤓Душнила')
+
+                    if not role:
+                        role = await message.guild.create_role(name='🤓Душнила', color=discord.Color.dark_red(),
+                                                               hoist=True)
+
+                    await message.guild.get_member(message.author.id).add_roles(role)
+
+        except Exception as e:
+            print(e)
 
 
     # async def on_error(event, *args, **kwargs):
