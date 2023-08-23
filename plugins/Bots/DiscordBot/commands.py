@@ -604,6 +604,7 @@ class DiscordBotCommand:
                         role = await guild.create_role(name='🎵Диджей', color=discord.Color.dark_orange(),
                                                        hoist=True)
                     await user.add_roles(role)
+                    await user.send(f'Congratulation. You unlocked secret role: {role.name}')
 
             try:
                 voice_channel = user.voice.channel

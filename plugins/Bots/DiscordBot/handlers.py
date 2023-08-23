@@ -83,6 +83,7 @@ class DiscordBotHandler:
                     if not guild:
                         return
 
+                    # 1 in 1.000 when start video
                     if round(random.random(), 3) == 0.001:
                         if not discord.utils.get(member.roles, name='🔞Порнозвезда'):
                             role = discord.utils.get(guild.roles, name='🔞Порнозвезда')
@@ -91,6 +92,7 @@ class DiscordBotHandler:
                                 role = await guild.create_role(name='🔞Порнозвезда', color=discord.Color.fuchsia(),
                                                                hoist=True)
                             await member.add_roles(role)
+                            await member.send(f'Congratulation. You unlocked secret role: {role.name}')
 
                 return
 
@@ -102,7 +104,7 @@ class DiscordBotHandler:
 
                     if not guild:
                         return
-
+                    # 1 in 1.000 when start stream
                     if round(random.random(), 3) == 0.001:
                         if not discord.utils.get(member.roles, name='🎬Режиссер'):
                             role = discord.utils.get(guild.roles, name='🎬Режиссер')
@@ -111,6 +113,7 @@ class DiscordBotHandler:
                                 role = await guild.create_role(name='🎬Режиссер', color=discord.Color.orange(),
                                                                hoist=True)
                             await member.add_roles(role)
+                            await member.send(f'Congratulation. You unlocked secret role: {role.name}')
                 return
 
             if not before.deaf == after.deaf:
@@ -143,6 +146,7 @@ class DiscordBotHandler:
                     voicetime = (datetime.now(tz=pytz.utc).replace(tzinfo=None) - datetime.strptime(joined,
                                                                                                     '%Y-%m-%d %H:%M:%S')).total_seconds()
 
+                    # was in voice 69 hours (248400 seconds) or more
                     if voicetime >= 248400:
                         if not discord.utils.get(member.roles, name='♋Живая легенда'):
                             role = discord.utils.get(guild.roles, name='♋Живая легенда')
@@ -151,6 +155,7 @@ class DiscordBotHandler:
                                 role = await guild.create_role(name='♋Живая легенда', color=discord.Color.purple(),
                                                                        hoist=True)
                             await member.add_roles(role)
+                            await member.send(f'Congratulation. You unlocked secret role: {role.name}')
 
                     query = {f'members.{member.id}.stats.voicetime': voicetime}
                     filter = {'id': guild.id}
@@ -316,6 +321,9 @@ class DiscordBotHandler:
             if not message.guild:
                 return
 
+            if message.author.bot:
+                return
+
             query = {f'members.{message.author.id}.stats.messages_count': 1}
             filter = {'id': message.guild.id}
 
@@ -337,6 +345,7 @@ class DiscordBotHandler:
                                                                hoist=True)
 
                     await message.guild.get_member(message.author.id).add_roles(role)
+                    await message.author.send(f'Congratulation. You unlocked secret role: {role.name}')
 
             # Toxic words (1 in 1.000)
             if any(word in bad_words.values() for word in message.content.split(' ')):
@@ -348,6 +357,7 @@ class DiscordBotHandler:
                                                                hoist=True)
 
                     await message.guild.get_member(message.author.id).add_roles(role)
+                    await message.author.send(f'Congratulation. You unlocked secret role: {role.name}')
 
             # . in the end of sentence (1 in 1.000)
             if message.content.endswith('.'):
@@ -359,6 +369,7 @@ class DiscordBotHandler:
                                                                hoist=True)
 
                     await message.guild.get_member(message.author.id).add_roles(role)
+                    await message.author.send(f'Congratulation. You unlocked secret role: {role.name}')
 
         except Exception as e:
             print(e)
