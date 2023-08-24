@@ -164,12 +164,15 @@ class DiscordBotCommand:
                 if owner:
                     if owner.get('id', '') == user.id:
                         overwrites = voice_channel.overwrites_for(guild.default_role)
-                        if not overwrites.view_channel:
-                            overwrites.view_channel = True
-                            await webhook.send('Voice channel unlocked')
-                        else:
-                            overwrites.view_channel = False
+
+                        if overwrites.is_empty() or overwrites.view_channel:
+                            overwrites.update(view_channel=False)
+                            # overwrites.view_channel = True
                             await webhook.send('Voice channel locked')
+                        else:
+                            # overwrites.view_channel = False
+                            overwrites.update(view_channel=True)
+                            await webhook.send('Voice channel unlocked')
 
                         await voice_channel.set_permissions(guild.default_role, overwrite=overwrites, reason='Lock')
 
@@ -220,7 +223,7 @@ class DiscordBotCommand:
                             overwrites = None
                             await webhook.send(f'<@&{role.id}> kicked from voice channel')
                         else:
-                            overwrites.view_channel = True
+                            overwrites.update(view_channel=True)
                             await webhook.send(f'<@&{role.id}> invited to voice channel')
 
                         await voice_channel.set_permissions(role, overwrite=overwrites, reason='Invite')
@@ -324,7 +327,7 @@ class DiscordBotCommand:
                             overwrites = None
                             await webhook.send(f'<@{member.id}> kicked from voice channel')
                         else:
-                            overwrites.view_channel = True
+                            overwrites.update(view_channel=True)
                             await webhook.send(f'<@{member.id}> invited to voice channel')
 
                         await voice_channel.set_permissions(member, overwrite=overwrites, reason='Invite')
