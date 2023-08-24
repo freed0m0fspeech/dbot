@@ -5,6 +5,7 @@ import discord
 from aiohttp.web import AppRunner, TCPSite
 from dotenv import load_dotenv
 from plugins.Bots.DiscordBot.bot import DiscordBot
+from plugins.Google.google import Google
 from plugins.Web.server import WebServer
 from jobs.updater import start
 from utils import dataBases
@@ -33,9 +34,11 @@ async def main():
 
     # mongoDataBase = MongoDataBase(host=MONGODATABASE_HOST, user=MONGODATABASE_USER, passwd=MONGODATABASE_PASSWORD)
 
-    discordBot = DiscordBot(mongoDataBase=mongoDataBase)
+    google = Google('', '')
 
-    webServer = WebServer(mongoDataBase=mongoDataBase, discordBot=discordBot)
+    discordBot = DiscordBot(mongoDataBase=mongoDataBase, google=google)
+
+    webServer = WebServer(mongoDataBase=mongoDataBase, discordBot=discordBot, google=google)
 
     runner = AppRunner(webServer.client)
     await runner.setup()

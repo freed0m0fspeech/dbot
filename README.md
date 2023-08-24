@@ -30,9 +30,10 @@ Commands to interact with music (/music):
 
   * /now - Show currently playing music
   * /play [text] - Play music from YouTube
-  * /queue - Show queue of the server
+  * /queue - Show music queue of the server
   * /skip - Skip currently playing music
   * /clear [count] - Clear music queue
+  * /lyrics [text] - Lyrics for title or currently playing music
 
 ---------------
 
@@ -45,3 +46,4 @@ Functionality:
   * DataBase
   * Multiple DataBases support
   * Music player
+  * Lyrics scrapper

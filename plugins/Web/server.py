@@ -9,6 +9,7 @@ from aiohttp import web
 from plugins.Bots.DiscordBot.bot import DiscordBot
 from plugins.Web.handlers import WebServerHandler
 from plugins.DataBase.mongo import MongoDataBase
+from plugins.Google.google import Google
 
 
 class WebServer:
@@ -16,10 +17,11 @@ class WebServer:
     Class to work with Handler
     """
 
-    def __init__(self, mongoDataBase: MongoDataBase = None, discordBot: DiscordBot = None):
+    def __init__(self, mongoDataBase: MongoDataBase = None, discordBot: DiscordBot = None, google: Google = None):
         self.mongoDataBase = mongoDataBase
 
         self.discordBot = discordBot
+        self.google = google
         self.client = web.Application()
 
         self.handler = WebServerHandler(webServer=self)

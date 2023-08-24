@@ -656,7 +656,6 @@ class DiscordBotCommand:
         webhook: discord.Webhook
 
         try:
-            client = interaction.client
             guild = interaction.guild
             user = interaction.user
 
@@ -768,7 +767,6 @@ class DiscordBotCommand:
         webhook: discord.Webhook
 
         try:
-            client = self.discordBot.client
             guild = interaction.guild
             user = interaction.user
 
@@ -796,6 +794,54 @@ class DiscordBotCommand:
                     return await webhook.send('Not playing')
             else:
                 return await webhook.send('You are not in the same voice channel')
+
+        except Exception as e:
+            return await webhook.send(str(e))
+
+    async def music_lyrics(self, interaction: discord.Interaction, text: str = None):
+        response = interaction.response
+        response: discord.InteractionResponse
+        await response.defer(ephemeral=True)  # ephemeral - only you can see this
+
+        webhook = interaction.followup
+        webhook: discord.Webhook
+
+        try:
+            guild = interaction.guild
+            user = interaction.user
+
+            if not text:
+                voice_channel = user.voice.channel
+                voice_client = guild.voice_client
+
+                if voice_client.channel == voice_channel:
+                    if voice_client.is_paused() or voice_client.is_playing():
+                        info = self.discordBot.music.get('now', {})
+                        lyrics = self.discordBot.google.lyrics(song_name=info['title'])
+
+                        if lyrics:
+                            content = f"[{lyrics['title']}]({lyrics['link']}):\n{lyrics['lyrics']}"
+                            # max length for discord
+                            content = content[:2000]
+
+                            return await webhook.send(content)
+                        else:
+                            return await webhook.send('No lyrics found')
+                    else:
+                        return await webhook.send('Not playing')
+                else:
+                    return await webhook.send('You are not in the same voice channel')
+            else:
+                lyrics = self.discordBot.google.lyrics(song_name=text)
+
+                if lyrics:
+                    content = f"[{lyrics['title']}]({lyrics['link']}):\n{lyrics['lyrics']}"
+                    # max length for discord
+                    content = content[:2000]
+
+                    return await webhook.send(content)
+                else:
+                    return await webhook.send('No lyrics found')
 
         except Exception as e:
             return await webhook.send(str(e))

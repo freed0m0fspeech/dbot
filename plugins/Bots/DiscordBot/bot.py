@@ -40,12 +40,13 @@ command_description = {
     },
     'music': {
         'play': 'Play music from YouTube',
-        'queue': 'Show queue of the server',
+        'queue': 'Show music queue of the server',
         'pause': 'Pause or resume playing music',
         'skip': 'Skip currently playing music',
         'now': 'Show currently playing music',
         'seek': 'Go to position in currently playing music',
         'clear': 'Clear music queue',
+        'lyrics': 'Lyrics for title or currently playing music'
     },
     'member': {
         'avatar': 'Get avatar of user',
@@ -58,10 +59,11 @@ class DiscordBot:
     Class to work with discord
     """
 
-    def __init__(self, intents=discord.Intents.all(), mongoDataBase=None, **options: Any):
+    def __init__(self, intents=discord.Intents.all(), mongoDataBase=None, google=None, **options: Any):
         self.client = discord.Client(intents=intents)
         self.mongoDataBase = mongoDataBase
         self.discordBotCommand = DiscordBotCommand(self, mongoDataBase=mongoDataBase)
+        self.google = google
 
         # Cached guilds
         self.guilds = {}
