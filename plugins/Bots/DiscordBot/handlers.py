@@ -11,34 +11,46 @@ from plugins.DataBase.mongo import MongoDataBase
 from version import __version__
 from utils import *
 
-bad_words = {
-    'a': 'ебал',
-    'b': 'пидар',
-    'c': 'хуй',
-    'd': 'пиздец',
-    'e': 'блять',
-    'f': 'пизда',
-    'g': 'залупа',
-    'h': 'гандон',
-    'i': 'еблан',
-    'j': 'ублюдок',
-    'k': 'сука',
-    'l': 'долбаеб',
-    'm': 'блядина',
-    'n': 'шлюха',
-    'o': 'анус',
-    'p': 'ебу',
-    'q': 'ебать',
-    'r': 'хуйня',
-    's': 'проебали',
-    't': 'похуй',
-    'u': 'проебал',
-    'v': 'нахуй',
-    'w': 'пздц',
-    'x': 'ахуеть',
-    'y': 'пиздос',
-    'z': 'хуита',
-}
+bad_words = (
+    'ебал',
+    'пидар',
+    'хуй',
+    'пиздец',
+    'блять',
+    'пизда',
+    'залупа',
+    'гандон',
+    'еблан',
+    'ублюдок',
+    'сука',
+    'долбаеб',
+    'блядина',
+    'шлюха',
+    'анус',
+    'ебу',
+    'ебать',
+    'хуйня',
+    'проебали',
+    'похуй',
+    'проебал',
+    'нахуй',
+    'пздц',
+    'ахуеть',
+    'пиздос',
+    'хуита',
+    'ебани',
+    'ебни',
+    'ёбни',
+    'ёбаный',
+    'ебануться',
+    'пиздюк',
+    'уебище',
+    'уёбище',
+    'блядина',
+    'пидарас',
+    'уебан',
+)
+
 
 class DiscordBotHandler:
     """
@@ -348,7 +360,7 @@ class DiscordBotHandler:
                     await message.author.send(f'Congratulation. You unlocked secret role: {role.name}')
 
             # Toxic words (1 in 1.000)
-            if any(word in bad_words.values() for word in message.content.split(' ')):
+            if any(word.lower() in bad_words for word in message.content.split(' ')):
                 if round(random.random(), 3) == 0.001:
                     role = discord.utils.get(message.guild.roles, name='🤢Токсик')
 
@@ -366,6 +378,18 @@ class DiscordBotHandler:
 
                     if not role:
                         role = await message.guild.create_role(name='🤓Душнила', color=discord.Color.dark_red(),
+                                                               hoist=True)
+
+                    await message.guild.get_member(message.author.id).add_roles(role)
+                    await message.author.send(f'Congratulation. You unlocked secret role: {role.name}')
+
+            # 'пам' in sentence (1 in 1.000)
+            if 'пам' in message.content.lower():
+                if round(random.random(), 3) == 0.001:
+                    role = discord.utils.get(message.guild.roles, name='💢Пам')
+
+                    if not role:
+                        role = await message.guild.create_role(name='💢Пам', color=discord.Color.dark_magenta(),
                                                                hoist=True)
 
                     await message.guild.get_member(message.author.id).add_roles(role)
