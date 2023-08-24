@@ -48,8 +48,8 @@ class ScraperFactory:
 
     def genius_scraper(self):
         lyrics = self._genius_scraper_method_1() or self._genius_scraper_method_2()
-
-        self._update_title(self.title[:-16])
+        title = self.title.replace(' Lyrics - Genius', '').replace(' Lyrics', '')
+        self._update_title(title)
 
         return lyrics
 
