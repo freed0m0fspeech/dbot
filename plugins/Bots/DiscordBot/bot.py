@@ -9,47 +9,171 @@ from plugins.Bots.DiscordBot.commands import DiscordBotCommand
 
 command_description = {
     'bot': {
-        'join': 'Join bot to your voice channel',
-        'ping': 'Show latency of the bot',
-        'leave': 'Leave bot from voice channel',
+        'join': {
+            "en-US": 'Join bot to your voice channel',
+            "ru-RU": 'Подключение бота к своему голосовому каналу',
+            "default": "en-US",
+        },
+        'ping': {
+            "en-US": 'Show latency of the bot',
+            "ru-RU": 'Показать задержку бота',
+            "default": "en-US",
+        },
+        'leave': {
+            "en-US": 'Leave bot from voice channel',
+            "ru-RU": 'Кикнуть бота из голосового канала',
+            "default": "en-US",
+        },
     },
     'fun': {
-        'quote': 'Get random quote',
-        'horoscope': 'Get horoscope for current day',
+        'quote': {
+            "en-US": 'Get random quote',
+            "ru-RU": 'Рандомная цитата',
+            "default": "en-US",
+        },
+        'horoscope': {
+            "en-US": 'Get horoscope for current day',
+            "ru-RU": 'Гороскоп на текущий день',
+            "default": "en-US",
+        },
     },
     'voice': {
-        'init': 'Set/Unset/Create voice channel as init voice channel',
-        'mute': 'Mute or unmute someone in the voice channel',
-        'deaf': 'Deaf or undead someone in the voice channel',
-        'move': 'Move someone in your voice channel',
-        'disconnect': 'Disconnect someone from the voice channel',
-        'owner': 'Show/Give owner of the voice channel',
-        'name': 'Change name of the voice channel',
-        'member': 'Allow/Deny access for member to the voice channel',
-        'role': 'Allow/Deny access for role to the voice channel',
-        'lock': 'Lock/Unlock the voice channel',
-        'limit': 'Change user limit of the voice channel'
+        'init': {
+            "en-US": 'Set/Unset/Create voice channel as init voice channel',
+            "ru-RU": 'Установить/Снять/Создать голосовоой канал для создания голосовых каналов',
+            "default": "en-US",
+        },
+        'mute': {
+            "en-US": 'Mute/Unmute someone in the voice channel',
+            "ru-RU": 'Замутать/Размутать кого-то в голосовом канале',
+            "default": "en-US",
+        },
+        'deaf': {
+            "en-US": 'Deaf/Udead someone in the voice channel',
+            "ru-RU": 'Заглушить/Разглушить кого-то в голосовом канале',
+            "default": "en-US",
+        },
+        'move': {
+            "en-US": 'Move someone in your voice channel',
+            "ru-RU": 'Переместить кого-то в ваш голосовой канал',
+            "default": "en-US",
+        },
+        'disconnect': {
+            "en-US": 'Disconnect someone from the voice channel',
+            "ru-RU": 'Отключить кого-то из вашего голосового канала',
+            "default": "en-US",
+        },
+        'owner': {
+            "en-US": 'Show/Give owner of the voice channel',
+            "ru-RU": 'Показать/Изменить владельца голосового канала',
+            "default": "en-US",
+        },
+        'name': {
+            "en-US": 'Change name of the voice channel',
+            "ru-RU": 'Переименовать голосовой канал',
+            "default": "en-US",
+        },
+        'member': {
+            "en-US": 'Allow/Deny access for member to the voice channel',
+            "ru-RU": 'Разрешить/Запретить доступ к голосовому каналу для участника',
+            "default": "en-US",
+        },
+        'role': {
+            "en-US": 'Allow/Deny access for role to the voice channel',
+            "ru-RU": 'Разрешить/Запретить доступ к голосовому каналу для роли',
+            "default": "en-US",
+        },
+        'lock': {
+            "en-US": 'Lock/Unlock the voice channel',
+            "ru-RU": 'Закрыть/Открыть голосовой канал',
+            "default": "en-US",
+        },
+        'limit': {
+            "en-US": 'Change user limit of the voice channel',
+            "ru-RU": 'Изменить лимит пользователей для голосового канала',
+            "default": "en-US",
+        },
     },
     'server': {
-        'prefix': 'Change prefix of the server',
-        'members': 'Count of members on server',
-        'moderator': 'Add/delete moderator for bot',
-        'administrator': 'Add/delete administrator for bot',
-        'no_command_channel': 'Add/delete channel to/from ignore command list',
-        'system_channel': 'Set/Unset system channel for the guild',
+        'prefix': {
+            "en-US": 'Change prefix of the server',
+            "ru-RU": 'Изменить префикс сервера',
+            "default": "en-US",
+        },
+        'members': {
+            "en-US": 'Count of members on server',
+            "ru-RU": 'Количество участников на сервере',
+            "default": "en-US",
+        },
+        'moderator': {
+            "en-US": 'Add/delete moderator for bot',
+            "ru-RU": 'Добавить/Удалить модератора бота',
+            "default": "en-US",
+        },
+        'administrator': {
+            "en-US": 'Add/delete administrator for bot',
+            "ru-RU": 'Добавить/Удалить администратора бота',
+            "default": "en-US",
+        },
+        'no_command_channel': {
+            "en-US": 'Add/delete channel to/from ignore command list',
+            "ru-RU": 'Добавить/Удалить канал из игнор-листа',
+            "default": "en-US",
+        },
+        'system_channel': {
+            "en-US": 'Set/Unset system channel for the guild',
+            "ru-RU": 'Добавить/Удалить системный канал для сервера',
+            "default": "en-US",
+        },
     },
     'music': {
-        'play': 'Play music from YouTube',
-        'queue': 'Show music queue of the server',
-        'pause': 'Pause or resume playing music',
-        'skip': 'Skip currently playing music',
-        'now': 'Show currently playing music',
-        'seek': 'Go to position in currently playing music',
-        'clear': 'Clear music queue',
-        'lyrics': 'Lyrics for title or currently playing music'
+        'play': {
+            "en-US": 'Play music from YouTube',
+            "ru-RU": 'Воспроизвести музыку из Youtube',
+            "default": "en-US",
+        },
+        'queue': {
+            "en-US": 'Show music queue of the server',
+            "ru-RU": 'Показать музыкальную очередь сервера',
+            "default": "en-US",
+        },
+        'pause': {
+            "en-US": 'Pause/Resume playing music',
+            "ru-RU": 'Приостановить/Возобновить воспроизведение музыки',
+            "default": "en-US",
+        },
+        'skip': {
+            "en-US": 'Skip currently playing music',
+            "ru-RU": 'Пропустить текущую музыку',
+            "default": "en-US",
+        },
+        'now': {
+            "en-US": 'Show currently playing music',
+            "ru-RU": 'Показать текущю музыку',
+            "default": "en-US",
+        },
+        'seek': {
+            "en-US": 'Go to position in currently playing music',
+            "ru-RU": 'Перемотать музыку',
+            "default": "en-US",
+        },
+        'clear': {
+            "en-US": 'Clear music queue',
+            "ru-RU": 'Очистить музыкальную очередь',
+            "default": "en-US",
+        },
+        'lyrics': {
+            "en-US": 'Lyrics for title or currently playing music',
+            "ru-RU": 'Текст песни по названию или для текущей музыки',
+            "default": "en-US",
+        },
     },
     'member': {
-        'avatar': 'Get avatar of user',
+        'avatar': {
+            "en-US": 'Get avatar of user',
+            "ru-RU": 'Получить аватар пользователя',
+            "default": "en-US",
+        },
     },
 }
 
@@ -85,7 +209,8 @@ class DiscordBot:
                 except Exception as e:
                     continue
 
-                description = command_description.get(group_name, {}).get(name, name)
+                locale = 'ru-RU'
+                description = command_description.get(group_name, {}).get(name, {}).get(locale, name)
                 callback = getattr(self.discordBotCommand, handler)
 
                 command = discord.app_commands.Command(name=name, description=description, callback=callback)

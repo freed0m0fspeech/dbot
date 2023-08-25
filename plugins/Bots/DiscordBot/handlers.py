@@ -104,7 +104,7 @@ class DiscordBotHandler:
                                 role = await guild.create_role(name='🔞Порнозвезда', color=discord.Color.fuchsia(),
                                                                hoist=True)
                             await member.add_roles(role)
-                            await member.send(f'Congratulation. You unlocked secret role: {role.name}')
+                            await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
 
                 return
 
@@ -125,7 +125,7 @@ class DiscordBotHandler:
                                 role = await guild.create_role(name='🎬Режиссер', color=discord.Color.orange(),
                                                                hoist=True)
                             await member.add_roles(role)
-                            await member.send(f'Congratulation. You unlocked secret role: {role.name}')
+                            await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
                 return
 
             if not before.deaf == after.deaf:
@@ -167,7 +167,7 @@ class DiscordBotHandler:
                                 role = await guild.create_role(name='♋Живая легенда', color=discord.Color.purple(),
                                                                        hoist=True)
                             await member.add_roles(role)
-                            await member.send(f'Congratulation. You unlocked secret role: {role.name}')
+                            await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
 
                     query = {f'members.{member.id}.stats.voicetime': voicetime}
                     filter = {'id': guild.id}
@@ -357,7 +357,7 @@ class DiscordBotHandler:
                                                                hoist=True)
 
                     await message.guild.get_member(message.author.id).add_roles(role)
-                    await message.author.send(f'Congratulation. You unlocked secret role: {role.name}')
+                    await message.author.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
 
             # Toxic words (1 in 1.000)
             if any(word.lower() in bad_words for word in message.content.split(' ')):
@@ -369,7 +369,7 @@ class DiscordBotHandler:
                                                                hoist=True)
 
                     await message.guild.get_member(message.author.id).add_roles(role)
-                    await message.author.send(f'Congratulation. You unlocked secret role: {role.name}')
+                    await message.author.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
 
             # . in the end of sentence (1 in 1.000)
             if message.content.endswith('.'):
@@ -381,7 +381,7 @@ class DiscordBotHandler:
                                                                hoist=True)
 
                     await message.guild.get_member(message.author.id).add_roles(role)
-                    await message.author.send(f'Congratulation. You unlocked secret role: {role.name}')
+                    await message.author.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
 
             # 'пам' in sentence (1 in 1.000)
             if 'пам' in message.content.lower():
@@ -393,7 +393,7 @@ class DiscordBotHandler:
                                                                hoist=True)
 
                     await message.guild.get_member(message.author.id).add_roles(role)
-                    await message.author.send(f'Congratulation. You unlocked secret role: {role.name}')
+                    await message.author.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
 
         except Exception as e:
             print(e)
