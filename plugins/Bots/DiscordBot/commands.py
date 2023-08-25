@@ -634,7 +634,7 @@ class DiscordBotCommand:
                 if voice_client.channel.id == voice_channel.id:
                     if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) < 20:
                         self.discordBot.music[guild.id]['queue'].append((text, user))
-                        await webhook.send(f'Элемент `{text}` был добавлено в очередь')
+                        await webhook.send(f'Элемент `{text}` был добавлен в очередь')
                     else:
                         await webhook.send(f'Максимальная длина музыкальной очереди 20 элементов')
                 else:
