@@ -28,7 +28,7 @@ async def main():
     # MONGODATABASE_PASSWORD = os.getenv('MONGODATABASE_PASSWORD', '')
 
     WEBAPP_HOST = '0.0.0.0'
-    WEBAPP_PORT = int(os.getenv('PORT', '00'))
+    WEBAPP_PORT = int(os.getenv('PORT', '8000'))
 
     # ------------------------------------------------------------------------------------------------------------------
 
