@@ -13,11 +13,11 @@ processes = []
 
 [[services]]
   protocol = "tcp"
-  internal_port = 80
+  internal_port = 8000
   processes = ["app"]
 
   [[services.ports]]
-    port = 8000
+    port = 80
     handlers = ["http"]
     force_https = true
 
