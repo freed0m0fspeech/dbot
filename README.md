@@ -8,11 +8,11 @@ discord-bot-freed0m0fspeech
 
 Discord bot for Freedom of speech, Python project.
 
-Learn more about [bot](https://github.com/pr0stre1/dbot/releases).
+Learn more about [bot](https://github.com/freed0m0fspeech/dbot/releases).
 
 ---------------
 
-Additional info about ``dbot``, you can find [here](https://github.com/pr0stre1/dbot/releases).
+Additional info about ``dbot``, you can find [here](https://github.com/freed0m0fspeech/dbot/releases).
 
 ---------------
 Commands to interact with voice channels (/voice):
@@ -42,7 +42,7 @@ Functionality:
   * Temporary voice channels
   * Stats (voicetime, messages count)
   * Scheduled tasks
-  * Cached guilds information
+  * Application cache
   * DataBase
   * Multiple DataBases support
   * Music player

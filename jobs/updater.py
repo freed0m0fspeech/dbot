@@ -6,7 +6,7 @@ from apscheduler.events import (
 )
 from apscheduler.schedulers.background import BackgroundScheduler
 from jobs.jobs import (
-    test
+    stats_sync
 )
 from pytz import utc
 
@@ -46,7 +46,7 @@ sched.add_listener(listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
 
 
 def start():
-    sched.add_job(test, 'interval', seconds=5, id='test',
+    sched.add_job(stats_sync, 'interval', hours=1, id='stats_sync',
                   misfire_grace_time=None, coalesce=True)
 
     sched.start()

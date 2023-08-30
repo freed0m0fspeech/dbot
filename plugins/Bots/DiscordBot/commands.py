@@ -6,6 +6,7 @@ import random
 
 import aiohttp
 import discord
+import pymongo
 import pytz
 
 import plugins.Helpers.youtube_dl
@@ -13,6 +14,7 @@ import utils
 
 from discord import FFmpegPCMAudio
 from plugins.DataBase.mongo import MongoDataBase
+from utils import cache
 
 
 class DiscordBotCommand:
@@ -154,12 +156,14 @@ class DiscordBotCommand:
                 # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
                 #                                            filter=filter)
 
-                if not self.discordBot.guilds:
-                    return await webhook.send(f"Что-то не так с базой данных")
+                # if not self.discordBot.guilds:
+                #     return await webhook.send(f"Что-то не так с базой данных")
+                #
+                # owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
+                #     f'{voice_channel.id}', {}).get('owner',
+                #                                    {})
 
-                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
-                    f'{voice_channel.id}', {}).get('owner',
-                                                   {})
+                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id).get('owner', {})
 
                 if owner:
                     if owner.get('id', '') == user.id:
@@ -208,12 +212,14 @@ class DiscordBotCommand:
                 # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
                 #                                            filter=filter)
 
-                if not self.discordBot.guilds:
-                    return await webhook.send(f"Что-то не так с базой данных")
+                # if not self.discordBot.guilds:
+                #     return await webhook.send(f"Что-то не так с базой данных")
+                #
+                # owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
+                #     f'{voice_channel.id}', {}).get('owner',
+                #                                    {})
 
-                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
-                    f'{voice_channel.id}', {}).get('owner',
-                                                   {})
+                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id).get('owner', {})
 
                 if owner:
                     if owner.get('id', '') == user.id:
@@ -260,12 +266,14 @@ class DiscordBotCommand:
                 # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
                 #                                            filter=filter)
 
-                if not self.discordBot.guilds:
-                    return await webhook.send(f"Что-то не так с базой данных")
+                # if not self.discordBot.guilds:
+                #     return await webhook.send(f"Что-то не так с базой данных")
+                #
+                # owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
+                #     f'{voice_channel.id}', {}).get('owner',
+                #                                    {})
 
-                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
-                    f'{voice_channel.id}', {}).get('owner',
-                                                   {})
+                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id).get('owner', {})
 
                 if owner:
                     if owner.get('id', '') == user.id:
@@ -312,12 +320,14 @@ class DiscordBotCommand:
                 # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
                 #                                            filter=filter)
 
-                if not self.discordBot.guilds:
-                    return await webhook.send(f"Что-то не так с базой данных")
+                # if not self.discordBot.guilds:
+                #     return await webhook.send(f"Что-то не так с базой данных")
+                #
+                # owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
+                #     f'{voice_channel.id}', {}).get('owner',
+                #                                    {})
 
-                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
-                    f'{voice_channel.id}', {}).get('owner',
-                                                   {})
+                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id).get('owner', {})
 
                 if owner:
                     if owner.get('id', '') == user.id:
@@ -364,12 +374,14 @@ class DiscordBotCommand:
                 # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
                 #                                            filter=filter)
 
-                if not self.discordBot.guilds:
-                    return await webhook.send(f"Что-то не так с базой данных")
+                # if not self.discordBot.guilds:
+                #     return await webhook.send(f"Что-то не так с базой данных")
+                #
+                # owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
+                #     f'{voice_channel.id}', {}).get('owner',
+                #                                    {})
 
-                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
-                    f'{voice_channel.id}', {}).get('owner',
-                                                   {})
+                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id).get('owner', {})
 
                 if owner:
                     if owner.get('id', '') == user.id:
@@ -421,9 +433,10 @@ class DiscordBotCommand:
                 query = {f'temporary.inits.{voice_channel.id}': ''}
                 filter = {'id': guild.id}
 
-                mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds',
-                                                              action='$unset',
-                                                              query=query, filter=filter)
+                with pymongo.timeout(0.3):
+                    mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds',
+                                                                  action='$unset',
+                                                                  query=query, filter=filter)
 
                 if mongoUpdate is None:
                     await webhook.send(f"Что-то не так с базой данных")
@@ -434,9 +447,10 @@ class DiscordBotCommand:
                 query = {f'temporary.inits.{voice_channel.id}.owner': {'id': user.id}}
                 filter = {'id': guild.id}
 
-                mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds',
-                                                              action='$set',
-                                                              query=query, filter=filter)
+                with pymongo.timeout(0.3):
+                    mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds',
+                                                                  action='$set',
+                                                                  query=query, filter=filter)
 
                 if mongoUpdate is None:
                     await webhook.send(f"Что-то не так с базой данных")
@@ -470,12 +484,14 @@ class DiscordBotCommand:
                 # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
                 #                                            filter=filter)
 
-                if not self.discordBot.guilds:
-                    return await webhook.send(f"Что-то не так с базой данных")
+                # if not self.discordBot.guilds:
+                #     return await webhook.send(f"Что-то не так с базой данных")
+                #
+                # owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
+                #     f'{voice_channel.id}', {}).get('owner',
+                #                                    {})
 
-                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
-                    f'{voice_channel.id}', {}).get('owner',
-                                                   {})
+                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id).get('owner', {})
 
                 if owner:
                     if member is not None:
@@ -483,19 +499,22 @@ class DiscordBotCommand:
                             await voice_channel.set_permissions(member, overwrite=utils.default_role)
                             await voice_channel.edit(name=f'@{member.name}')
 
-                            query = {f'temporary.channels.{voice_channel.id}.owner.id': member.id}
-                            filter = {'id': guild.id}
+                            # query = {f'temporary.channels.{voice_channel.id}.owner.id': member.id}
+                            # filter = {'id': guild.id}
+                            #
+                            # mongoUpdate = self.mongoDataBase.update_field(database_name='dbot',
+                            #                                               collection_name='guilds',
+                            #                                               action='$set',
+                            #                                               query=query, filter=filter)
+                            # if mongoUpdate is None:
+                            #     await webhook.send(f"Что-то не так с базой данных")
+                            # else:
+                            #     # self.discordBot.guilds[guild.id]['temporary']['channels'][f'{voice_channel.id}'] = {'owner': {'id': member.id}}
+                            #     self.discordBot.guilds[guild.id] = mongoUpdate
 
-                            mongoUpdate = self.mongoDataBase.update_field(database_name='dbot',
-                                                                          collection_name='guilds',
-                                                                          action='$set',
-                                                                          query=query, filter=filter)
-                            if mongoUpdate is None:
-                                await webhook.send(f"Что-то не так с базой данных")
-                            else:
-                                # self.discordBot.guilds[guild.id]['temporary']['channels'][f'{voice_channel.id}'] = {'owner': {'id': member.id}}
-                                self.discordBot.guilds[guild.id] = mongoUpdate
-                                await webhook.send(f'Новый владелец голосового канала {voice_channel.mention}: <@{member.id}> :)')
+                            await webhook.send(f'Новый владелец голосового канала {voice_channel.mention}: <@{member.id}> :)')
+
+                            cache.stats[guild.id]['tvoice_channels'][voice_channel.id]['owner']['id'] = member.id
                         else:
                             await webhook.send('Вы не владелец этого голосового канала')
                     else:
@@ -530,12 +549,14 @@ class DiscordBotCommand:
                 # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
                 #                                            filter=filter)
 
-                if not self.discordBot.guilds:
-                    return await webhook.send(f"Что-то не так с базой данных")
+                # if not self.discordBot.guilds:
+                #     return await webhook.send(f"Что-то не так с базой данных")
+                #
+                # owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
+                #     f'{voice_channel.id}', {}).get('owner',
+                #                                    {})
 
-                owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
-                    f'{voice_channel.id}', {}).get('owner',
-                                                   {})
+                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id).get('owner', {})
 
                 if owner:
                     if owner.get('id', '') == user.id:
@@ -822,7 +843,7 @@ class DiscordBotCommand:
                         if lyrics:
                             content = f"[{lyrics['title']}]({lyrics['link']}):\n{lyrics['lyrics']}"
                             # max length for discord
-                            content = content[:2000]
+                            content = (f"{content[:1998]}..") if len(content) > 2000 else content
 
                             return await webhook.send(content)
                         else:

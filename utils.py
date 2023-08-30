@@ -1,5 +1,7 @@
 import asyncio
 import os
+from collections import defaultdict
+
 import discord
 from discord import FFmpegPCMAudio
 from dotenv import load_dotenv
@@ -30,16 +32,18 @@ class DataBases():
 class Cache():
     def __init__(self, databases: DataBases):
         # Cached guilds
-        self.guilds = {}
+        # self.guilds = {}
+        #
+        # query = {'_id': 0, 'id': 1, 'temporary': 1, 'members': 1}
+        # for guild in databases.mongodb_client.get_documents(database_name='dbot', collection_name='guilds',
+        #                                                     query=query):
+        #     self.guilds[guild.get('id', '')] = guild
 
-        query = {'_id': 0, 'id': 1, 'temporary': 1, 'members': 1}
-        for guild in databases.mongodb_client.get_documents(database_name='dbot', collection_name='guilds',
-                                                            query=query):
-            self.guilds[guild.get('id', '')] = guild
+        self.stats = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(list)))))
 
 
 dataBases = DataBases()
-# cache = Cache(dataBases)
+cache = Cache(dataBases)
 # mongoDataBase = dataBases.mongodb_client
 
 default_role = discord.PermissionOverwrite(
