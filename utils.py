@@ -39,6 +39,7 @@ class Cache():
         #                                                     query=query):
         #     self.guilds[guild.get('id', '')] = guild
 
+        # count of defaultdict - count inner dicts
         self.stats = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(list)))))
 
 

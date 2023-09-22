@@ -294,10 +294,21 @@ class DiscordBotHandler:
             #     print('Not updated messages count of member in DataBase')
             # else:
             #     self.discordBot.guilds[message.guild.id] = mongoUpdate
-            messages_count = 1
-            messages_count += cache.stats.get(guild.id, {}).get('members', {}).get(author.id, {}).get('messages_count', 0)
+            last_message = cache.stats[guild.id]['members'][author.id]['last_message']
+            last_message_seconds = None
+            if last_message:
+                last_message_seconds = (datetime.now(tz=pytz.utc).replace(tzinfo=None) - datetime.strptime(last_message, '%Y-%m-%d %H:%M:%S')).total_seconds()
 
-            cache.stats[guild.id]['members'][author.id]['messages_count'] = messages_count
+            # Count messages only every 60 seconds
+            if not last_message_seconds or last_message_seconds > 60:
+                date = datetime.now(tz=pytz.utc)
+                date = date.strftime('%Y-%m-%d %H:%M:%S')
+
+                messages_count = 1
+                messages_count += cache.stats.get(guild.id, {}).get('members', {}).get(author.id, {}).get('messages_count', 0)
+
+                cache.stats[guild.id]['members'][author.id]['messages_count'] = messages_count
+                cache.stats[guild.id]['members'][author.id]['last_message'] = date
 
             # Unique roles
             # Lucky message (1 in 100.000)
