@@ -39,18 +39,18 @@ def stats_sync(query=None, filter=None):
                 try:
                     voicetime = cache.stats.get(guild_id, {}).get('members', {}).get(member_id, {}).pop('voicetime')
                 except Exception as e:
-                    voicetime = None
+                    voicetime = 0
 
-                if voicetime:
+                if not voicetime == 0:
                     query[f'members.{member_id}.stats.voicetime'] = voicetime
 
                 try:
                     messages_count = cache.stats.get(guild_id, {}).get('members', {}).get(member_id, {}).pop(
                         'messages_count')
                 except Exception as e:
-                    messages_count = None
+                    messages_count = 0
 
-                if messages_count:
+                if not messages_count == 0:
                     query[f'members.{member_id}.stats.messages_count'] = messages_count
 
                 try:
@@ -59,7 +59,7 @@ def stats_sync(query=None, filter=None):
                 except Exception as e:
                     messages_count_xp = 0
 
-                if not messages_count_xp == 0 or voicetime:
+                if not messages_count_xp == 0 or not voicetime == 0:
                     message_xp = document.get('xp', {}).get('message_xp', 100)
                     voice_xp = document.get('xp', {}).get('voice_xp', 50)
 
