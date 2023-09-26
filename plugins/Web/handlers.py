@@ -262,6 +262,9 @@ class WebServerHandler:
 
         members_parameters = {}
         for member in guild.members:
+            if member.bot:
+                continue
+
             member_parameters = {}
             for attr in [attr for attr in dir(member) if not attr.startswith('_')]:
                 try:
