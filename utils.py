@@ -42,6 +42,15 @@ class Cache():
         # count of defaultdict - count inner dicts
         self.stats = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(list)))))
 
+        query = {'_id': 0, 'id': 1, 'xp': 1}
+        for guild in databases.mongodb_client.get_documents(database_name='dbot', collection_name='guilds',
+                                                            query=query):
+            guild_xp = guild.get('xp', {})
+
+            self.stats[guild.get('id', '')]['xp']['message_xp'] = guild_xp.get('message_xp', 100)
+            self.stats[guild.get('id', '')]['xp']['voice_xp'] = guild_xp.get('voice_xp', 50)
+            self.stats[guild.get('id', '')]['xp']['message_xp_delay'] = guild_xp.get('message_xp_delay', 60)
+
 
 dataBases = DataBases()
 cache = Cache(dataBases)

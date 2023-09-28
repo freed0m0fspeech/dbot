@@ -33,6 +33,13 @@ def stats_sync(query=None, filter=None):
                                                   collection_name='guilds',
                                                   filter=filter,
                                                   query=query)
+
+            guild_xp = document.get('xp', {})
+
+            cache.stats[guild_id]['xp']['message_xp'] = guild_xp.get('message_xp', 100)
+            cache.stats[guild_id]['xp']['voice_xp'] = guild_xp.get('voice_xp', 50)
+            cache.stats[guild_id]['xp']['message_xp_delay'] = guild_xp.get('message_xp_delay', 60)
+
             query = {}
 
             for member_id in cache.stats.get(guild_id, {}).get('members', {}).keys():
@@ -60,8 +67,8 @@ def stats_sync(query=None, filter=None):
                     messages_count_xp = 0
 
                 if not messages_count_xp == 0 or not voicetime == 0:
-                    message_xp = document.get('xp', {}).get('message_xp', 100)
-                    voice_xp = document.get('xp', {}).get('voice_xp', 50)
+                    message_xp = cache.stats.get(guild_id, {}).get('xp', {}).get('message_xp', 100)
+                    voice_xp = cache.stats.get(guild_id, {}).get('xp', {}).get('voice_xp', 50)
 
                     xp = (messages_count_xp * message_xp) + ((voicetime // 60) * voice_xp)
 

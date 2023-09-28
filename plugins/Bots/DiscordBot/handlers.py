@@ -303,9 +303,10 @@ class DiscordBotHandler:
             messages_count += cache.stats.get(guild.id, {}).get('members', {}).get(author.id, {}).get('messages_count', 0)
 
             cache.stats[guild.id]['members'][author.id]['messages_count'] = messages_count
+            message_xp_delay = cache.stats.get(guild.id, {}).get('xp', {}).get('message_xp_delay', 60)
 
             # Count messages only every 60 seconds
-            if not last_message_seconds or last_message_seconds > 60:
+            if not last_message_seconds or last_message_seconds > message_xp_delay:
                 date = datetime.now(tz=pytz.utc)
                 date = date.strftime('%Y-%m-%d %H:%M:%S')
 
