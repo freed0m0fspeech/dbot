@@ -32,8 +32,6 @@ def listener(event):
     else:
         print(f'The job {event.job_id}() executed successfully :)')
 
-        sched.print_jobs()
-
 
 job_defaults = {
     'coalesce': True,
