@@ -83,11 +83,11 @@ class DiscordBotHandler:
 
         if not before.self_deaf == after.self_deaf:
             # print('self deaf')
-            return
+            pass
 
         if not before.self_mute == after.self_mute:
             # print('self mute')
-            return
+            pass
 
         if not before.self_video == after.self_video:
             # print('video')
@@ -108,8 +108,6 @@ class DiscordBotHandler:
                         await member.add_roles(role)
                         await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
 
-            return
-
         if not before.self_stream == after.self_stream:
             # print('stream')
 
@@ -128,15 +126,14 @@ class DiscordBotHandler:
                                                            hoist=True)
                         await member.add_roles(role)
                         await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
-            return
 
         if not before.deaf == after.deaf:
             # print('deaf')
-            return
+            pass
 
         if not before.mute == after.mute:
             # print('mute')
-            return
+            pass
 
         if before.channel:
             # User moved or leaves voice channel
@@ -219,8 +216,13 @@ class DiscordBotHandler:
 
                 cache.stats[guild.id]['tvoice_channels'][voice_channel.id]['owner']['id'] = member.id
 
+                try:
+                    await member.move_to(channel=voice_channel)
+                except discord.HTTPException:
+                    if len(voice_channel.members) == 0:
+                        await voice_channel.delete()
+
                 await voice_channel.set_permissions(member, overwrite=utils.default_role)
-                await member.move_to(channel=voice_channel)
 
                 # self.discordBot.guilds[guild.id]['temporary']['channels'][f'{voice_channel.id}']= {'owner': {'id': member.id}}
             else:
