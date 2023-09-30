@@ -75,176 +75,173 @@ class DiscordBotHandler:
 
     async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState,
                                     after: discord.VoiceState):
-        try:
-            # if member == client.user:
-            #    return
+        # if member == client.user:
+        #    return
 
-            # if member.bot:
-            #    return
+        # if member.bot:
+        #    return
 
-            if not before.self_deaf == after.self_deaf:
-                # print('self deaf')
-                return
+        if not before.self_deaf == after.self_deaf:
+            # print('self deaf')
+            return
 
-            if not before.self_mute == after.self_mute:
-                # print('self mute')
-                return
+        if not before.self_mute == after.self_mute:
+            # print('self mute')
+            return
 
-            if not before.self_video == after.self_video:
-                # print('video')
-                if after.self_video:
-                    guild = member.guild
+        if not before.self_video == after.self_video:
+            # print('video')
+            if after.self_video:
+                guild = member.guild
 
-                    if not guild:
-                        return
-
-                    # 1 in 1.000 when start video
-                    if round(random.random(), 3) == 0.001:
-                        if not discord.utils.get(member.roles, name='🔞Порнозвезда'):
-                            role = discord.utils.get(guild.roles, name='🔞Порнозвезда')
-
-                            if not role:
-                                role = await guild.create_role(name='🔞Порнозвезда', color=discord.Color.fuchsia(),
-                                                               hoist=True)
-                            await member.add_roles(role)
-                            await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
-
-                return
-
-            if not before.self_stream == after.self_stream:
-                # print('stream')
-
-                if after.self_stream:
-                    guild = member.guild
-
-                    if not guild:
-                        return
-                    # 1 in 1.000 when start stream
-                    if round(random.random(), 3) == 0.001:
-                        if not discord.utils.get(member.roles, name='🎬Режиссер'):
-                            role = discord.utils.get(guild.roles, name='🎬Режиссер')
-
-                            if not role:
-                                role = await guild.create_role(name='🎬Режиссер', color=discord.Color.orange(),
-                                                               hoist=True)
-                            await member.add_roles(role)
-                            await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
-                return
-
-            if not before.deaf == after.deaf:
-                # print('deaf')
-                return
-
-            if not before.mute == after.mute:
-                # print('mute')
-                return
-
-            if before.channel:
-                # User moved or leaves voice channel
-                voice_channel = before.channel
-                members = voice_channel.members
-                guild = voice_channel.guild
-
-                voice_channel_cache = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {})
-                member_cache = cache.stats.get(guild.id, {}).get('members', {}).get(member.id, {})
-
-                member_joined = member_cache.get('joined', '')
-
-                if member_joined:
-                    voicetime = (datetime.now(tz=pytz.utc).replace(tzinfo=None) - datetime.strptime(member_joined,
-                                                                                                    '%Y-%m-%d %H:%M:%S')).total_seconds()
-
-                    # was in voice 69 hours (248400 seconds) or more
-                    if voicetime >= 248400:
-                        if not discord.utils.get(member.roles, name='♋Живая легенда'):
-                            role = discord.utils.get(guild.roles, name='♋Живая легенда')
-
-                            if not role:
-                                role = await guild.create_role(name='♋Живая легенда', color=discord.Color.purple(),
-                                                               hoist=True)
-                            await member.add_roles(role)
-                            await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
-
-                    voicetime += member_cache.get('voicetime', 0)
-
-                    cache.stats[guild.id]['members'][member.id]['voicetime'] = voicetime
-                    del cache.stats[guild.id]['members'][member.id]['joined']
-
-                if voice_channel_cache:
-                    if len(members) == 0:
-                        # Leaves last member in voice channel
-                        await voice_channel.delete()
-
-                        del cache.stats[guild.id]['tvoice_channels'][voice_channel.id]
-                    else:
-                        if member.bot:
-                            return
-
-                        # Leaves not last member in voice channel
-                        owner = voice_channel_cache.get('owner', {})
-
-                        if owner.get('id', '') == member.id:
-                            # Leaves owner of voice channel
-                            new_owner = None
-
-                            for tmember in members:
-                                if not tmember.bot:
-                                    new_owner = tmember
-
-                            if new_owner:
-                                await voice_channel.set_permissions(new_owner, overwrite=utils.default_role)
-                                await voice_channel.edit(name=f'@{new_owner.name}')
-
-                                cache.stats[guild.id]['tvoice_channels'][voice_channel.id]['owner']['id'] = new_owner.id
-
-            # User join voice channel
-            if after.channel is not None:
-                voice_channel = after.channel
-                guild = voice_channel.guild
-
-                guild_cache = self.discordBot.guilds.get(guild.id, {})
-                if not guild_cache:
+                if not guild:
                     return
 
-                init_channel = guild_cache.get('temporary', {}).get('inits', {}).get(f'{voice_channel.id}', '')
+                # 1 in 1.000 when start video
+                if round(random.random(), 3) == 0.001:
+                    if not discord.utils.get(member.roles, name='🔞Порнозвезда'):
+                        role = discord.utils.get(guild.roles, name='🔞Порнозвезда')
 
-                if init_channel:
-                    category = voice_channel.category
+                        if not role:
+                            role = await guild.create_role(name='🔞Порнозвезда', color=discord.Color.fuchsia(),
+                                                           hoist=True)
+                        await member.add_roles(role)
+                        await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
 
-                    if category:
-                        voice_channel = await category.create_voice_channel(name=f'@{member.name}',
-                                                                            position=voice_channel.position)
-                    else:
-                        voice_channel = await guild.create_voice_channel(name=f'@{member.name}',
-                                                                         position=voice_channel.position)
+            return
 
-                    cache.stats[guild.id]['tvoice_channels'][voice_channel.id]['owner']['id'] = member.id
+        if not before.self_stream == after.self_stream:
+            # print('stream')
 
-                    await voice_channel.set_permissions(member, overwrite=utils.default_role)
-                    await member.move_to(channel=voice_channel)
+            if after.self_stream:
+                guild = member.guild
 
-                        # self.discordBot.guilds[guild.id]['temporary']['channels'][f'{voice_channel.id}']= {'owner': {'id': member.id}}
+                if not guild:
+                    return
+                # 1 in 1.000 when start stream
+                if round(random.random(), 3) == 0.001:
+                    if not discord.utils.get(member.roles, name='🎬Режиссер'):
+                        role = discord.utils.get(guild.roles, name='🎬Режиссер')
+
+                        if not role:
+                            role = await guild.create_role(name='🎬Режиссер', color=discord.Color.orange(),
+                                                           hoist=True)
+                        await member.add_roles(role)
+                        await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
+            return
+
+        if not before.deaf == after.deaf:
+            # print('deaf')
+            return
+
+        if not before.mute == after.mute:
+            # print('mute')
+            return
+
+        if before.channel:
+            # User moved or leaves voice channel
+            voice_channel = before.channel
+            members = voice_channel.members
+            guild = voice_channel.guild
+
+            voice_channel_cache = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {})
+            member_cache = cache.stats.get(guild.id, {}).get('members', {}).get(member.id, {})
+
+            member_joined = member_cache.get('joined', '')
+
+            if member_joined:
+                voicetime = (datetime.now(tz=pytz.utc).replace(tzinfo=None) - datetime.strptime(member_joined,
+                                                                                                '%Y-%m-%d %H:%M:%S')).total_seconds()
+
+                # was in voice 69 hours (248400 seconds) or more
+                if voicetime >= 248400:
+                    if not discord.utils.get(member.roles, name='♋Живая легенда'):
+                        role = discord.utils.get(guild.roles, name='♋Живая легенда')
+
+                        if not role:
+                            role = await guild.create_role(name='♋Живая легенда', color=discord.Color.purple(),
+                                                           hoist=True)
+                        await member.add_roles(role)
+                        await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
+
+                voicetime += member_cache.get('voicetime', 0)
+
+                cache.stats[guild.id]['members'][member.id]['voicetime'] = voicetime
+                del cache.stats[guild.id]['members'][member.id]['joined']
+
+            if voice_channel_cache:
+                if len(members) == 0:
+                    # Leaves last member in voice channel
+                    await voice_channel.delete()
+
+                    del cache.stats[guild.id]['tvoice_channels'][voice_channel.id]
                 else:
-                    # Joined not in init channel
-                    date = datetime.now(tz=pytz.utc)
-                    date = date.strftime('%Y-%m-%d %H:%M:%S')
+                    if member.bot:
+                        return
 
-                    cache.stats[guild.id]['members'][member.id]['joined'] = date
+                    # Leaves not last member in voice channel
+                    owner = voice_channel_cache.get('owner', {})
 
-                    # query = {f'members.{member.id}.stats.joined': date}
-                    # filter = {'id': guild.id}
-                    #
-                    # mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds',
-                    #                                               action='$set',
-                    #                                               query=query, filter=filter)
-                    #
-                    # if mongoUpdate is None:
-                    #     print('Not updated joined value of member in DataBase')
-                    # else:
-                    #     self.discordBot.guilds[guild.id] = mongoUpdate
-                        # self.discordBot.guilds[guild.id]['members'][f'{member.id}']['stats']['joined'] = date
-        except Exception as e:
-            print(e)
+                    if owner.get('id', '') == member.id:
+                        # Leaves owner of voice channel
+                        new_owner = None
+
+                        for tmember in members:
+                            if not tmember.bot:
+                                new_owner = tmember
+
+                        if new_owner:
+                            await voice_channel.set_permissions(new_owner, overwrite=utils.default_role)
+                            await voice_channel.edit(name=f'@{new_owner.name}')
+
+                            cache.stats[guild.id]['tvoice_channels'][voice_channel.id]['owner']['id'] = new_owner.id
+
+        # User join voice channel
+        if after.channel is not None:
+            voice_channel = after.channel
+            guild = voice_channel.guild
+
+            guild_cache = self.discordBot.guilds.get(guild.id, {})
+            if not guild_cache:
+                return
+
+            init_channel = guild_cache.get('temporary', {}).get('inits', {}).get(f'{voice_channel.id}', '')
+
+            if init_channel:
+                category = voice_channel.category
+
+                if category:
+                    voice_channel = await category.create_voice_channel(name=f'@{member.name}',
+                                                                        position=voice_channel.position + 1)
+                else:
+                    voice_channel = await guild.create_voice_channel(name=f'@{member.name}',
+                                                                     position=voice_channel.position + 1)
+
+                cache.stats[guild.id]['tvoice_channels'][voice_channel.id]['owner']['id'] = member.id
+
+                await voice_channel.set_permissions(member, overwrite=utils.default_role)
+                await member.move_to(channel=voice_channel)
+
+                # self.discordBot.guilds[guild.id]['temporary']['channels'][f'{voice_channel.id}']= {'owner': {'id': member.id}}
+            else:
+                # Joined not in init channel
+                date = datetime.now(tz=pytz.utc)
+                date = date.strftime('%Y-%m-%d %H:%M:%S')
+
+                cache.stats[guild.id]['members'][member.id]['joined'] = date
+
+                # query = {f'members.{member.id}.stats.joined': date}
+                # filter = {'id': guild.id}
+                #
+                # mongoUpdate = self.mongoDataBase.update_field(database_name='dbot', collection_name='guilds',
+                #                                               action='$set',
+                #                                               query=query, filter=filter)
+                #
+                # if mongoUpdate is None:
+                #     print('Not updated joined value of member in DataBase')
+                # else:
+                #     self.discordBot.guilds[guild.id] = mongoUpdate
+                    # self.discordBot.guilds[guild.id]['members'][f'{member.id}']['stats']['joined'] = date
 
     # async def on_guild_join(self, guild: discord.Guild):
     #     query = {f'guilds.id': guild.id}

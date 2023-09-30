@@ -66,7 +66,8 @@ class WebServerHandler:
 
     async def __send_message_handler(self, request: 'Request'):
         if request.headers.get('Origin', '').split("//")[-1].split("/")[0].split('?')[0] not in ALLOWED_HOSTS:
-            return Response(status=403)
+            if not os.getenv('DEBUG', False):
+                return Response(status=403)
 
         guild_id = request.match_info['guild_id']
         channel_id = request.match_info['channel_id']
@@ -74,10 +75,11 @@ class WebServerHandler:
         try:
             data = await request.json()
         except JSONDecodeError:
-            return Response(status=500)
+            data = {}
 
         if not data.get('publicKey', '') == os.getenv('RSA_PUBLIC_KEY', ''):
-            return Response(status=403)
+            if not os.getenv('DEBUG', False):
+                return Response(status=403)
 
         try:
             guild = self.discordBot.client.get_guild(int(guild_id))
@@ -96,7 +98,8 @@ class WebServerHandler:
 
     async def __member_parameters_handler(self, request: 'Request'):
         if request.headers.get('Origin', '').split("//")[-1].split("/")[0].split('?')[0] not in ALLOWED_HOSTS:
-            return Response(status=403)
+            if not os.getenv('DEBUG', False):
+                return Response(status=403)
 
         member_id = request.match_info['member_id']
         guild_id = request.match_info['guild_id']
@@ -104,10 +107,11 @@ class WebServerHandler:
         try:
             data = await request.json()
         except JSONDecodeError:
-            return Response(status=500)
+            data = {}
 
         if not data.get('publicKey', '') == os.getenv('RSA_PUBLIC_KEY', ''):
-            return Response(status=403)
+            if not os.getenv('DEBUG', False):
+                return Response(status=403)
 
         try:
             guild = self.discordBot.client.get_guild(int(guild_id))
@@ -126,6 +130,10 @@ class WebServerHandler:
         for attr in [attr for attr in dir(member) if not attr.startswith('_')]:
             try:
                 value = getattr(member, attr)
+
+                # if isinstance(value, discord.Asset):
+                #     value = value.key
+
                 member_parameters[attr] = json.dumps(value, default=json_util.default)
             except Exception as e:
                 # Not serializable
@@ -141,7 +149,8 @@ class WebServerHandler:
 
     async def __user_parameters_handler(self, request: 'Request'):
         if request.headers.get('Origin', '').split("//")[-1].split("/")[0].split('?')[0] not in ALLOWED_HOSTS:
-            return Response(status=403)
+            if not os.getenv('DEBUG', False):
+                return Response(status=403)
 
         user_id = request.match_info['user_id']
 
@@ -151,10 +160,11 @@ class WebServerHandler:
             date = datetime.now(tz=utc)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
         except JSONDecodeError:
-            return Response(status=500)
+            data = {}
 
         if not data.get('publicKey', '') == os.getenv('RSA_PUBLIC_KEY', ''):
-            return Response(status=403)
+            if not os.getenv('DEBUG', False):
+                return Response(status=403)
 
         try:
             user = self.discordBot.client.get_user(int(user_id))
@@ -170,6 +180,10 @@ class WebServerHandler:
         for attr in [attr for attr in dir(user) if not attr.startswith('_')]:
             try:
                 value = getattr(user, attr)
+
+                # if isinstance(value, discord.Asset):
+                #     value = value.key
+
                 user_parameters[attr] = json.dumps(value, default=json_util.default)
             except Exception as e:
                 # Not serializable
@@ -185,17 +199,19 @@ class WebServerHandler:
 
     async def __guild_parameters_handler(self, request: 'Request'):
         if request.headers.get('Origin', '').split("//")[-1].split("/")[0].split('?')[0] not in ALLOWED_HOSTS:
-            return Response(status=403)
+            if not os.getenv('DEBUG', False):
+                return Response(status=403)
 
         guild_id = request.match_info['guild_id']
 
         try:
             data = await request.json()
         except JSONDecodeError:
-            return Response(status=500)
+            data = {}
 
         if not data.get('publicKey', '') == os.getenv('RSA_PUBLIC_KEY', ''):
-            return Response(status=403)
+            if not os.getenv('DEBUG', False):
+                return Response(status=403)
 
         try:
             guild = self.discordBot.client.get_guild(int(guild_id))
@@ -235,9 +251,12 @@ class WebServerHandler:
 
         guild_parameters = {}
         for attr in [attr for attr in dir(guild) if not attr.startswith('_')]:
-            value = getattr(guild, attr)
-
             try:
+                value = getattr(guild, attr)
+
+                # if isinstance(value, discord.Asset):
+                #     value = value.key
+
                 guild_parameters[attr] = json.dumps(value, default=json_util.default)
             except Exception as e:
                 # Not serializable
@@ -269,6 +288,10 @@ class WebServerHandler:
             for attr in [attr for attr in dir(member) if not attr.startswith('_')]:
                 try:
                     value = getattr(member, attr)
+
+                    # if isinstance(value, discord.Asset):
+                    #     value = value.key
+
                     member_parameters[attr] = json.dumps(value, default=json_util.default)
                 except Exception as e:
                     # Not serializable
@@ -320,7 +343,8 @@ class WebServerHandler:
 
     async def __manage_guild_handler(self, request: 'Request'):
         if request.headers.get('Origin', '').split("//")[-1].split("/")[0].split('?')[0] not in ALLOWED_HOSTS:
-            return Response(status=403)
+            if not os.getenv('DEBUG', False):
+                return Response(status=403)
 
         member_id = request.match_info['member_id']
         guild_id = request.match_info['guild_id']
@@ -328,10 +352,11 @@ class WebServerHandler:
         try:
             data = await request.json()
         except JSONDecodeError:
-            return Response(status=500)
+            data = {}
 
         if not data.get('publicKey', '') == os.getenv('RSA_PUBLIC_KEY', ''):
-            return Response(status=403)
+            if not os.getenv('DEBUG', False):
+                return Response(status=403)
 
         action = data.get('action', '')
         parameters = data.get('parameters', '')
