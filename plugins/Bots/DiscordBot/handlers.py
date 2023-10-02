@@ -136,7 +136,12 @@ class DiscordBotHandler:
             pass
 
         if before.channel:
+            if after.channel:
+                if before.channel == after.channel:
+                    return
+
             # User moved or leaves voice channel
+
             voice_channel = before.channel
             members = voice_channel.members
             guild = voice_channel.guild
@@ -193,8 +198,13 @@ class DiscordBotHandler:
 
                             cache.stats[guild.id]['tvoice_channels'][voice_channel.id]['owner']['id'] = new_owner.id
 
-        # User join voice channel
         if after.channel is not None:
+            if before.channel:
+                if before.channel == after.channel:
+                    return
+
+            # User join voice channel
+
             voice_channel = after.channel
             guild = voice_channel.guild
 
