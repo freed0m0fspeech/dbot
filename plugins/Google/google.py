@@ -147,24 +147,34 @@ class Google:
         try:
             session = HTMLSession()
             response = session.get(url=url)
+            # response = requests.get(url=url)
         except requests.exceptions.RequestException:
             return None
 
-        css_identifier_result = ".tF2Cxc"
+        try:
+            session = HTMLSession()
+            response = session.get(url=url)
+        except requests.exceptions.RequestException:
+            return None
+
+        css_identifier_result = ".Gx5Zad"
         css_identifier_title = "h3"
-        css_identifier_link = ".yuRUbf a"
-        #css_identifier_text = ".IsZvec"
+        css_identifier_link = ".egMi0 a"
+        # css_identifier_text = ".IsZvec"
 
         results = response.html.find(css_identifier_result)
 
         data = []
 
         for result in results:
-            item = {
-                'title': result.find(css_identifier_title, first=True).text,
-                'link': result.find(css_identifier_link, first=True).attrs['href'],
-                # 'text': result.find(css_identifier_text, first=True).text
-            }
+            try:
+                item = {
+                    'title': result.find(css_identifier_title, first=True).text,
+                    'link': result.find(css_identifier_link, first=True).attrs['href'].split('&url=', 1)[1].split('&', 1)[0],
+                    # 'text': result.find(css_identifier_text, first=True).text
+                }
+            except Exception:
+                continue
 
             data.append(item)
 
