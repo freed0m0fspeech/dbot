@@ -151,12 +151,6 @@ class Google:
         except requests.exceptions.RequestException:
             return None
 
-        try:
-            session = HTMLSession()
-            response = session.get(url=url)
-        except requests.exceptions.RequestException:
-            return None
-
         css_identifier_result = ".Gx5Zad"
         css_identifier_title = "h3"
         css_identifier_link = ".egMi0 a"

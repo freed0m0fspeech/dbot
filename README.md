@@ -47,3 +47,4 @@ Functionality:
   * Multiple DataBases support
   * Music player
   * Lyrics scrapper
+  * Event logger
