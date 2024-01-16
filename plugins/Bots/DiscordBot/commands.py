@@ -512,13 +512,15 @@ class DiscordBotCommand:
                             #     # self.discordBot.guilds[guild.id]['temporary']['channels'][f'{voice_channel.id}'] = {'owner': {'id': member.id}}
                             #     self.discordBot.guilds[guild.id] = mongoUpdate
 
-                            await webhook.send(f'Новый владелец голосового канала {voice_channel.mention}: <@{member.id}> :)')
+                            await webhook.send(
+                                f'Новый владелец голосового канала {voice_channel.mention}: <@{member.id}> :)')
 
                             cache.stats[guild.id]['tvoice_channels'][voice_channel.id]['owner']['id'] = member.id
                         else:
                             await webhook.send('Вы не владелец этого голосового канала')
                     else:
-                        await webhook.send(f"Владелец голосового канала {voice_channel.mention}: <@{owner.get('id', '')}>")
+                        await webhook.send(
+                            f"Владелец голосового канала {voice_channel.mention}: <@{owner.get('id', '')}>")
                 else:
                     await webhook.send('Информация о владельце голосового канала не найдена')
             else:
@@ -561,7 +563,8 @@ class DiscordBotCommand:
                 if owner:
                     if owner.get('id', '') == user.id:
                         await voice_channel.edit(user_limit=user_limit)
-                        await webhook.send(f'Лимит пользователей для голосового канала {voice_channel.mention} изменен на {user_limit}')
+                        await webhook.send(
+                            f'Лимит пользователей для голосового канала {voice_channel.mention} изменен на {user_limit}')
                     else:
                         await webhook.send('Вы не владелец этого голосового канала')
                 else:
@@ -605,7 +608,7 @@ class DiscordBotCommand:
         url = info.get('url', '')
 
         guild.voice_client.play(FFmpegPCMAudio(url, **ffmpeg_options),
-                          after=lambda ex: asyncio.run(self._play(guild=guild)))
+                                after=lambda ex: asyncio.run(self._play(guild=guild)))
 
     async def music_play(self, interaction: discord.Interaction, text: str):
         response = interaction.response
@@ -655,7 +658,7 @@ class DiscordBotCommand:
                 if voice_client.channel.id == voice_channel.id:
                     if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) < 20:
                         self.discordBot.music[guild.id]['queue'].append((text, user))
-                        await webhook.send(f'Элемент `{text}` был добавлен в очередь')
+                        await webhook.send(f'Запрос `{text}` был добавлен в очередь')
                     else:
                         await webhook.send(f'Максимальная длина музыкальной очереди 20 элементов')
                 else:
@@ -709,9 +712,11 @@ class DiscordBotCommand:
                         content = f'{content}{i}. `{title}` добавил(а) {user.mention}\n'
 
                     queue_embed = discord.Embed(title=f"Музыкальная очередь ({guild.name}) - {len(music_queue)}",
-                                              description=f"{content}",
-                                              color=discord.Color.random(),
-                                              timestamp=datetime.datetime.now(tz=pytz.timezone('Europe/Kiev')))
+                                                description=f"{content}",
+                                                color=discord.Color.random(),
+                                                timestamp=datetime.datetime.now(tz=pytz.timezone('Europe/Kiev')))
+                    queue_embed.set_author(name=guild.name, icon_url=guild.icon)
+                    queue_embed.set_thumbnail(url=guild.icon)
 
                     return await webhook.send(embed=queue_embed)
             else:
@@ -769,11 +774,11 @@ class DiscordBotCommand:
                 if count > 0:
                     for _ in range(count):
                         self.discordBot.music[guild.id]['queue'].pop(0)
-                    return await webhook.send(f'{count} элементов удалено с начала музыкальной очереди')
+                    return await webhook.send(f'{count} запрос(ов) удалено с начала музыкальной очереди')
                 else:
                     for _ in range(abs(count)):
                         self.discordBot.music[guild.id]['queue'].pop()
-                    return await webhook.send(f'{abs(count)} элементов удалено с конца музыкальной очереди')
+                    return await webhook.send(f'{abs(count)} запрос(ов) удалено с конца музыкальной очереди')
             else:
                 return await webhook.send('Вы находитесь в другом гоолосовом канале')
         except Exception as e:
@@ -799,16 +804,17 @@ class DiscordBotCommand:
                     info = self.discordBot.music.get('now', {})
 
                     now_embed = discord.Embed(title=f"{info['title']}",
-                                                      description=f"[{info['channel']}]({info['channel_url']})",
-                                                      color=discord.Color.random(),
-                                                      timestamp=datetime.datetime.now(tz=pytz.timezone('Europe/Kiev')),
-                                                      url=info['webpage_url'])
+                                              description=f"[{info['channel']}]({info['channel_url']})",
+                                              color=discord.Color.random(),
+                                              timestamp=datetime.datetime.now(tz=pytz.timezone('Europe/Kiev')),
+                                              url=info['webpage_url'])
                     now_embed.add_field(name='Длительность',
                                         value=f"{datetime.timedelta(seconds=info['duration'])}",
                                         inline=True)
                     # now_embed.set_author(icon_url=client.user.avatar.url, name="Now playing")
                     thumbnail_url = info['thumbnails'][len(info['thumbnails']) - 1]['url']
                     now_embed.set_thumbnail(url=thumbnail_url)
+                    now_embed.set_author(name=guild.name, icon_url=guild.icon)
 
                     return await webhook.send(embed=now_embed)
                 else:
