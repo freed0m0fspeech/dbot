@@ -248,7 +248,7 @@ class DiscordBotHandler:
             member = args[0]
             member: discord.Member
 
-            event_embed.description = f'**💧\n\n{member.mention} покинул сервер**'
+            event_embed.description = f'**💧\n\n`{member.name}` покинул сервер**'
 
             await system_channel.send(embed=event_embed)
 
