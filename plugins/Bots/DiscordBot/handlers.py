@@ -901,7 +901,7 @@ class DiscordBotHandler:
         # This requires Intents.moderation to be enabled.
         pass
 
-    async def on_presence_update(self, before: discord.Member, after: discord.Member):
+    async def _on_presence_update(self, before: discord.Member, after: discord.Member):
         # Called when a Member updates their presence.
         #
         # This is called when one or more of the following things change:
