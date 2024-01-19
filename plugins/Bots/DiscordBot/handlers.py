@@ -172,10 +172,7 @@ class DiscordBotHandler:
             if not changes:
                 return
 
-            if isinstance(arg, discord.Member):
-                arg_name = f'{arg.mention}'
-            else:
-                arg_name = f'`{arg.name}`'
+            arg_name = f'`{arg.name}`'
 
             event_embed.description = f"🚧\n\n**UPDATE**\n{arg_name}\n\n> {arg.__class__.__name__}\n\n{changes}"
         elif event.endswith('delete') or event.endswith('remove'):
@@ -192,7 +189,7 @@ class DiscordBotHandler:
                 if isinstance(arg, discord.Invite):
                     arg_name = f'[link]({arg.url})'
                 elif isinstance(arg, discord.Message):
-                    arg_name = f'{arg.author.mention}: `{arg.content}`'
+                    arg_name = f'`{arg.author.name}\n\n{arg.content}`'
                 else:
                     return
 
