@@ -102,7 +102,9 @@ class DiscordBotHandler:
         event_embed.title = f'Event ({event})'
         event_embed.timestamp = datetime.now(tz=pytz.timezone('Europe/Kiev'))
 
-        if event.endswith('create') or event.endswith('join') or event.endswith('add'):
+        event_type_upper = event.split('_').pop(-1).upper()
+
+        if event_type_upper in ('CREATE', 'JOIN', 'ADD'):
             event_embed.color = discord.Color.brand_green()
             event_embed.set_author(name=guild.name, icon_url=guild.icon)
             event_embed.set_thumbnail(url=guild.icon)
@@ -110,15 +112,18 @@ class DiscordBotHandler:
             arg = args[0]
 
             try:
-                arg_name = f'`{arg.name}`'
+                if isinstance(arg, discord.Member):
+                    arg_name = f'{arg.mention}'
+                else:
+                    arg_name = f'`{arg.name}`'
             except AttributeError:
                 try:
                     arg_name = f'[link]({arg.url})'
                 except AttributeError:
                     return
 
-            event_embed.description = f"💥\n\n**CREATE | JOIN | ADD**\n{arg_name}\n\n> {arg.__class__.__name__}"
-        elif event.endswith('update'):
+            event_embed.description = f"💥\n\n**{arg_name}**\n\n> {arg.__class__.__name__}"
+        elif event_type_upper in ('UPDATE', ):
             event_embed.color = discord.Color.gold()
             event_embed.set_author(name=guild.name, icon_url=guild.icon)
             event_embed.set_thumbnail(url=guild.icon)
@@ -172,10 +177,13 @@ class DiscordBotHandler:
             if not changes:
                 return
 
-            arg_name = f'`{arg.name}`'
+            if isinstance(arg, discord.Member):
+                arg_name = f'{arg.mention}'
+            else:
+                arg_name = f'`{arg.name}`'
 
-            event_embed.description = f"🚧\n\n**UPDATE**\n{arg_name}\n\n> {arg.__class__.__name__}\n\n{changes}"
-        elif event.endswith('delete') or event.endswith('remove'):
+            event_embed.description = f"🚧\n\n**{arg_name}**\n\n> {arg.__class__.__name__}\n\n{changes}"
+        elif event_type_upper in ('DELETE', 'REMOVE'):
             event_embed.color = discord.Color.brand_red()
 
             event_embed.set_author(name=guild.name, icon_url=guild.icon)
@@ -189,11 +197,11 @@ class DiscordBotHandler:
                 if isinstance(arg, discord.Invite):
                     arg_name = f'[link]({arg.url})'
                 elif isinstance(arg, discord.Message):
-                    arg_name = f'`{arg.author.name}\n\n{arg.content}`'
+                    arg_name = f'{arg.author.mention}\n\n`{arg.content}`'
                 else:
                     return
 
-            event_embed.description = f"🧨\n\n**DELETE | REMOVE**\n{arg_name}\n\n> {arg.__class__.__name__}"
+            event_embed.description = f"🧨\n\n**{arg_name}**\n\n> {arg.__class__.__name__}"
 
         try:
             await system_channel.send(embed=event_embed)
