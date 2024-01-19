@@ -117,7 +117,7 @@ class DiscordBotHandler:
                 except AttributeError:
                     return
 
-            event_embed.description = f"💥\n\n**CREATED** {arg_name}\n\n> {arg.__class__.__name__}"
+            event_embed.description = f"💥\n\n**CREATE | JOIN | ADD**\n{arg_name}\n\n> {arg.__class__.__name__}"
         elif event.endswith('update'):
             event_embed.color = discord.Color.gold()
             event_embed.set_author(name=guild.name, icon_url=guild.icon)
@@ -172,9 +172,12 @@ class DiscordBotHandler:
             if not changes:
                 return
 
-            arg_name = f'`{arg.name}`'
+            if isinstance(arg, discord.Member):
+                arg_name = f'{arg.mention}'
+            else:
+                arg_name = f'`{arg.name}`'
 
-            event_embed.description = f"🚧\n\n**UPDATED** {arg_name}\n\n> {arg.__class__.__name__}\n\n{changes}"
+            event_embed.description = f"🚧\n\n**UPDATE**\n{arg_name}\n\n> {arg.__class__.__name__}\n\n{changes}"
         elif event.endswith('delete') or event.endswith('remove'):
             event_embed.color = discord.Color.brand_red()
 
@@ -189,11 +192,11 @@ class DiscordBotHandler:
                 if isinstance(arg, discord.Invite):
                     arg_name = f'[link]({arg.url})'
                 elif isinstance(arg, discord.Message):
-                    arg_name = f'`{arg.content}`'
+                    arg_name = f'{arg.author.mention}: `{arg.content}`'
                 else:
                     return
 
-            event_embed.description = f"🧨\n\n**DELETED** {arg_name}\n\n> {arg.__class__.__name__}"
+            event_embed.description = f"🧨\n\n**DELETE | REMOVE**\n{arg_name}\n\n> {arg.__class__.__name__}"
 
         try:
             await system_channel.send(embed=event_embed)
@@ -246,7 +249,7 @@ class DiscordBotHandler:
 
                     if new_owner:
                         overwrites = voice_channel.overwrites
-                        overwrites[new_owner] = discord.PermissionOverwrite.from_pair(allow=discord.Permissions.all(), deny=discord.Permissions.none())
+                        overwrites[new_owner] = discord.PermissionOverwrite.from_pair(allow=discord.Permissions.all_channel(), deny=discord.Permissions.none())
                         del overwrites[member]
 
                         await voice_channel.edit(name=f'@{new_owner.name}', overwrites=overwrites)
@@ -267,7 +270,7 @@ class DiscordBotHandler:
             category = voice_channel.category
 
             overwrites = {
-                member: discord.PermissionOverwrite.from_pair(allow=discord.Permissions.all(), deny=discord.Permissions.none())
+                member: discord.PermissionOverwrite.from_pair(allow=discord.Permissions.all_channel(), deny=discord.Permissions.none())
             }
 
             if category:

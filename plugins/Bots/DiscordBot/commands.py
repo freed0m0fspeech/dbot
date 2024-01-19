@@ -497,7 +497,7 @@ class DiscordBotCommand:
                     if member is not None:
                         if owner.get('id', '') == user.id:
                             overwrites = voice_channel.overwrites
-                            overwrites[member] = discord.PermissionOverwrite.from_pair(allow=discord.Permissions.all(), deny=discord.Permissions.none())
+                            overwrites[member] = discord.PermissionOverwrite.from_pair(allow=discord.Permissions.all_channel(), deny=discord.Permissions.none())
                             del overwrites[user]
 
                             await voice_channel.edit(name=f'@{member.name}', overwrites=overwrites)
