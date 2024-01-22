@@ -114,6 +114,9 @@ class DiscordBotHandler:
             try:
                 if isinstance(arg, discord.Member):
                     arg_name = f'{arg.mention}'
+
+                    event_embed.set_author(name=arg.name, icon_url=arg.avatar)
+                    event_embed.set_thumbnail(url=arg.avatar)
                 else:
                     arg_name = f'`{arg.name}`'
             except AttributeError:
@@ -152,9 +155,14 @@ class DiscordBotHandler:
                         before = args[0]
                         after = args[1]
 
+                        if isinstance(after, discord.Member):
+                            event_embed.set_author(name=after.name, icon_url=after.avatar)
+                            event_embed.set_thumbnail(url=after.avatar)
+
                     for attr in [attr for attr in dir(after) if not attr.startswith('_')]:
                         value_before = getattr(before, attr)
                         value_after = getattr(after, attr)
+                        value = ''
 
                         if callable(value_after):
                             continue
@@ -167,9 +175,17 @@ class DiscordBotHandler:
                                 for role_member, overwrite in overwrites_after.items():
                                     value_after[role_member.name] = [permission for permission, value in overwrite if value]
 
-                                value = ''
-                                for name, permissions in value_after.items():
-                                    value = f'{value}- `{name}` -> `{permissions}`\n'
+                                # value = ''
+                                # for name, permissions in value_after.items():
+                                #     value = f'{value}- `{name}` -> `{permissions}`\n'
+
+                                value = '\n'.join([f'{value}- `{name}` -> `{permissions}`' for name, permissions in value_after.items()])
+                            elif isinstance(value_after, discord.Permissions):
+                                permissions = [permission for permission, value in value_after if value]
+
+                                value = f'{value}- `{permissions}`'
+                            elif isinstance(value_after, list):
+                                value = f"- `{', '.join([role.name for role in value_after])}`"
                             else:
                                 value = f'- `{value_before}` -> `{value_after}`'
 
@@ -193,6 +209,11 @@ class DiscordBotHandler:
 
             try:
                 arg_name = f'`{arg.name}`'
+
+                if isinstance(arg, discord.Member):
+                    event_embed.set_author(name=arg.name, icon_url=arg.avatar)
+                    event_embed.set_thumbnail(url=arg.avatar)
+
             except AttributeError:
                 if isinstance(arg, discord.Invite):
                     arg_name = f'[link]({arg.url})'
