@@ -542,6 +542,7 @@ class DiscordBotHandler:
         # Called whenever a websocket event is received from the WebSocket.
         #
         # This is mainly useful for logging how many events you are receiving from the Discord gateway.
+        # print(event_type)
         pass
 
     async def _on_socket_raw_receive(self, msg: str):

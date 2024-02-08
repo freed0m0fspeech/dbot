@@ -139,32 +139,26 @@ class Google:
     def __handle_search_request(self, title):
         title = urllib.parse.quote_plus(title)
         url = f"https://www.google.com/search?q=site:https://genius.com/ {title} lyrics"
-        #url = "https://www.google.com/search"
-        params = {
-            'q': 'site:https://genius.com/ {} lyrics'.format(title),
-        }
+        requests_results = requests.get(url)
+        soup_link = BeautifulSoup(requests_results.content, "html.parser")
+        links = soup_link.find_all("a")
 
-        try:
-            session = HTMLSession()
-            response = session.get(url=url)
-            # response = requests.get(url=url)
-        except requests.exceptions.RequestException:
-            return None
+        results = []
 
-        css_identifier_result = ".Gx5Zad"
-        css_identifier_title = "h3"
-        css_identifier_link = ".egMi0 a"
-        # css_identifier_text = ".IsZvec"
-
-        results = response.html.find(css_identifier_result)
+        for link in links:
+            link_href = link.get('href')
+            if "url?q=" in link_href and not "webcache" in link_href:
+                title = link.find_all('h3')
+                if len(title) > 0:
+                    results.append((title[0].getText(), link.get('href').split("?q=")[1].split("&sa=U")[0]))
 
         data = []
 
         for result in results:
             try:
                 item = {
-                    'title': result.find(css_identifier_title, first=True).text,
-                    'link': result.find(css_identifier_link, first=True).attrs['href'].split('&url=', 1)[1].split('&', 1)[0],
+                    'title': result[0],
+                    'link': result[1],
                     # 'text': result.find(css_identifier_text, first=True).text
                 }
             except Exception:
@@ -172,7 +166,7 @@ class Google:
 
             data.append(item)
 
-        if response.status_code != 200:
+        if requests_results.status_code != 200:
             # TODO exeption
             raise LyricScraperException(data)
 
