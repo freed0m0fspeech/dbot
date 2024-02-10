@@ -873,4 +873,5 @@ class DiscordBotCommand:
                 else:
                     return await webhook.send('Текст песни не найден')
         except Exception as e:
+            print('/music lyrics exception', e)
             return await webhook.send(str(e))
