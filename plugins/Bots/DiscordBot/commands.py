@@ -836,10 +836,6 @@ class DiscordBotCommand:
         webhook = interaction.followup
         webhook: discord.Webhook
 
-        lyrics = self.discordBot.google.lyrics(song_name=text)
-        print(lyrics['title'])
-        return await webhook.send('done')
-
         try:
             guild = interaction.guild
             user = interaction.user

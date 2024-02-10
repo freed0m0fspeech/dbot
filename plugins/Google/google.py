@@ -200,6 +200,8 @@ class Google:
         #query_results = data.get('items', [])
         query_results = data
 
+        print(data)
+
         # Try scraping lyrics from top results
         for i in range(len(query_results)):
             result_url = query_results[i]["link"]
