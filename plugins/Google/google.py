@@ -145,10 +145,6 @@ class Google:
             return
 
         request_results = request_results.json()
-
-        if len(request_results) == 0:
-            return
-
         results = request_results.get('items', {})
 
         data = []
