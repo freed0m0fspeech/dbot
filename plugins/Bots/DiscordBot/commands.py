@@ -852,7 +852,7 @@ class DiscordBotCommand:
                         if lyrics:
                             content = f"[{lyrics['title']}]({lyrics['link']}):\n{lyrics['lyrics']}"
                             # max length for discord
-                            content = (f"{content[:1998]}..") if len(content) > 2000 else content
+                            content = f"{content[:1998]}.." if len(content) > 2000 else content
 
                             return await webhook.send(content)
                         else:
@@ -867,11 +867,10 @@ class DiscordBotCommand:
                 if lyrics:
                     content = f"[{lyrics['title']}]({lyrics['link']}):\n{lyrics['lyrics']}"
                     # max length for discord
-                    content = content[:2000]
+                    content = f"{content[:1998]}.." if len(content) > 2000 else content
 
                     return await webhook.send(content)
                 else:
                     return await webhook.send('Текст песни не найден')
-
         except Exception as e:
             return await webhook.send(str(e))
