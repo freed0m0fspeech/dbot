@@ -144,16 +144,17 @@ class Google:
         links = soup_link.find_all("a")
 
         results = []
-
         for link in links:
             link_href = link.get('href')
+
+            print(link_href)
+
             if "url?q=" in link_href and not "webcache" in link_href:
                 title = link.find_all('h3')
                 if len(title) > 0:
                     results.append((title[0].getText(), link.get('href').split("?q=")[1].split("&sa=U")[0]))
 
         data = []
-
         for result in results:
             try:
                 item = {
@@ -199,8 +200,6 @@ class Google:
         #data = (spell and self.__handle_search_request(spell)) or data
         #query_results = data.get('items', [])
         query_results = data
-
-        print(data)
 
         # Try scraping lyrics from top results
         for i in range(len(query_results)):
