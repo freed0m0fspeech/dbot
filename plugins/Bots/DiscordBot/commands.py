@@ -836,42 +836,38 @@ class DiscordBotCommand:
         webhook = interaction.followup
         webhook: discord.Webhook
 
-        try:
-            guild = interaction.guild
-            user = interaction.user
+        guild = interaction.guild
+        user = interaction.user
 
-            if not text:
-                voice_channel = user.voice.channel
-                voice_client = guild.voice_client
+        if not text:
+            voice_channel = user.voice.channel
+            voice_client = guild.voice_client
 
-                if voice_client.channel == voice_channel:
-                    if voice_client.is_paused() or voice_client.is_playing():
-                        info = self.discordBot.music.get('now', {})
-                        lyrics = self.discordBot.google.lyrics(song_name=info['title'])
+            if voice_client.channel == voice_channel:
+                if voice_client.is_paused() or voice_client.is_playing():
+                    info = self.discordBot.music.get('now', {})
+                    lyrics = self.discordBot.google.lyrics(song_name=info['title'])
 
-                        if lyrics:
-                            content = f"[{lyrics['title']}]({lyrics['link']}):\n{lyrics['lyrics']}"
-                            # max length for discord
-                            content = f"{content[:1998]}.." if len(content) > 2000 else content
+                    if lyrics:
+                        content = f"[{lyrics['title']}]({lyrics['link']}):\n{lyrics['lyrics']}"
+                        # max length for discord
+                        content = f"{content[:1998]}.." if len(content) > 2000 else content
 
-                            return await webhook.send(content)
-                        else:
-                            return await webhook.send('Текст песни не найден')
+                        return await webhook.send(content)
                     else:
-                        return await webhook.send('Ничего не воспроизводится')
+                        return await webhook.send('Текст песни не найден')
                 else:
-                    return await webhook.send('Вы находитесь в другом гоолосовом канале')
+                    return await webhook.send('Ничего не воспроизводится')
             else:
-                lyrics = self.discordBot.google.lyrics(song_name=text)
+                return await webhook.send('Вы находитесь в другом гоолосовом канале')
+        else:
+            lyrics = self.discordBot.google.lyrics(song_name=text)
 
-                if lyrics:
-                    content = f"[{lyrics['title']}]({lyrics['link']}):\n{lyrics['lyrics']}"
-                    # max length for discord
-                    content = f"{content[:1998]}.." if len(content) > 2000 else content
+            if lyrics:
+                content = f"[{lyrics['title']}]({lyrics['link']}):\n{lyrics['lyrics']}"
+                # max length for discord
+                content = f"{content[:1998]}.." if len(content) > 2000 else content
 
-                    return await webhook.send(content)
-                else:
-                    return await webhook.send('Текст песни не найден')
-        except Exception as e:
-            print('/music lyrics exception', e)
-            return await webhook.send(str(e))
+                return await webhook.send(content)
+            else:
+                return await webhook.send('Текст песни не найден')
