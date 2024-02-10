@@ -138,38 +138,31 @@ class Google:
 
     def __handle_search_request(self, title):
         title = urllib.parse.quote_plus(title)
-        url = f"https://www.google.com/search?q=site:https://genius.com/ {title} lyrics"
-        requests_results = requests.get(url)
-        soup_link = BeautifulSoup(requests_results.content, "html.parser")
-        links = soup_link.find_all("a")
+        url = f"https://www.googleapis.com/customsearch/v1?key={self.__api_key}&cx={self.__engine_id}&q={title}"
+        request_results = requests.get(url)
 
-        results = []
-        for link in links:
-            link_href = link.get('href')
+        if request_results.status_code != 200:
+            return
 
-            print(link_href)
+        request_results = request_results.json()
 
-            if "url?q=" in link_href and not "webcache" in link_href:
-                title = link.find_all('h3')
-                if len(title) > 0:
-                    results.append((title[0].getText(), link.get('href').split("?q=")[1].split("&sa=U")[0]))
+        if len(request_results) == 0:
+            return
+
+        results = request_results.get('items', {})
 
         data = []
         for result in results:
             try:
                 item = {
-                    'title': result[0],
-                    'link': result[1],
+                    'title': result.get('title', ''),
+                    'link': result.get('link', ''),
                     # 'text': result.find(css_identifier_text, first=True).text
                 }
+
+                data.append(item)
             except Exception:
                 continue
-
-            data.append(item)
-
-        if requests_results.status_code != 200:
-            # TODO exeption
-            raise LyricScraperException(data)
 
         return data
 

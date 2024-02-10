@@ -34,7 +34,7 @@ async def main():
 
     # mongoDataBase = MongoDataBase(host=MONGODATABASE_HOST, user=MONGODATABASE_USER, passwd=MONGODATABASE_PASSWORD)
 
-    google = Google('', '')
+    google = Google(os.getenv('GOOGLE_API_KEY'), os.getenv('GOOGLE_ENGINE_ID'))
 
     discordBot = DiscordBot(mongoDataBase=mongoDataBase, google=google)
 

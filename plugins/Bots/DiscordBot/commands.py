@@ -847,7 +847,7 @@ class DiscordBotCommand:
                 if voice_client.channel == voice_channel:
                     if voice_client.is_paused() or voice_client.is_playing():
                         info = self.discordBot.music.get('now', {})
-                        lyrics = self.discordBot.google.lyrics(song_name=info['title'])
+                        lyrics = self.discordBot.google.lyrics(song_name=f"{info['title']} lyrics")
 
                         if lyrics:
                             content = f"[{lyrics['title']}]({lyrics['link']}):\n{lyrics['lyrics']}"
@@ -862,7 +862,7 @@ class DiscordBotCommand:
                 else:
                     return await webhook.send('Вы находитесь в другом гоолосовом канале')
             else:
-                lyrics = self.discordBot.google.lyrics(song_name=text)
+                lyrics = self.discordBot.google.lyrics(song_name=f"{text} lyrics")
 
                 if lyrics:
                     content = f"[{lyrics['title']}]({lyrics['link']}):\n{lyrics['lyrics']}"
