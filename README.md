@@ -15,6 +15,7 @@ Learn more about [bot](https://github.com/freed0m0fspeech/dbot/releases).
 Additional info about ``dbot``, you can find [here](https://github.com/freed0m0fspeech/dbot/releases).
 
 ---------------
+
 Commands to interact with voice channels (/voice):
 
   * /disconnect @member- Disconnect someone from the voice channel
