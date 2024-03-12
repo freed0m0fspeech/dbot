@@ -583,7 +583,7 @@ class DiscordBotCommand:
             if not voice_client.channel.id == voice_channel.id:
                 return await webhook.send('Кто-то уже использует меня в другом голосовом канале')
 
-            if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) >= 20:
+            if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) < 20:
                 self.discordBot.music[guild.id]['queue'].append((text, user))
                 await webhook.send(f'Запрос `{text}` был добавлен в очередь')
             else:
