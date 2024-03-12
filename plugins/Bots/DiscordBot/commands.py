@@ -72,30 +72,53 @@ class DiscordBotCommand:
     #         return await webhook.send("Wassup homie?")
     #     except Exception as e:
     #         return await webhook.send(str(e))
-    #
-    # async def bot_leave(self, interaction: discord.Interaction):
-    #     response = interaction.response
-    #     response: discord.InteractionResponse
-    #     await response.defer(ephemeral=True)  # ephemeral - only you can see this
-    #
-    #     webhook = interaction.followup
-    #     webhook: discord.Webhook
-    #
-    #     try:
-    #         guild = interaction.guild
-    #         voice_client = guild.voice_client
-    #
-    #         if not interaction.user.id == guild.owner_id:
-    #             return await webhook.send(f"Command can only be used by owner of the server")
-    #
-    #         if not voice_client:
-    #             return
-    #
-    #         await voice_client.disconnect()
-    #         await webhook.send('Thank you for kicking me out')
-    #
-    #     except Exception as e:
-    #         return await webhook.send(str(e))
+
+    async def bot_leave(self, interaction: discord.Interaction):
+        response = interaction.response
+        response: discord.InteractionResponse
+        await response.defer(ephemeral=True)  # ephemeral - only you can see this
+
+        webhook = interaction.followup
+        webhook: discord.Webhook
+
+        try:
+            user = interaction.user
+            guild = interaction.guild
+            voice_client = guild.voice_client
+            user_voice = user.voice
+
+            if not voice_client:
+                return await webhook.send(f"Меня нет в голосовом канале")
+
+            voice_channel = voice_client.channel
+
+            if not voice_channel:
+                return await webhook.send(f"Меня нет в голосовом канале")
+
+            if not user_voice:
+                return await webhook.send(f"Вы не в голосовом канале")
+
+            user_voice_channel = user_voice.channel
+
+            if not user_voice_channel:
+                return await webhook.send(f"Вы не в голосовом канале")
+
+            if not user_voice_channel == voice_channel:
+                return await webhook.send(f"Команда может быть использована только в голосовом канале с ботом")
+
+            owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
+
+            if not owner:
+                return await webhook.send('Информация о владельце голосового канала не найдена')
+
+            if not owner.get('id', '') == user.id:
+                return await webhook.send('Вы не владелец голосового канала')
+
+            await voice_client.disconnect()
+            return await webhook.send('Спасибо, что выгнали меня')
+
+        except Exception as e:
+            return await webhook.send(str(e))
 
     # async def fun_quote(self, interaction: discord.Interaction):
     #     response = interaction.response
@@ -163,7 +186,7 @@ class DiscordBotCommand:
                 #     f'{voice_channel.id}', {}).get('owner',
                 #                                    {})
 
-                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id).get('owner', {})
+                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
 
                 if owner:
                     if owner.get('id', '') == user.id:
@@ -219,7 +242,7 @@ class DiscordBotCommand:
                 #     f'{voice_channel.id}', {}).get('owner',
                 #                                    {})
 
-                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id).get('owner', {})
+                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
 
                 if owner:
                     if owner.get('id', '') == user.id:
@@ -273,7 +296,7 @@ class DiscordBotCommand:
                 #     f'{voice_channel.id}', {}).get('owner',
                 #                                    {})
 
-                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id).get('owner', {})
+                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
 
                 if owner:
                     if owner.get('id', '') == user.id:
@@ -327,7 +350,7 @@ class DiscordBotCommand:
                 #     f'{voice_channel.id}', {}).get('owner',
                 #                                    {})
 
-                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id).get('owner', {})
+                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
 
                 if owner:
                     if owner.get('id', '') == user.id:
@@ -381,7 +404,7 @@ class DiscordBotCommand:
                 #     f'{voice_channel.id}', {}).get('owner',
                 #                                    {})
 
-                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id).get('owner', {})
+                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
 
                 if owner:
                     if owner.get('id', '') == user.id:
@@ -491,7 +514,7 @@ class DiscordBotCommand:
                 #     f'{voice_channel.id}', {}).get('owner',
                 #                                    {})
 
-                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id).get('owner', {})
+                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
 
                 if owner:
                     if member is not None:
@@ -561,7 +584,7 @@ class DiscordBotCommand:
                 #     f'{voice_channel.id}', {}).get('owner',
                 #                                    {})
 
-                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id).get('owner', {})
+                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
 
                 if owner:
                     if owner.get('id', '') == user.id:
@@ -589,7 +612,8 @@ class DiscordBotCommand:
         try:
             title = music_queue.pop(0)[0]
         except Exception:
-            return await guild.voice_client.voice_disconnect()
+            # return await guild.voice_client.voice_disconnect()
+            return
 
         ydl_opts = {
             'format': 'bestaudio/best',
@@ -739,8 +763,20 @@ class DiscordBotCommand:
             guild = interaction.guild
             user = interaction.user
 
+            user_voice = user.voice
+
+            if not user_voice:
+                return await webhook.send("Вы не в голосовом канале")
+
             voice_channel = user.voice.channel
+
+            if not voice_channel:
+                return await webhook.send("Вы не в голосовом канале")
+
             voice_client = guild.voice_client
+
+            if not voice_client:
+                return await webhook.send("Меня нет в голосовом канале")
 
             if voice_client.channel == voice_channel:
                 if voice_client.is_paused() or voice_client.is_playing():

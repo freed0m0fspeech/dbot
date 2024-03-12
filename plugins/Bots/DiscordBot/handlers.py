@@ -206,6 +206,7 @@ class DiscordBotHandler:
             event_embed.set_thumbnail(url=guild.icon)
 
             arg = args[0]
+            fields = ''
 
             try:
                 arg_name = f'`{arg.name}`'
@@ -218,11 +219,40 @@ class DiscordBotHandler:
                 if isinstance(arg, discord.Invite):
                     arg_name = f'[link]({arg.url})'
                 elif isinstance(arg, discord.Message):
-                    arg_name = f'{arg.author.mention}\n\n`{arg.content}`'
+                    arg_name = f'{arg.author.mention}'
+
+                    if arg.clean_content:
+                        fields = f'{fields}content\n```{arg.clean_content}```'
+
+                    if arg.attachments:
+                        attachments = []
+                        for attachment in arg.attachments:
+                            attachments.append(attachment.url)
+                        fields = f'{fields}attachments\n- {attachments}\n'
+
+                    if arg.embeds:
+                        embeds = []
+                        for embed in arg.embeds:
+                            if embed.title:
+                                embeds.append(f"`{embed.title}`")
+                                break
+
+                            if embed.video:
+                                embeds.append(embed.video.url)
+                                break
+
+                            if embed.image:
+                                embeds.append(embed.image.url)
+                                break
+
+                        fields = f'{fields}embeds\n- {embeds}\n'
                 else:
                     return
 
             event_embed.description = f"🧨\n\n**{arg_name}**\n\n> {arg.__class__.__name__}"
+
+            if fields:
+                event_embed.description = f'{event_embed.description}\n\n{fields}'
 
         try:
             await system_channel.send(embed=event_embed)
@@ -258,29 +288,43 @@ class DiscordBotHandler:
                 await voice_channel.delete()
 
                 del cache.stats[guild.id]['tvoice_channels'][voice_channel.id]
-            else:
-                if member.bot:
-                    return -1
 
-                # Leaves not last member in voice channel
-                owner = voice_channel_cache.get('owner', {})
+                return
 
-                if owner.get('id', '') == member.id:
-                    # Leaves owner of voice channel
-                    new_owner = None
+            if len(members) == 1:
+                if members.pop().bot:
+                    # Bot last member in voice channel
+                    voice_client = guild.voice_client
+                    await voice_client.disconnect()
 
-                    for tmember in members:
-                        if not tmember.bot:
-                            new_owner = tmember
+                    await voice_channel.delete()
 
-                    if new_owner:
-                        overwrites = voice_channel.overwrites
-                        overwrites[new_owner] = discord.PermissionOverwrite.from_pair(allow=discord.Permissions.all_channel(), deny=discord.Permissions.none())
-                        del overwrites[member]
+                    del cache.stats[guild.id]['tvoice_channels'][voice_channel.id]
 
-                        await voice_channel.edit(name=f'@{new_owner.name}', overwrites=overwrites)
+                    return
 
-                        cache.stats[guild.id]['tvoice_channels'][voice_channel.id]['owner']['id'] = new_owner.id
+            if member.bot:
+                return -1
+
+            # Leaves not last member in voice channel
+            owner = voice_channel_cache.get('owner', {})
+
+            if owner.get('id', '') == member.id:
+                # Leaves owner of voice channel
+                new_owner = None
+
+                for tmember in members:
+                    if not tmember.bot:
+                        new_owner = tmember
+
+                if new_owner:
+                    overwrites = voice_channel.overwrites
+                    overwrites[new_owner] = discord.PermissionOverwrite.from_pair(allow=discord.Permissions.all_channel(), deny=discord.Permissions.none())
+                    del overwrites[member]
+
+                    await voice_channel.edit(name=f'@{new_owner.name}', overwrites=overwrites)
+
+                    cache.stats[guild.id]['tvoice_channels'][voice_channel.id]['owner']['id'] = new_owner.id
 
     async def _on_voice_state_join(self, after, member):
         voice_channel = after.channel
