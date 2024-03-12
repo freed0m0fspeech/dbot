@@ -173,42 +173,29 @@ class DiscordBotCommand:
             except Exception:
                 voice_channel = None
 
-            if voice_channel:
-                # query = {'_id': 0, 'temporary': 1}
-                # filter = {'id': guild.id}
-                # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
-                #                                            filter=filter)
+            if not voice_channel:
+                return await webhook.send('Вы не в голосовом канале')
 
-                # if not self.discordBot.guilds:
-                #     return await webhook.send(f"Что-то не так с базой данных")
-                #
-                # owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
-                #     f'{voice_channel.id}', {}).get('owner',
-                #                                    {})
+            owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
 
-                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
+            if not owner:
+                return await webhook.send('Информация о владельце голосового канала не найдена')
 
-                if owner:
-                    if owner.get('id', '') == user.id:
-                        overwrites = voice_channel.overwrites_for(guild.default_role)
+            if not owner.get('id', '') == user.id:
+                return await webhook.send('Вы не владелец этого голосового канала')
 
-                        if overwrites.is_empty() or overwrites.view_channel:
-                            overwrites.update(view_channel=False)
-                            # overwrites.view_channel = True
-                            await webhook.send('Голосовой канал закрыт')
-                        else:
-                            # overwrites.view_channel = False
-                            overwrites.update(view_channel=True)
-                            await webhook.send('Голосовой канал открыт')
+            overwrites = voice_channel.overwrites_for(guild.default_role)
 
-                        await voice_channel.set_permissions(guild.default_role, overwrite=overwrites, reason='Lock')
-
-                    else:
-                        await webhook.send('Вы не владелец этого голосового канала')
-                else:
-                    await webhook.send('Информация о владельце голосового канала не найдена')
+            if overwrites.is_empty() or overwrites.view_channel:
+                overwrites.update(view_channel=False)
+                # overwrites.view_channel = True
+                await webhook.send('Голосовой канал закрыт')
             else:
-                await webhook.send('Вы не в голосовом канале')
+                # overwrites.view_channel = False
+                overwrites.update(view_channel=True)
+                await webhook.send('Голосовой канал открыт')
+
+            await voice_channel.set_permissions(guild.default_role, overwrite=overwrites, reason='Lock')
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -229,40 +216,27 @@ class DiscordBotCommand:
             except Exception:
                 voice_channel = None
 
-            if voice_channel:
-                # query = {'_id': 0, 'temporary': 1}
-                # filter = {'id': guild.id}
-                # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
-                #                                            filter=filter)
+            if not voice_channel:
+                return await webhook.send('Вы не в голосовом канале')
 
-                # if not self.discordBot.guilds:
-                #     return await webhook.send(f"Что-то не так с базой данных")
-                #
-                # owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
-                #     f'{voice_channel.id}', {}).get('owner',
-                #                                    {})
+            owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
 
-                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
+            if not owner:
+                return await webhook.send('Информация о владельце голосового канала не найдена')
 
-                if owner:
-                    if owner.get('id', '') == user.id:
-                        overwrites = voice_channel.overwrites_for(role)
+            if not owner.get('id', '') == user.id:
+                return await webhook.send('Вы не владелец этого голосового канала')
 
-                        if overwrites.view_channel:
-                            overwrites = None
-                            await webhook.send(f'<@&{role.id}> кикнут(а) с голосового канала')
-                        else:
-                            overwrites.update(view_channel=True)
-                            await webhook.send(f'<@&{role.id}> приглашен(а) в голосовой канал')
+            overwrites = voice_channel.overwrites_for(role)
 
-                        await voice_channel.set_permissions(role, overwrite=overwrites, reason='Invite')
-
-                    else:
-                        await webhook.send('Вы не владелец этого голосового канала')
-                else:
-                    await webhook.send('Информация о владельце голосового канала не найдена')
+            if overwrites.view_channel:
+                overwrites = None
+                await webhook.send(f'<@&{role.id}> кикнут(а) с голосового канала')
             else:
-                await webhook.send('Вы не в голосовом канале')
+                overwrites.update(view_channel=True)
+                await webhook.send(f'<@&{role.id}> приглашен(а) в голосовой канал')
+
+            await voice_channel.set_permissions(role, overwrite=overwrites, reason='Invite')
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -283,40 +257,27 @@ class DiscordBotCommand:
             except Exception:
                 voice_channel = None
 
-            if voice_channel:
-                # query = {'_id': 0, 'temporary': 1}
-                # filter = {'id': guild.id}
-                # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
-                #                                            filter=filter)
+            if not voice_channel:
+                return await webhook.send('Вы не в голосовом канале')
 
-                # if not self.discordBot.guilds:
-                #     return await webhook.send(f"Что-то не так с базой данных")
-                #
-                # owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
-                #     f'{voice_channel.id}', {}).get('owner',
-                #                                    {})
+            owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
 
-                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
+            if not owner:
+                return await webhook.send('Информация о владельце голосового канала не найдена')
 
-                if owner:
-                    if owner.get('id', '') == user.id:
+            if not owner.get('id', '') == user.id:
+                return await webhook.send('Вы не владелец этого голосового канала')
 
-                        member_voice = member.voice
+            member_voice = member.voice
 
-                        if member_voice:
-                            if member_voice.channel == voice_channel:
-                                await member.edit(voice_channel=None)
-                                await webhook.send(f'<@{member.id}> отключен от голосового канала')
-                            else:
-                                await webhook.send('Участник не в вашем голосовом канале')
-                        else:
-                            await webhook.send('Участник не в вашем голосовом канале')
-                    else:
-                        await webhook.send('Вы не владелец этого голосового канала')
-                else:
-                    await webhook.send('Информация о владельце голосового канала не найдена')
-            else:
-                await webhook.send('Вы не в голосовом канале')
+            if not member_voice:
+                return await webhook.send('Участник не в вашем голосовом канале')
+
+            if not member_voice.channel == voice_channel:
+                return await webhook.send('Участник не в вашем голосовом канале')
+
+            await member.edit(voice_channel=None)
+            await webhook.send(f'<@{member.id}> отключен от голосового канала')
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -337,40 +298,27 @@ class DiscordBotCommand:
             except Exception:
                 voice_channel = None
 
-            if voice_channel:
-                # query = {'_id': 0, 'temporary': 1}
-                # filter = {'id': guild.id}
-                # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
-                #                                            filter=filter)
+            if not voice_channel:
+                return await webhook.send('Вы не в голосовом канале')
 
-                # if not self.discordBot.guilds:
-                #     return await webhook.send(f"Что-то не так с базой данных")
-                #
-                # owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
-                #     f'{voice_channel.id}', {}).get('owner',
-                #                                    {})
+            owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
 
-                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
+            if not owner:
+                return await webhook.send('Информация о владельце голосового канала не найдена')
 
-                if owner:
-                    if owner.get('id', '') == user.id:
-                        overwrites = voice_channel.overwrites_for(member)
+            if not owner.get('id', '') == user.id:
+                return await webhook.send('Вы не владелец этого голосового канала')
 
-                        if overwrites.view_channel:
-                            overwrites = None
-                            await webhook.send(f'<@{member.id}> кикнут(а) с голосового канала')
-                        else:
-                            overwrites.update(view_channel=True)
-                            await webhook.send(f'<@{member.id}> приглашен(а) в голосовой канал')
+            overwrites = voice_channel.overwrites_for(member)
 
-                        await voice_channel.set_permissions(member, overwrite=overwrites, reason='Invite')
-
-                    else:
-                        await webhook.send('Вы не владелец этого голосового канала')
-                else:
-                    await webhook.send('Информация о владельце голосового канала не найдена')
+            if overwrites.view_channel:
+                overwrites = None
+                await webhook.send(f'<@{member.id}> кикнут(а) с голосового канала')
             else:
-                await webhook.send('Вы не в голосовом канале')
+                overwrites.update(view_channel=True)
+                await webhook.send(f'<@{member.id}> приглашен(а) в голосовой канал')
+
+            await voice_channel.set_permissions(member, overwrite=overwrites, reason='Invite')
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -391,31 +339,19 @@ class DiscordBotCommand:
             except Exception:
                 voice_channel = None
 
-            if voice_channel:
-                # query = {'_id': 0, 'temporary': 1}
-                # filter = {'id': guild.id}
-                # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
-                #                                            filter=filter)
+            if not voice_channel:
+                return await webhook.send('Вы не в голосовом канале')
 
-                # if not self.discordBot.guilds:
-                #     return await webhook.send(f"Что-то не так с базой данных")
-                #
-                # owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
-                #     f'{voice_channel.id}', {}).get('owner',
-                #                                    {})
+            owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
 
-                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
+            if not owner:
+                return await webhook.send('Информация о владельце голосового канала не найдена')
 
-                if owner:
-                    if owner.get('id', '') == user.id:
-                        await voice_channel.edit(name=f'{text}')
-                        await webhook.send(f'Голосовой канал {voice_channel.mention} был переименован')
-                    else:
-                        await webhook.send('Вы не владелец этого голосового канала')
-                else:
-                    await webhook.send('Информация о владельце голосового канала не найдена')
-            else:
-                await webhook.send('Вы не в голосовом канале')
+            if not owner.get('id', '') == user.id:
+                return await webhook.send('Вы не владелец этого голосового канала')
+
+            await voice_channel.edit(name=f'{text}')
+            await webhook.send(f'Голосовой канал {voice_channel.mention} был переименован')
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -501,56 +437,29 @@ class DiscordBotCommand:
             except Exception:
                 voice_channel = None
 
-            if voice_channel:
-                # query = {'_id': 0, 'temporary': 1}
-                # filter = {'id': guild.id}
-                # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
-                #                                            filter=filter)
+            if not voice_channel:
+                return await webhook.send('Вы не в голосовом канале')
 
-                # if not self.discordBot.guilds:
-                #     return await webhook.send(f"Что-то не так с базой данных")
-                #
-                # owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
-                #     f'{voice_channel.id}', {}).get('owner',
-                #                                    {})
+            owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
 
-                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
+            if not owner:
+                return await webhook.send('Информация о владельце голосового канала не найдена')
 
-                if owner:
-                    if member is not None:
-                        if owner.get('id', '') == user.id:
-                            overwrites = voice_channel.overwrites
-                            overwrites[member] = discord.PermissionOverwrite.from_pair(allow=discord.Permissions.all_channel(), deny=discord.Permissions.none())
-                            del overwrites[user]
+            if member is not None:
+                if not owner.get('id', '') == user.id:
+                    return await webhook.send('Вы не владелец этого голосового канала')
 
-                            await voice_channel.edit(name=f'@{member.name}', overwrites=overwrites)
+                overwrites = voice_channel.overwrites
+                overwrites[member] = discord.PermissionOverwrite.from_pair(allow=discord.Permissions.all_channel(), deny=discord.Permissions.none())
+                del overwrites[user]
 
-                            # query = {f'temporary.channels.{voice_channel.id}.owner.id': member.id}
-                            # filter = {'id': guild.id}
-                            #
-                            # mongoUpdate = self.mongoDataBase.update_field(database_name='dbot',
-                            #                                               collection_name='guilds',
-                            #                                               action='$set',
-                            #                                               query=query, filter=filter)
-                            # if mongoUpdate is None:
-                            #     await webhook.send(f"Что-то не так с базой данных")
-                            # else:
-                            #     # self.discordBot.guilds[guild.id]['temporary']['channels'][f'{voice_channel.id}'] = {'owner': {'id': member.id}}
-                            #     self.discordBot.guilds[guild.id] = mongoUpdate
+                await voice_channel.edit(name=f'@{member.name}', overwrites=overwrites)
 
-                            await webhook.send(
-                                f'Новый владелец голосового канала {voice_channel.mention}: <@{member.id}> :)')
+                await webhook.send(f'Новый владелец голосового канала {voice_channel.mention}: <@{member.id}> :)')
 
-                            cache.stats[guild.id]['tvoice_channels'][voice_channel.id]['owner']['id'] = member.id
-                        else:
-                            await webhook.send('Вы не владелец этого голосового канала')
-                    else:
-                        await webhook.send(
-                            f"Владелец голосового канала {voice_channel.mention}: <@{owner.get('id', '')}>")
-                else:
-                    await webhook.send('Информация о владельце голосового канала не найдена')
+                cache.stats[guild.id]['tvoice_channels'][voice_channel.id]['owner']['id'] = member.id
             else:
-                await webhook.send('Вы не в голосовом канале')
+                await webhook.send(f"Владелец голосового канала {voice_channel.mention}: <@{owner.get('id', '')}>")
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -571,32 +480,19 @@ class DiscordBotCommand:
             except Exception:
                 voice_channel = None
 
-            if voice_channel:
-                # query = {'_id': 0, 'temporary': 1}
-                # filter = {'id': guild.id}
-                # document = self.mongoDataBase.get_document(database_name='dbot', collection_name='guilds', query=query,
-                #                                            filter=filter)
+            if not voice_channel:
+                return await webhook.send('Вы не в голосовом канале')
 
-                # if not self.discordBot.guilds:
-                #     return await webhook.send(f"Что-то не так с базой данных")
-                #
-                # owner = self.discordBot.guilds.get(guild.id, {}).get('temporary', {}).get('channels', {}).get(
-                #     f'{voice_channel.id}', {}).get('owner',
-                #                                    {})
+            owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
 
-                owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
+            if not owner:
+                return await webhook.send('Информация о владельце голосового канала не найдена')
 
-                if owner:
-                    if owner.get('id', '') == user.id:
-                        await voice_channel.edit(user_limit=user_limit)
-                        await webhook.send(
-                            f'Лимит пользователей для голосового канала {voice_channel.mention} изменен на {user_limit}')
-                    else:
-                        await webhook.send('Вы не владелец этого голосового канала')
-                else:
-                    await webhook.send('Информация о владельце голосового канала не найдена')
-            else:
-                await webhook.send('Вы не в голосовом канале')
+            if not owner.get('id', '') == user.id:
+                return await webhook.send('Вы не владелец этого голосового канала')
+
+            await voice_channel.edit(user_limit=user_limit)
+            await webhook.send(f'Лимит пользователей для голосового канала {voice_channel.mention} изменен на {user_limit}')
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -665,36 +561,36 @@ class DiscordBotCommand:
             except Exception:
                 voice_channel = None
 
-            if voice_channel:
-                voice_client = guild.voice_client
-                voice_client: discord.VoiceClient
+            if not voice_channel:
+                return await webhook.send('Вы не в голосовом канале')
 
-                if not voice_client:
-                    voice_client = await voice_channel.connect(reconnect=True, timeout=3000)
-                    await guild.change_voice_state(channel=voice_channel)
-                else:
-                    if not voice_client.is_connected():
-                        voice_client = await voice_client.connect(reconnect=True, timeout=3000)
-                        await guild.change_voice_state(channel=voice_channel)
+            voice_client = guild.voice_client
+            voice_client: discord.VoiceClient
 
-                voice_client_is_busy = voice_client.is_playing() or voice_client.is_paused()
-
-                if not voice_client_is_busy:
-                    await voice_client.move_to(channel=voice_channel)
-
-                if voice_client.channel.id == voice_channel.id:
-                    if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) < 20:
-                        self.discordBot.music[guild.id]['queue'].append((text, user))
-                        await webhook.send(f'Запрос `{text}` был добавлен в очередь')
-                    else:
-                        await webhook.send(f'Максимальная длина музыкальной очереди 20 элементов')
-                else:
-                    return await webhook.send('Кто-то уже использует меня в другом голосовом канале')
-
-                if not voice_client_is_busy:
-                    return await self._play(guild=guild)
+            if not voice_client:
+                voice_client = await voice_channel.connect(reconnect=True, timeout=3000)
+                await guild.change_voice_state(channel=voice_channel)
             else:
-                await webhook.send('Вы не в голосовом канале')
+                if not voice_client.is_connected():
+                    voice_client = await voice_client.connect(reconnect=True, timeout=3000)
+                    await guild.change_voice_state(channel=voice_channel)
+
+            voice_client_is_busy = voice_client.is_playing() or voice_client.is_paused()
+
+            if not voice_client_is_busy:
+                await voice_client.move_to(channel=voice_channel)
+
+            if not voice_client.channel.id == voice_channel.id:
+                return await webhook.send('Кто-то уже использует меня в другом голосовом канале')
+
+            if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) >= 20:
+                self.discordBot.music[guild.id]['queue'].append((text, user))
+                await webhook.send(f'Запрос `{text}` был добавлен в очередь')
+            else:
+                await webhook.send(f'Максимальная длина музыкальной очереди 20 элементов')
+
+            if not voice_client_is_busy:
+                return await self._play(guild=guild)
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -715,39 +611,48 @@ class DiscordBotCommand:
             except Exception:
                 voice_channel = None
 
-            if voice_channel:
-                music_queue = self.discordBot.music.get(guild.id, {}).get('queue', {})
+            try:
+                voice_client_channel = guild.voice_client.channel
+            except Exception:
+                voice_client_channel = None
 
-                if not music_queue:
-                    return await webhook.send(f"Музыкальная очередь пуста")
-                else:
-                    # content = f"Музыкальная очередь ({guild.name}) - {len(music_queue)} total:\n\n"
-                    content = ''
+            if not voice_channel:
+                return await webhook.send('Вы не в голосовом канале')
 
-                    # music_queue = [f'`{queue[0]}` added by {queue[1].display_name}\n' for queue in music_queue][0:20]
-                    # First 20 queue items
-                    for i in range(0, 20):
-                        try:
-                            music = music_queue[i]
-                            title = music[0]
-                            user = music[1]
-                        except Exception as e:
-                            break
+            if voice_client_channel:
+                if not voice_client_channel == voice_channel:
+                    return await webhook.send('Вы находитесь в другом гоолосовом канале')
 
-                        user: discord.User
+            music_queue = self.discordBot.music.get(guild.id, {}).get('queue', {})
 
-                        content = f'{content}{i}. `{title}` добавил(а) {user.mention}\n'
+            if not music_queue:
+                return await webhook.send(f"Музыкальная очередь пуста")
 
-                    queue_embed = discord.Embed(title=f"Музыкальная очередь ({guild.name}) - {len(music_queue)}",
-                                                description=f"{content}",
-                                                color=discord.Color.random(),
-                                                timestamp=datetime.datetime.now(tz=pytz.timezone('Europe/Kiev')))
-                    queue_embed.set_author(name=guild.name, icon_url=guild.icon)
-                    queue_embed.set_thumbnail(url=guild.icon)
+            # content = f"Музыкальная очередь ({guild.name}) - {len(music_queue)} total:\n\n"
+            content = ''
 
-                    return await webhook.send(embed=queue_embed)
-            else:
-                await webhook.send('Вы не в голосовом канале')
+            # music_queue = [f'`{queue[0]}` added by {queue[1].display_name}\n' for queue in music_queue][0:20]
+            # First 20 queue items
+            for i in range(0, 20):
+                try:
+                    music = music_queue[i]
+                    title = music[0]
+                    user = music[1]
+                except Exception as e:
+                    break
+
+                user: discord.User
+
+                content = f'{content}{i}. `{title}` добавил(а) {user.mention}\n'
+
+            queue_embed = discord.Embed(title=f"Музыкальная очередь ({guild.name}) - {len(music_queue)}",
+                                        description=f"{content}",
+                                        color=discord.Color.random(),
+                                        timestamp=datetime.datetime.now(tz=pytz.timezone('Europe/Kiev')))
+            queue_embed.set_author(name=guild.name, icon_url=guild.icon)
+            queue_embed.set_thumbnail(url=guild.icon)
+
+            return await webhook.send(embed=queue_embed)
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -778,14 +683,14 @@ class DiscordBotCommand:
             if not voice_client:
                 return await webhook.send("Меня нет в голосовом канале")
 
-            if voice_client.channel == voice_channel:
-                if voice_client.is_paused() or voice_client.is_playing():
-                    voice_client.stop()
-                    return await webhook.send('Музыка пропущена')
-                else:
-                    return await webhook.send('Ничего не воспроизводится')
-            else:
+            if not voice_client.channel == voice_channel:
                 return await webhook.send('Вы находитесь в другом гоолосовом канале')
+
+            if voice_client.is_paused() or voice_client.is_playing():
+                voice_client.stop()
+                return await webhook.send('Музыка пропущена')
+            else:
+                return await webhook.send('Ничего не воспроизводится')
 
         except Exception as e:
             return await webhook.send(str(e))
@@ -805,21 +710,21 @@ class DiscordBotCommand:
             voice_channel = user.voice.channel
             voice_client = guild.voice_client
 
-            if voice_client.channel == voice_channel:
-                if count == 0:
-                    self.discordBot.music[guild.id]['queue'] = []
-                    return await webhook.send('Музыкальная очередь полностью очищена')
-
-                if count > 0:
-                    for _ in range(count):
-                        self.discordBot.music[guild.id]['queue'].pop(0)
-                    return await webhook.send(f'{count} запрос(ов) удалено с начала музыкальной очереди')
-                else:
-                    for _ in range(abs(count)):
-                        self.discordBot.music[guild.id]['queue'].pop()
-                    return await webhook.send(f'{abs(count)} запрос(ов) удалено с конца музыкальной очереди')
-            else:
+            if not voice_client.channel == voice_channel:
                 return await webhook.send('Вы находитесь в другом гоолосовом канале')
+
+            if count == 0:
+                self.discordBot.music[guild.id]['queue'] = []
+                return await webhook.send('Музыкальная очередь полностью очищена')
+
+            if count > 0:
+                for _ in range(count):
+                    self.discordBot.music[guild.id]['queue'].pop(0)
+                return await webhook.send(f'{count} запрос(ов) удалено с начала музыкальной очереди')
+            else:
+                for _ in range(abs(count)):
+                    self.discordBot.music[guild.id]['queue'].pop()
+                return await webhook.send(f'{abs(count)} запрос(ов) удалено с конца музыкальной очереди')
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -838,29 +743,28 @@ class DiscordBotCommand:
             voice_channel = user.voice.channel
             voice_client = guild.voice_client
 
-            if voice_client.channel == voice_channel:
-                if voice_client.is_paused() or voice_client.is_playing():
-                    info = self.discordBot.music.get('now', {})
-
-                    now_embed = discord.Embed(title=f"{info['title']}",
-                                              description=f"[{info['channel']}]({info['channel_url']})",
-                                              color=discord.Color.random(),
-                                              timestamp=datetime.datetime.now(tz=pytz.timezone('Europe/Kiev')),
-                                              url=info['webpage_url'])
-                    now_embed.add_field(name='Длительность',
-                                        value=f"{datetime.timedelta(seconds=info['duration'])}",
-                                        inline=True)
-                    # now_embed.set_author(icon_url=client.user.avatar.url, name="Now playing")
-                    thumbnail_url = info['thumbnails'][len(info['thumbnails']) - 1]['url']
-                    now_embed.set_thumbnail(url=thumbnail_url)
-                    now_embed.set_author(name=guild.name, icon_url=guild.icon)
-
-                    return await webhook.send(embed=now_embed)
-                else:
-                    return await webhook.send('Ничего не воспроизводится')
-            else:
+            if not voice_client.channel == voice_channel:
                 return await webhook.send('Вы находитесь в другом гоолосовом канале')
 
+            if not voice_client.is_paused() and not voice_client.is_playing():
+                return await webhook.send('Ничего не воспроизводится')
+
+            info = self.discordBot.music.get('now', {})
+
+            now_embed = discord.Embed(title=f"{info['title']}",
+                                      description=f"[{info['channel']}]({info['channel_url']})",
+                                      color=discord.Color.random(),
+                                      timestamp=datetime.datetime.now(tz=pytz.timezone('Europe/Kiev')),
+                                      url=info['webpage_url'])
+            now_embed.add_field(name='Длительность',
+                                value=f"{datetime.timedelta(seconds=info['duration'])}",
+                                inline=True)
+            # now_embed.set_author(icon_url=client.user.avatar.url, name="Now playing")
+            thumbnail_url = info['thumbnails'][len(info['thumbnails']) - 1]['url']
+            now_embed.set_thumbnail(url=thumbnail_url)
+            now_embed.set_author(name=guild.name, icon_url=guild.icon)
+
+            return await webhook.send(embed=now_embed)
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -880,33 +784,33 @@ class DiscordBotCommand:
                 voice_channel = user.voice.channel
                 voice_client = guild.voice_client
 
-                if voice_client.channel == voice_channel:
-                    if voice_client.is_paused() or voice_client.is_playing():
-                        info = self.discordBot.music.get('now', {})
-                        lyrics = self.discordBot.google.lyrics(song_name=f"{info['title']} lyrics")
-
-                        if lyrics:
-                            content = f"[{lyrics['title']}]({lyrics['link']}):\n{lyrics['lyrics']}"
-                            # max length for discord
-                            content = f"{content[:1998]}.." if len(content) > 2000 else content
-
-                            return await webhook.send(content)
-                        else:
-                            return await webhook.send('Текст песни не найден')
-                    else:
-                        return await webhook.send('Ничего не воспроизводится')
-                else:
+                if not voice_client.channel == voice_channel:
                     return await webhook.send('Вы находитесь в другом гоолосовом канале')
+
+                if not voice_client.is_paused() and not voice_client.is_playing():
+                    return await webhook.send('Ничего не воспроизводится')
+
+                info = self.discordBot.music.get('now', {})
+                lyrics = self.discordBot.google.lyrics(song_name=f"{info['title']} lyrics")
+
+                if not lyrics:
+                    return await webhook.send('Текст песни не найден')
+
+                content = f"[{lyrics['title']}]({lyrics['link']}):\n{lyrics['lyrics']}"
+                # max length for discord
+                content = f"{content[:1998]}.." if len(content) > 2000 else content
+
+                return await webhook.send(content)
             else:
                 lyrics = self.discordBot.google.lyrics(song_name=f"{text} lyrics")
 
-                if lyrics:
-                    content = f"[{lyrics['title']}]({lyrics['link']}):\n{lyrics['lyrics']}"
-                    # max length for discord
-                    content = f"{content[:1998]}.." if len(content) > 2000 else content
-
-                    return await webhook.send(content)
-                else:
+                if not lyrics:
                     return await webhook.send('Текст песни не найден')
+
+                content = f"[{lyrics['title']}]({lyrics['link']}):\n{lyrics['lyrics']}"
+                # max length for discord
+                content = f"{content[:1998]}.." if len(content) > 2000 else content
+
+                return await webhook.send(content)
         except Exception as e:
             return await webhook.send(str(e))
