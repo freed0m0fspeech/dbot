@@ -45,4 +45,5 @@ Functionality:
   * Multiple DataBases support
   * Music player
   * Lyrics scrapper
-  * Event logger
+  * Discord events logger
+  * Application logger

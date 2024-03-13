@@ -30,7 +30,7 @@ def listener(event):
     # }
     if event.exception:
         # print(f'The job {event.job_id}() crashed :(')
-        logging.info(f'The job {event.job_id}() crashed :(')
+        logging.warning(f'The job {event.job_id}() crashed :(')
     else:
         # print(f'The job {event.job_id}() executed successfully :)')
         logging.info(f'The job {event.job_id}() executed successfully :)')

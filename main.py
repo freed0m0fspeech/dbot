@@ -51,7 +51,7 @@ async def main():
     if not os.getenv('DEBUG', '0').lower() in ['true', 't', '1']:
         start()
 
-    logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+    logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.WARNING)
 
     # if not discord.opus.is_loaded():
     #     discord.opus.load_opus('./libopus.so.0.8.0')
