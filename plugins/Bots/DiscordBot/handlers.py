@@ -1,7 +1,7 @@
 # import asyncio
 import os
 import sys
-from typing import Union, Optional
+from typing import Union, Optional, Sequence
 
 import discord.ext.commands
 import discord.utils
@@ -168,6 +168,10 @@ class DiscordBotHandler:
                             continue
 
                         if value_after != value_before:
+                            if isinstance(value_after, discord.utils.SequenceProxy):
+                                if tuple(value_before) == tuple(value_after):
+                                    continue
+
                             if isinstance(value_after, dict):
                                 overwrites_after = value_after.copy()
 
@@ -184,7 +188,7 @@ class DiscordBotHandler:
                                 permissions = [permission for permission, value in value_after if value]
 
                                 value = f'{value}- `{permissions}`'
-                            elif isinstance(value_after, list):
+                            elif isinstance(value_after, discord.utils.SequenceProxy) and attr == 'roles':
                                 value = f"- `{', '.join([role.name for role in value_after])}`"
                             else:
                                 value = f'- `{value_before}` -> `{value_after}`'
@@ -292,7 +296,7 @@ class DiscordBotHandler:
                 return
 
             if len(members) == 1:
-                if members.pop().bot:
+                if members[0].bot:
                     # Bot last member in voice channel
                     voice_client = guild.voice_client
                     await voice_client.disconnect()
