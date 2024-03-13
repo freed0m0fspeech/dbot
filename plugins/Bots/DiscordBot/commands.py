@@ -450,7 +450,8 @@ class DiscordBotCommand:
                     return await webhook.send('Вы не владелец этого голосового канала')
 
                 overwrites = voice_channel.overwrites
-                overwrites[member] = discord.PermissionOverwrite.from_pair(allow=discord.Permissions.all_channel(), deny=discord.Permissions.none())
+                overwrites[member] = discord.PermissionOverwrite.from_pair(allow=discord.Permissions.all_channel(),
+                                                                           deny=discord.Permissions.none())
                 del overwrites[user]
 
                 await voice_channel.edit(name=f'@{member.name}', overwrites=overwrites)
@@ -492,7 +493,8 @@ class DiscordBotCommand:
                 return await webhook.send('Вы не владелец этого голосового канала')
 
             await voice_channel.edit(user_limit=user_limit)
-            await webhook.send(f'Лимит пользователей для голосового канала {voice_channel.mention} изменен на {user_limit}')
+            await webhook.send(
+                f'Лимит пользователей для голосового канала {voice_channel.mention} изменен на {user_limit}')
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -529,6 +531,8 @@ class DiscordBotCommand:
         self.discordBot.music['now'] = info
 
         url = info.get('url', '')
+
+        # await guild.voice_client.connect(reconnect=True, timeout=3000)
 
         guild.voice_client.play(FFmpegPCMAudio(url, **ffmpeg_options),
                                 after=lambda ex: asyncio.run(self._play(guild=guild)))
@@ -575,13 +579,16 @@ class DiscordBotCommand:
                     voice_client = await voice_client.connect(reconnect=True, timeout=3000)
                     await guild.change_voice_state(channel=voice_channel)
 
-            voice_client_is_busy = voice_client.is_playing() or voice_client.is_paused()
-
-            if not voice_client_is_busy:
-                await voice_client.move_to(channel=voice_channel)
+            voice_client_is_busy = voice_client.is_playing()  # or voice_client.is_paused()
 
             if not voice_client.channel.id == voice_channel.id:
-                return await webhook.send('Кто-то уже использует меня в другом голосовом канале')
+                if not voice_client_is_busy:
+                    await voice_client.disconnect(force=True)
+                    voice_client = await voice_channel.connect(reconnect=True, timeout=3000)
+                    await guild.change_voice_state(channel=voice_channel)
+                    # await voice_client.move_to(channel=voice_channel)
+                else:
+                    return await webhook.send('Кто-то уже использует меня в другом голосовом канале')
 
             if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) < 20:
                 self.discordBot.music[guild.id]['queue'].append((text, user))
@@ -621,7 +628,7 @@ class DiscordBotCommand:
 
             if voice_client_channel:
                 if not voice_client_channel == voice_channel:
-                    return await webhook.send('Вы находитесь в другом гоолосовом канале')
+                    return await webhook.send('Вы находитесь в другом голосовом канале')
 
             music_queue = self.discordBot.music.get(guild.id, {}).get('queue', {})
 
@@ -684,13 +691,13 @@ class DiscordBotCommand:
                 return await webhook.send("Меня нет в голосовом канале")
 
             if not voice_client.channel == voice_channel:
-                return await webhook.send('Вы находитесь в другом гоолосовом канале')
+                return await webhook.send('Вы находитесь в другом голосовом канале')
 
-            if voice_client.is_paused() or voice_client.is_playing():
+            if voice_client.is_playing():  # or voice_client.is_paused()
                 voice_client.stop()
                 return await webhook.send('Музыка пропущена')
-            else:
-                return await webhook.send('Ничего не воспроизводится')
+
+            return await webhook.send('Ничего не воспроизводится')
 
         except Exception as e:
             return await webhook.send(str(e))
@@ -711,7 +718,7 @@ class DiscordBotCommand:
             voice_client = guild.voice_client
 
             if not voice_client.channel == voice_channel:
-                return await webhook.send('Вы находитесь в другом гоолосовом канале')
+                return await webhook.send('Вы находитесь в другом голосовом канале')
 
             if count == 0:
                 self.discordBot.music[guild.id]['queue'] = []
@@ -744,9 +751,9 @@ class DiscordBotCommand:
             voice_client = guild.voice_client
 
             if not voice_client.channel == voice_channel:
-                return await webhook.send('Вы находитесь в другом гоолосовом канале')
+                return await webhook.send('Вы находитесь в другом голосовом канале')
 
-            if not voice_client.is_paused() and not voice_client.is_playing():
+            if not voice_client.is_playing():  # and not voice_client.is_paused()
                 return await webhook.send('Ничего не воспроизводится')
 
             info = self.discordBot.music.get('now', {})
@@ -785,9 +792,9 @@ class DiscordBotCommand:
                 voice_client = guild.voice_client
 
                 if not voice_client.channel == voice_channel:
-                    return await webhook.send('Вы находитесь в другом гоолосовом канале')
+                    return await webhook.send('Вы находитесь в другом голосовом канале')
 
-                if not voice_client.is_paused() and not voice_client.is_playing():
+                if not voice_client.is_playing():  # and not voice_client.is_paused()
                     return await webhook.send('Ничего не воспроизводится')
 
                 info = self.discordBot.music.get('now', {})
