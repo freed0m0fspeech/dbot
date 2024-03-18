@@ -163,32 +163,6 @@ class MongoDataBase:
         except Exception as e:
             return None
 
-    def delete_field(self, database_name: str, collection_name: str, query: dict,
-                     filter: Optional[dict] = {},
-                     return_document: Optional[ReturnDocument] = ReturnDocument.AFTER) -> \
-            Optional[dict]:
-        """
-        **Delete document field from MongoDataBase**
-
-        :param database_name: MongoDataBase name
-        :param collection_name: Collection name
-        :param query: {key: 1} to delete in collection
-        :param filter: Optional filter
-        :param return_document: Optional[ReturnDocument] determine return document
-        :param upsert: Optonal upsert value to upsert document if it does not exist
-        :return: typing.Optaional[dict]
-        """
-
-        try:
-            database = self.client.get_database(database_name)
-            collection = database.get_collection(collection_name)
-
-            update = {'$unset': query}
-
-            return collection.find_one_and_update(filter=filter, update=update, return_document=return_document)
-        except Exception as e:
-            return None
-
     def get_document(self, database_name: str, collection_name: str, filter: Optional[dict] = {},
                      query: Optional[dict] = None) -> Optional[dict]:
         """
