@@ -26,4 +26,3 @@ SpeechRecognition~=3.8.1
 pytz~=2021.1
 ffmpeg
 APScheduler~=3.10.1
-lxml_html_clean

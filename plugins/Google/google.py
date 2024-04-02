@@ -3,7 +3,6 @@ from typing import Union
 import requests
 import urllib
 from bs4 import BeautifulSoup
-from requests_html import HTMLSession
 
 
 class LyricScraperException(Exception):
