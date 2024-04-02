@@ -1,4 +1,5 @@
 # import asyncio
+import logging
 import os
 import sys
 from typing import Union, Optional, Sequence
@@ -91,6 +92,8 @@ class DiscordBotHandler:
     # ------------------------------------------------------------------------------------------------------------------
 
     async def _on_event_send_embed(self, event='', guild=None, *args):
+        logging.info(f'The event {event} received')
+
         if not guild:
             return
         elif not guild.system_channel:
@@ -160,8 +163,15 @@ class DiscordBotHandler:
                             event_embed.set_thumbnail(url=after.avatar)
 
                     for attr in [attr for attr in dir(after) if not attr.startswith('_')]:
+                        if not hasattr(before, attr):
+                            continue
+
+                        if not hasattr(after, attr):
+                            continue
+
                         value_before = getattr(before, attr)
                         value_after = getattr(after, attr)
+
                         value = ''
 
                         if callable(value_after):
@@ -565,7 +575,7 @@ class DiscordBotHandler:
                 await self._roll_role(member=author, guild=guild, name='💢Пам', rate=3)
 
         except Exception as e:
-            print(e)
+            logging.warning(e)
 
     async def _on_error(self, event: str, *args, **kwargs):
         # args
