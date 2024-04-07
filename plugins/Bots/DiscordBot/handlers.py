@@ -84,6 +84,7 @@ class DiscordBotHandler:
 
                 if not role:
                     role = await guild.create_role(name=name, color=discord.Color.random(), hoist=True)
+
                 await member.add_roles(role)
                 await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
 
@@ -289,7 +290,7 @@ class DiscordBotHandler:
 
             # was in voice 69 hours (248400 seconds) or more
             if voicetime >= 248400:
-                await self._roll_role(member=member, guild=guild, name='♋Живая легенда', rate=0)
+                await self._roll_role(member=member, guild=guild, name='♋ Живая легенда', rate=0)
 
             voicetime += member_cache.get('voicetime', 0)
 
@@ -302,6 +303,8 @@ class DiscordBotHandler:
                 await voice_channel.delete()
 
                 del cache.stats[guild.id]['tvoice_channels'][voice_channel.id]
+
+                await self._roll_role(member=member, guild=guild, name='🧨 Уничтожитель', rate=3)
 
                 return
 
@@ -370,6 +373,8 @@ class DiscordBotHandler:
 
             try:
                 await member.move_to(channel=voice_channel)
+
+                await self._roll_role(member=member, guild=guild, name='💥 Создатель', rate=3)
             except discord.HTTPException:
                 if len(voice_channel.members) == 0:
                     await voice_channel.delete()
@@ -422,11 +427,23 @@ class DiscordBotHandler:
 
         if not before.self_deaf == after.self_deaf:
             # print('self deaf')
-            pass
+            if after.self_deaf:
+                guild = member.guild
+
+                if not guild:
+                    return
+
+                await self._roll_role(member=member, guild=guild, name='🙉 Глухонемой', rate=3)
 
         if not before.self_mute == after.self_mute:
             # print('self mute')
-            pass
+            if after.self_mute:
+                guild = member.guild
+
+                if not guild:
+                    return
+
+                await self._roll_role(member=member, guild=guild, name='🤐 Молчун', rate=3)
 
         if not before.self_video == after.self_video:
             # print('video')
@@ -436,7 +453,7 @@ class DiscordBotHandler:
                 if not guild:
                     return
 
-                await self._roll_role(member=member, guild=guild, name='🔞Порнозвезда', rate=3)
+                await self._roll_role(member=member, guild=guild, name='🔞 Порнозвезда', rate=3)
 
         if not before.self_stream == after.self_stream:
             # print('stream')
@@ -447,7 +464,7 @@ class DiscordBotHandler:
                 if not guild:
                     return
 
-                await self._roll_role(member=member, guild=guild, name='🎬Режиссер', rate=3)
+                await self._roll_role(member=member, guild=guild, name='🎬 Режиссер', rate=3)
 
         if not before.deaf == after.deaf:
             # print('deaf')
@@ -560,19 +577,19 @@ class DiscordBotHandler:
             # Unique roles
 
             # Lucky message (1 in 100.000)
-            await self._roll_role(member=author, guild=guild, name='🍀Лакер', rate=5)
+            await self._roll_role(member=author, guild=guild, name='🍀 Лакер', rate=5)
 
             # Toxic words (1 in 1.000)
             if any(word.lower() in bad_words for word in message.content.split(' ')):
-                await self._roll_role(member=author, guild=guild, name='🤢Токсик', rate=3)
+                await self._roll_role(member=author, guild=guild, name='🤢 Токсик', rate=3)
 
             # . in the end of sentence (1 in 1.000)
             if message.content.endswith('.'):
-                await self._roll_role(member=author, guild=guild, name='🤓Душнила', rate=3)
+                await self._roll_role(member=author, guild=guild, name='🤓 Душнила', rate=3)
 
             # 'пам' in sentence (1 in 1.000)
             if 'пам' in message.content.lower():
-                await self._roll_role(member=author, guild=guild, name='💢Пам', rate=3)
+                await self._roll_role(member=author, guild=guild, name='💢 Пам', rate=3)
 
         except Exception as e:
             logging.warning(e)
