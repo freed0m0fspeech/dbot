@@ -2,12 +2,13 @@ import asyncio
 import logging
 import os
 
-import discord
+# import discord
 from aiohttp.web import AppRunner, TCPSite
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from plugins.Bots.DiscordBot.bot import DiscordBot
 from plugins.Google.google import Google
 from plugins.Web.server import WebServer
+from plugins.Helpers.logger_filters import GatewayEventFilter
 from jobs.updater import start
 from utils import dataBases
 
@@ -47,10 +48,13 @@ async def main():
     site = TCPSite(runner=runner, host=WEBAPP_HOST, port=WEBAPP_PORT, shutdown_timeout=60)
     await site.start()
 
-    # Start scheduler
     if not os.getenv('DEBUG', '0').lower() in ['true', 't', '1']:
+        # Start scheduler
         start()
+
+        # Logging setup
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.WARNING)
+        logging.getLogger('discord.gateway').addFilter(GatewayEventFilter())
     else:
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
 
