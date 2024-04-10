@@ -131,8 +131,8 @@ class WebServerHandler:
             try:
                 value = getattr(member, attr)
 
-                # if isinstance(value, discord.Asset):
-                #     value = value.key
+                if isinstance(value, discord.Asset):
+                    value = value.url
 
                 member_parameters[attr] = json.dumps(value, default=json_util.default)
             except Exception as e:
@@ -156,9 +156,6 @@ class WebServerHandler:
 
         try:
             data = await request.json()
-
-            date = datetime.now(tz=utc)
-            date = date.strftime('%Y-%m-%d %H:%M:%S')
         except JSONDecodeError:
             data = {}
 
@@ -168,6 +165,9 @@ class WebServerHandler:
 
         try:
             user = self.discordBot.client.get_user(int(user_id))
+
+            date = datetime.now(tz=utc)
+            date = date.strftime('%Y-%m-%d %H:%M:%S')
         except Exception as e:
             print(e)
             return Response(status=500)
@@ -181,8 +181,8 @@ class WebServerHandler:
             try:
                 value = getattr(user, attr)
 
-                # if isinstance(value, discord.Asset):
-                #     value = value.key
+                if isinstance(value, discord.Asset):
+                    value = value.url
 
                 user_parameters[attr] = json.dumps(value, default=json_util.default)
             except Exception as e:
@@ -289,8 +289,8 @@ class WebServerHandler:
                 try:
                     value = getattr(member, attr)
 
-                    # if isinstance(value, discord.Asset):
-                    #     value = value.key
+                    if isinstance(value, discord.Asset):
+                        value = value.url
 
                     member_parameters[attr] = json.dumps(value, default=json_util.default)
                 except Exception as e:
