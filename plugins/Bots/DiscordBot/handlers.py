@@ -506,7 +506,7 @@ class DiscordBotHandler:
 
         status = discord.Status.online
         updated = datetime.now(tz=pytz.timezone('Europe/Kiev')).strftime('%H:%M:%S | %d/%m/%y')
-        activity = discord.Game(name=f"v{__version__} | {updated}")
+        activity = discord.CustomActivity(name=f"v{__version__} | {updated}")
 
         await self.discordBot.client.change_presence(status=status, activity=activity)
 
