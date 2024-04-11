@@ -54,7 +54,9 @@ async def main():
 
         # Logging setup
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.WARNING)
-        logging.getLogger('discord.gateway').addFilter(GatewayEventFilter())
+        # logging.getLogger('discord.gateway').addFilter(GatewayEventFilter())
+        # Root logger StreamHandler()
+        logging.getLogger().handlers[0].addFilter(GatewayEventFilter())
     else:
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
 
