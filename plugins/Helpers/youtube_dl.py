@@ -1,7 +1,6 @@
 import os
 import subprocess
 import re
-import speech_recognition
 #import streamlink
 # import youtube_dl
 import yt_dlp as youtube_dl
