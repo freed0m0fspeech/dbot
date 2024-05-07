@@ -2,6 +2,7 @@
 WebServerHandler plugin to work with Handler
 """
 import json
+import logging
 import os
 from datetime import datetime
 
@@ -84,7 +85,7 @@ class WebServerHandler:
         try:
             guild = self.discordBot.client.get_guild(int(guild_id))
         except Exception as e:
-            print(e)
+            logging.warning(e)
             return Response(status=422)
 
         if not guild or not guild_id or not channel_id:
@@ -120,7 +121,7 @@ class WebServerHandler:
             date = datetime.now(tz=utc)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
         except Exception as e:
-            print(e)
+            logging.warning(e)
             return Response(status=500)
 
         if not member or not member_id or not guild_id or not guild:
@@ -169,7 +170,7 @@ class WebServerHandler:
             date = datetime.now(tz=utc)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
         except Exception as e:
-            print(e)
+            logging.warning(e)
             return Response(status=500)
 
         if not user or not user_id:
@@ -243,7 +244,7 @@ class WebServerHandler:
             date = datetime.now(tz=utc)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
         except Exception as e:
-            print(e)
+            logging.warning(e)
             return Response(status=500)
 
         if not guild or not guild_id:

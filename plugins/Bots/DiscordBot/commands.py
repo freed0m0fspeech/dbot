@@ -14,6 +14,7 @@ import utils
 
 from discord import FFmpegPCMAudio
 from plugins.DataBase.mongo import MongoDataBase
+from plugins.Helpers.logger_filters import YouTubeLogFilter
 from utils import cache
 
 
@@ -518,10 +519,11 @@ class DiscordBotCommand:
             'quiet': True,
             'ignoreerrors': True,
             'noplaylist': True,
+            'logger': YouTubeLogFilter()
         }
 
         ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-                          'options': '-vn'}
+                          'options': '-vn -loglevel fatal'}
 
         info = await plugins.Helpers.youtube_dl.get_best_info_media(title=title, ydl_opts=ydl_opts)
 

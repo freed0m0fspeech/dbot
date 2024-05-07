@@ -1,21 +1,16 @@
 import subprocess
 
 
-def convert_audio_file(path: str, extension: str = '.wav', output_path: str = '') -> str:
+def convert_audio_file(file_path: str, extension: str = 'wav') -> str:
     """
 
-    :param path: input file path
-    :param extension: output file extension
-    :param output_path: output file path
-    :return: output_path
+    :param file_path: path to file
+    :param extension: output extension
+    :return: converted object bytes
     """
-    if not output_path:
-        output_path = path.replace('.ogg', extension)
 
-    # -loglevel error -hide_banner -nostats
-    # stderr=subprocess.DEVNULL for silent mode
+    output_path = file_path.replace(file_path.rsplit('.', 1)[1], extension)
 
-    command = ['ffmpeg', '-i', path, output_path]
-    subprocess.run(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.DEVNULL)
-
+    command = ['ffmpeg', '-hide_banner', '-loglevel', 'warning', '-i', file_path, '-y', output_path]
+    subprocess.run(command)
     return output_path
