@@ -77,8 +77,8 @@ class DiscordBotHandler:
     # OTHER -----------------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
 
-    async def _roll_role(self, member: discord.Member, guild: discord.Guild, name='', rate=3):
-        if guild:
+    async def _roll_role(self, member: discord.Member, guild: discord.Guild, name: str, rate=3):
+        if guild and member and name:
             if rate == 0 or round(random.random(), rate) == 1.0 / (10 ** rate):
                 if not discord.utils.get(member.roles, name=name):
                     role = discord.utils.get(guild.roles, name=name)
