@@ -523,7 +523,7 @@ class DiscordBotCommand:
         }
 
         ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-                          'options': '-vn -loglevel fatal'}
+                          'options': '-vn -loglevel warning'}
 
         info = await plugins.Helpers.youtube_dl.get_best_info_media(title=title, ydl_opts=ydl_opts)
 
