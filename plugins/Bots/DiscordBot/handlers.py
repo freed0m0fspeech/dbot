@@ -78,15 +78,16 @@ class DiscordBotHandler:
     # ------------------------------------------------------------------------------------------------------------------
 
     async def _roll_role(self, member: discord.Member, guild: discord.Guild, name='', rate=3):
-        if rate == 0 or round(random.random(), rate) == 1.0 / (10 ** rate):
-            if not discord.utils.get(member.roles, name=name):
-                role = discord.utils.get(guild.roles, name=name)
+        if guild:
+            if rate == 0 or round(random.random(), rate) == 1.0 / (10 ** rate):
+                if not discord.utils.get(member.roles, name=name):
+                    role = discord.utils.get(guild.roles, name=name)
 
-                if not role:
-                    role = await guild.create_role(name=name, color=discord.Color.random(), hoist=True)
+                    if not role:
+                        role = await guild.create_role(name=name, color=discord.Color.random(), hoist=True)
 
-                await member.add_roles(role)
-                await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
+                    await member.add_roles(role)
+                    await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
 
     # ------------------------------------------------------------------------------------------------------------------
     # EVENTS -----------------------------------------------------------------------------------------------------------
@@ -130,7 +131,7 @@ class DiscordBotHandler:
                     return
 
             event_embed.description = f"💥\n\n**{arg_name}**\n\n> {arg.__class__.__name__}"
-        elif event_type_upper in ('UPDATE', ):
+        elif event_type_upper in ('UPDATE', 'EDIT'):
             event_embed.color = discord.Color.gold()
             event_embed.set_author(name=guild.name, icon_url=guild.icon)
             event_embed.set_thumbnail(url=guild.icon)
@@ -210,6 +211,8 @@ class DiscordBotHandler:
 
             if isinstance(arg, discord.Member):
                 arg_name = f'{arg.mention}'
+            elif isinstance(arg, discord.Message):
+                arg_name = f'{arg.author.mention}'
             else:
                 arg_name = f'`{arg.name}`'
 
@@ -288,9 +291,10 @@ class DiscordBotHandler:
             voicetime = (datetime.now(tz=pytz.utc).replace(tzinfo=None) - datetime.strptime(member_joined,
                                                                                             '%Y-%m-%d %H:%M:%S')).total_seconds()
 
-            # was in voice 69 hours (248400 seconds) or more
-            if voicetime >= 248400:
-                await self._roll_role(member=member, guild=guild, name='♋ Живая легенда', rate=0)
+            # was in voice 6.9 hours (24840 seconds) or more
+            if voicetime >= 24840:
+                # Chance to get role for being in voice channel 6.9 or more hours
+                await self._roll_role(member=member, guild=guild, name='♋ Живая легенда', rate=3)
 
             voicetime += member_cache.get('voicetime', 0)
 
@@ -304,6 +308,7 @@ class DiscordBotHandler:
 
                 del cache.stats[guild.id]['tvoice_channels'][voice_channel.id]
 
+                # Chance to get role for leaving last from temporary voice channel
                 await self._roll_role(member=member, guild=guild, name='🧨 Уничтожитель', rate=3)
 
                 return
@@ -374,6 +379,7 @@ class DiscordBotHandler:
             try:
                 await member.move_to(channel=voice_channel)
 
+                # Chance to get role for creation of new temporary voice channel
                 await self._roll_role(member=member, guild=guild, name='💥 Создатель', rate=3)
             except discord.HTTPException:
                 if len(voice_channel.members) == 0:
@@ -388,6 +394,9 @@ class DiscordBotHandler:
             date = date.strftime('%Y-%m-%d %H:%M:%S')
 
             cache.stats[guild.id]['members'][member.id]['joined'] = date
+
+            # Chance to get role for joining voice channel
+            await self._roll_role(member=member, guild=guild, name='👣 Бродяга', rate=3)
 
             # query = {f'members.{member.id}.stats.joined': date}
             # filter = {'id': guild.id}
@@ -433,6 +442,7 @@ class DiscordBotHandler:
                 if not guild:
                     return
 
+                # Chance to get role for self deaf action
                 await self._roll_role(member=member, guild=guild, name='🙉 Глухонемой', rate=3)
 
         if not before.self_mute == after.self_mute:
@@ -443,6 +453,7 @@ class DiscordBotHandler:
                 if not guild:
                     return
 
+                # Chance to get role for self mute action
                 await self._roll_role(member=member, guild=guild, name='🤐 Молчун', rate=3)
 
         if not before.self_video == after.self_video:
@@ -453,6 +464,7 @@ class DiscordBotHandler:
                 if not guild:
                     return
 
+                # Chance to get role for self video action
                 await self._roll_role(member=member, guild=guild, name='🔞 Порнозвезда', rate=3)
 
         if not before.self_stream == after.self_stream:
@@ -464,6 +476,7 @@ class DiscordBotHandler:
                 if not guild:
                     return
 
+                # Chance to get role for self stream action
                 await self._roll_role(member=member, guild=guild, name='🎬 Режиссер', rate=3)
 
         if not before.deaf == after.deaf:
@@ -576,18 +589,18 @@ class DiscordBotHandler:
 
             # Unique roles
 
-            # Lucky message (1 in 100.000)
+            # Chance to get role for sending message Lucky message (1 in 100.000)
             await self._roll_role(member=author, guild=guild, name='🍀 Лакер', rate=5)
 
-            # Toxic words (1 in 1.000)
+            # Chance to get role for sending toxic message Toxic words (1 in 1.000)
             if any(word.lower() in bad_words for word in message.content.split(' ')):
                 await self._roll_role(member=author, guild=guild, name='🤢 Токсик', rate=3)
 
-            # . in the end of sentence (1 in 1.000)
+            # Chance to get role for sending message with . in the end of sentence (1 in 1.000)
             if message.content.endswith('.'):
                 await self._roll_role(member=author, guild=guild, name='🤓 Душнила', rate=3)
 
-            # 'пам' in sentence (1 in 1.000)
+            # Chance to get role for sending message 'пам' in sentence (1 in 1.000)
             if 'пам' in message.content.lower():
                 await self._roll_role(member=author, guild=guild, name='💢 Пам', rate=3)
 
@@ -636,7 +649,7 @@ class DiscordBotHandler:
         # This requires setting the enable_debug_events setting in the Client.
         pass
 
-    async def _on_message_edit(self, before: discord.Message, after: discord.Message):
+    async def on_message_edit(self, before: discord.Message, after: discord.Message):
         # Called when a Message receives an update event. If the message is not found in the internal message cache, then these events will not be called. Messages might not be in cache if the message is too old or the client is participating in high traffic guilds.
         #
         # If this occurs increase the max_messages parameter or use the on_raw_message_edit() event instead.
@@ -656,7 +669,11 @@ class DiscordBotHandler:
         # A call message has received an update to its participants or ending time.
         #
         # This requires Intents.messages to be enabled.
-        pass
+
+        await self._on_event_send_embed('on_message_edit', after.guild, before, after)
+
+        # Chance to get role for deleting message
+        await self._roll_role(member=after.author, guild=after.guild, name='✏️ Редактор', rate=3)
 
     async def on_message_delete(self, message: discord.Message):
         # Called when a message is deleted. If the message is not found in the internal message cache, then this event will not be called. Messages might not be in cache if the message is too old or the client is participating in high traffic guilds.
@@ -664,7 +681,11 @@ class DiscordBotHandler:
         # If this occurs increase the max_messages parameter or use the on_raw_message_delete() event instead.
         #
         # This requires Intents.messages to be enabled.
+
         await self._on_event_send_embed('on_message_delete', message.guild, message)
+
+        # Chance to get role for deleting message
+        await self._roll_role(member=message.author, guild=message.guild, name='🗑️ Мусорщик', rate=3)
 
     async def _on_bulk_message_delete(self, messages: list[discord.Message]):
         # Called when messages are bulk deleted. If none of the messages deleted are found in the internal message cache, then this event will not be called. If individual messages were not found in the internal message cache, this event will still be called, but the messages not found will not be included in the messages list. Messages might not be in cache if the message is too old or the client is participating in high traffic guilds.
@@ -894,7 +915,11 @@ class DiscordBotHandler:
 
     async def on_invite_create(self, invite: discord.Invite):
         # Called when an Invite is created. You must have manage_channels to receive this.
+
         await self._on_event_send_embed('on_invite_create', invite.guild, invite)
+
+        # Chance to get role for creating invite
+        await self._roll_role(member=invite.inviter, guild=invite.guild, name='💌 Зазывала', rate=3)
 
     async def on_invite_delete(self, invite: discord.Invite):
         # Called when an Invite is deleted. You must have manage_channels to receive this.
@@ -1018,15 +1043,23 @@ class DiscordBotHandler:
         # This requires Intents.presences and Intents.members to be enabled.
         await self._on_event_send_embed('on_presence_update', after.guild, before, after)
 
-    async def _on_reaction_add(self, reaction: discord.Reaction, user: Union[discord.Member, discord.User]):
+    async def on_reaction_add(self, reaction: discord.Reaction, user: Union[discord.Member, discord.User]):
         # Called when a message has a reaction added to it. Similar to on_message_edit(), if the message is not found in the internal message cache, then this event will not be called. Consider using on_raw_reaction_add() instead.
         # This requires Intents.reactions to be enabled.
-        pass
 
-    async def _on_reaction_remove(self, reaction: discord.Reaction, user: Union[discord.Member, discord.User]):
+        await self._on_event_send_embed('on_reaction_add', user.guild, reaction)
+
+        # Chance to get role for adding reaction to message
+        await self._roll_role(member=user, guild=user.guild, name='☢️ Реактор', rate=3)
+
+    async def on_reaction_remove(self, reaction: discord.Reaction, user: Union[discord.Member, discord.User]):
         # Called when a message has a reaction removed from it. Similar to on_message_edit, if the message is not found in the internal message cache, then this event will not be called.
         # This requires both Intents.reactions and Intents.members to be enabled.
-        pass
+
+        await self._on_event_send_embed('on_reaction_remove', user.guild, reaction)
+
+        # Chance to get role for removing reaction to message
+        await self._roll_role(member=user, guild=user.guild, name='☣️ Дезинтегратор', rate=3)
 
     async def _on_reaction_clear(self, message: discord.Message, reactions: list[discord.Reaction]):
         # Called when a message has all its reactions removed from it. Similar to on_message_edit(), if the message is not found in the internal message cache, then this event will not be called. Consider using on_raw_reaction_clear() instead.
@@ -1152,7 +1185,11 @@ class DiscordBotHandler:
         # Note that you can get the guild from Thread.guild.
         #
         # This requires Intents.guilds to be enabled.
+
         await self._on_event_send_embed('on_thread_create', thread.guild, thread)
+
+        # Chance to get role for creation of thread
+        await self._roll_role(member=thread.owner, guild=thread.guild, name='🧵 Поточек', rate=3)
 
     async def on_thread_join(self, thread: discord.Thread):
         # Called whenever a thread is joined.
@@ -1203,15 +1240,18 @@ class DiscordBotHandler:
         pass
 
     async def on_thread_member_join(self, member: discord.Member):
-        # Called when a ThreadMember leaves or joins a Thread.
+        # Called when a ThreadMember joins a Thread.
         #
         # You can get the thread a member belongs in by accessing ThreadMember.thread.
         #
         # This requires Intents.members to be enabled.
         await self._on_event_send_embed('on_thread_member_join', member.guild, member)
 
+        # Chance to get role for joining a thread
+        await self._roll_role(member=member, guild=member.guild, name='➰ Ниточник', rate=3)
+
     async def on_thread_member_remove(self, member: discord.Member):
-        # Called when a ThreadMember leaves or joins a Thread.
+        # Called when a ThreadMember leaves a Thread.
         #
         # You can get the thread a member belongs in by accessing ThreadMember.thread.
         #
