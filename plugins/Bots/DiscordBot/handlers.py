@@ -16,6 +16,7 @@ from plugins.DataBase.mongo import MongoDataBase
 from version import __version__
 from utils import *
 from utils import cache
+from plugins.Bots.DiscordBot.roles import secret_roles
 
 bad_words = (
     'ебал',
@@ -77,76 +78,7 @@ class DiscordBotHandler:
     # OTHER -----------------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
 
-    async def _secret_roles(self, member: discord.Member, guild: discord.Guild, event: str):
-        if member and guild and event:
-            if member.bot:
-                return
 
-            logging.info(f'Secret role event {event} received')
-
-            if event == 'joining voice channel':
-                return await self._roll_role(member=member, guild=guild, name='👣 Бродяга', rate=3)
-            if event == 'leaving last from temporary voice channel':
-                return await self._roll_role(member=member, guild=guild, name='🧨 Уничтожитель', rate=3)
-            if event == 'creation of new temporary voice channel':
-                return await self._roll_role(member=member, guild=guild, name='💥 Создатель', rate=3)
-            if event == 'being in voice channel 6.9 or more hours':
-                return await self._roll_role(member=member, guild=guild, name='♋ Живая легенда', rate=3)
-
-            if event == 'sending message':
-                return await self._roll_role(member=member, guild=guild, name='🍀 Лакер', rate=5)
-            if event == 'sending toxic message':
-                return await self._roll_role(member=member, guild=guild, name='🤢 Токсик', rate=3)
-            if event == 'sending message with . in the end of sentence':
-                return await self._roll_role(member=member, guild=guild, name='🤓 Душнила', rate=3)
-            if event == 'sending message пам in sentence':
-                return await self._roll_role(member=member, guild=guild, name='💢 Пам', rate=3)
-
-            if event == 'self mute action':
-                return await self._roll_role(member=member, guild=guild, name='🤐 Молчун', rate=3)
-            if event == 'self deaf action':
-                return await self._roll_role(member=member, guild=guild, name='🙉 Глухонемой', rate=3)
-            if event == 'self stream action':
-                return await self._roll_role(member=member, guild=guild, name='🎬 Режиссер', rate=3)
-            if event == 'self video action':
-                return await self._roll_role(member=member, guild=guild, name='🔞 Порнозвезда', rate=3)
-
-            if event == 'adding reaction to message':
-                return await self._roll_role(member=member, guild=guild, name='☢️ Реактор', rate=3)
-            if event == 'removing reaction from message':
-                return await self._roll_role(member=member, guild=guild, name='☣️ Дезинтегратор', rate=3)
-
-            if event == 'creation of thread':
-                return await self._roll_role(member=member, guild=guild, name='🧵 Поточек', rate=3)
-
-            if event == 'deleting message':
-                return await self._roll_role(member=member, guild=guild, name='🗑️ Мусорщик', rate=3)
-            if event == 'editing message':
-                return await self._roll_role(member=member, guild=guild, name='✏️ Редактор', rate=3)
-
-            if event == 'creating invite':
-                return await self._roll_role(member=member, guild=guild, name='💌 Зазывала', rate=3)
-
-    async def _roll_role(self, member: discord.Member, guild: discord.Guild, name: str, rate=3):
-        """
-        Roll the role for guild member at given chance rate and name
-        If no role is created in guild, creates it automatically
-
-        :param member:
-        :param guild:
-        :param name:
-        :param rate:
-        """
-        if guild and member and name:
-            if rate == 0 or round(random.random(), rate) == 1.0 / (10 ** rate):
-                if not discord.utils.get(member.roles, name=name):
-                    role = discord.utils.get(guild.roles, name=name)
-
-                    if not role:
-                        role = await guild.create_role(name=name, color=discord.Color.random(), hoist=True)
-
-                    await member.add_roles(role)
-                    await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
 
     # ------------------------------------------------------------------------------------------------------------------
     # EVENTS -----------------------------------------------------------------------------------------------------------
@@ -362,7 +294,7 @@ class DiscordBotHandler:
             # was in voice 6.9 hours (24840 seconds) or more
             if voicetime >= 24840:
                 # Chance to get role for being in voice channel 6.9 or more hours
-                await self._secret_roles(member=member, guild=guild, event='being in voice channel 6.9 or more hours')
+                await secret_roles(member=member, guild=guild, event='being in voice channel 6.9 or more hours')
 
             voicetime += member_cache.get('voicetime', 0)
 
@@ -377,7 +309,7 @@ class DiscordBotHandler:
                 del cache.stats[guild.id]['tvoice_channels'][voice_channel.id]
 
                 # Chance to get role for leaving last from temporary voice channel
-                await self._secret_roles(member=member, guild=guild, event='leaving last from temporary voice channel')
+                await secret_roles(member=member, guild=guild, event='leaving last from temporary voice channel')
 
                 return
 
@@ -448,7 +380,7 @@ class DiscordBotHandler:
                 await member.move_to(channel=voice_channel)
 
                 # Chance to get role for creation of new temporary voice channel
-                await self._secret_roles(member=member, guild=guild, event='creation of new temporary voice channel')
+                await secret_roles(member=member, guild=guild, event='creation of new temporary voice channel')
             except discord.HTTPException:
                 if len(voice_channel.members) == 0:
                     await voice_channel.delete()
@@ -464,7 +396,7 @@ class DiscordBotHandler:
             cache.stats[guild.id]['members'][member.id]['joined'] = date
 
             # Chance to get role for joining voice channel
-            await self._secret_roles(member=member, guild=guild, event='joining voice channel')
+            await secret_roles(member=member, guild=guild, event='joining voice channel')
 
             # query = {f'members.{member.id}.stats.joined': date}
             # filter = {'id': guild.id}
@@ -513,7 +445,7 @@ class DiscordBotHandler:
                     return
 
                 # Chance to get role for self deaf action
-                await self._secret_roles(member=member, guild=guild, event='self deaf action')
+                await secret_roles(member=member, guild=guild, event='self deaf action')
 
         if not before.self_mute == after.self_mute:
             # print('self mute')
@@ -524,7 +456,7 @@ class DiscordBotHandler:
                     return
 
                 # Chance to get role for self mute action
-                await self._secret_roles(member=member, guild=guild, event='self mute action')
+                await secret_roles(member=member, guild=guild, event='self mute action')
 
         if not before.self_video == after.self_video:
             # print('video')
@@ -535,7 +467,7 @@ class DiscordBotHandler:
                     return
 
                 # Chance to get role for self video action
-                await self._secret_roles(member=member, guild=guild, event='self video action')
+                await secret_roles(member=member, guild=guild, event='self video action')
 
         if not before.self_stream == after.self_stream:
             # print('stream')
@@ -547,7 +479,7 @@ class DiscordBotHandler:
                     return
 
                 # Chance to get role for self stream action
-                await self._secret_roles(member=member, guild=guild, event='self stream action')
+                await secret_roles(member=member, guild=guild, event='self stream action')
 
         if not before.deaf == after.deaf:
             # print('deaf')
@@ -677,19 +609,19 @@ class DiscordBotHandler:
             # Unique roles
 
             # Chance to get role for sending message Lucky message (1 in 100.000)
-            await self._secret_roles(member=author, guild=guild, event='sending message')
+            await secret_roles(member=author, guild=guild, event='sending message')
 
             # Chance to get role for sending toxic message Toxic words (1 in 1.000)
             if any(word.lower() in bad_words for word in message.content.split(' ')):
-                await self._secret_roles(member=author, guild=guild, event='sending toxic message')
+                await secret_roles(member=author, guild=guild, event='sending toxic message')
 
             # Chance to get role for sending message with . in the end of sentence (1 in 1.000)
             if message.content.endswith('.'):
-                await self._secret_roles(member=author, guild=guild, event='sending message with . in the end of sentence')
+                await secret_roles(member=author, guild=guild, event='sending message with . in the end of sentence')
 
             # Chance to get role for sending message 'пам' in sentence (1 in 1.000)
             if 'пам' in message.content.lower():
-                await self._secret_roles(member=author, guild=guild, event='sending message пам in sentence')
+                await secret_roles(member=author, guild=guild, event='sending message пам in sentence')
 
         except Exception as e:
             logging.warning(e)
@@ -775,7 +707,7 @@ class DiscordBotHandler:
         await self._on_event_send_embed('on_message_edit', guild, before, after)
 
         # Chance to get role for editing message
-        await self._secret_roles(member=member, guild=guild, event='editing message')
+        await secret_roles(member=member, guild=guild, event='editing message')
 
     async def on_message_delete(self, message: discord.Message):
         """
@@ -795,7 +727,7 @@ class DiscordBotHandler:
         await self._on_event_send_embed('on_message_delete', guild, message)
 
         # Chance to get role for deleting message
-        await self._secret_roles(member=member, guild=guild, event='deleting message')
+        await secret_roles(member=member, guild=guild, event='deleting message')
 
     async def _on_bulk_message_delete(self, messages: list[discord.Message]):
         """
@@ -1088,7 +1020,7 @@ class DiscordBotHandler:
         await self._on_event_send_embed('on_invite_create', guild, invite)
 
         # Chance to get role for creating invite
-        await self._secret_roles(member=member, guild=guild, event='creating invite')
+        await secret_roles(member=member, guild=guild, event='creating invite')
 
     async def on_invite_delete(self, invite: discord.Invite):
         """
@@ -1247,7 +1179,7 @@ class DiscordBotHandler:
         await self._on_event_send_embed('on_reaction_add', guild, reaction)
 
         # Chance to get role for adding reaction to message
-        await self._secret_roles(member=member, guild=guild, event='adding reaction to message')
+        await secret_roles(member=member, guild=guild, event='adding reaction to message')
 
     async def on_reaction_remove(self, reaction: discord.Reaction, user: Union[discord.Member, discord.User]):
         """
@@ -1265,7 +1197,7 @@ class DiscordBotHandler:
         await self._on_event_send_embed('on_reaction_remove', guild, reaction)
 
         # Chance to get role for removing reaction from message
-        await self._secret_roles(member=member, guild=guild, event='removing reaction from message')
+        await secret_roles(member=member, guild=guild, event='removing reaction from message')
 
     async def _on_reaction_clear(self, message: discord.Message, reactions: list[discord.Reaction]):
         """
@@ -1426,7 +1358,7 @@ class DiscordBotHandler:
         await self._on_event_send_embed('on_thread_create', guild, thread)
 
         # Chance to get role for creation of thread
-        await self._secret_roles(member=thread.owner, guild=guild, event='creation of thread')
+        await secret_roles(member=thread.owner, guild=guild, event='creation of thread')
 
     async def on_thread_join(self, thread: discord.Thread):
         """

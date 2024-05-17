@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import math
 import datetime
 import random
@@ -16,6 +17,7 @@ from discord import FFmpegPCMAudio
 from plugins.DataBase.mongo import MongoDataBase
 from plugins.Helpers.logger_filters import YouTubeLogFilter
 from utils import cache
+from plugins.Bots.DiscordBot.roles import secret_roles
 
 
 class DiscordBotCommand:
@@ -551,16 +553,7 @@ class DiscordBotCommand:
             guild = interaction.guild
             user = interaction.user
 
-            # Unique role for using this command (1 in 1.000)
-            if round(random.random(), 3) == 0.001:
-                if not discord.utils.get(user.roles, name='🎵Диджей'):
-                    role = discord.utils.get(guild.roles, name='🎵Диджей')
-
-                    if not role:
-                        role = await guild.create_role(name='🎵Диджей', color=discord.Color.dark_orange(),
-                                                       hoist=True)
-                    await user.add_roles(role)
-                    await user.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
+            await secret_roles(member=user, guild=guild, event='using command /music play')
 
             try:
                 voice_channel = user.voice.channel
