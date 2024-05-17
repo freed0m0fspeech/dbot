@@ -60,6 +60,15 @@ def stats_sync(query=None, filter=None):
                 query[f'members.{member_id}.stats.messages_count'] = messages_count
 
             try:
+                reactions_count = cache.stats.get(guild_id, {}).get('members', {}).get(member_id, {}).pop(
+                    'reactions_count')
+            except Exception as e:
+                reactions_count = 0
+
+            if not reactions_count == 0:
+                query[f'members.{member_id}.stats.reactions_count'] = reactions_count
+
+            try:
                 messages_count_xp = cache.stats.get(guild_id, {}).get('members', {}).get(member_id, {}).pop(
                     'messages_count_xp')
             except Exception as e:

@@ -14,7 +14,7 @@ async def roll_role(member: Member, guild: Guild, name: str, rate=3):
     :param rate:
     """
     if guild and member and name:
-        if rate == 0 or round(random(), rate) == 1.0 / (10 ** rate):
+        if rate == 0 or random() < (10 ** -rate):
             if not utils.get(member.roles, name=name):
                 role = utils.get(guild.roles, name=name)
 

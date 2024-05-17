@@ -553,7 +553,8 @@ class DiscordBotCommand:
             guild = interaction.guild
             user = interaction.user
 
-            await secret_roles(member=user, guild=guild, event='using command /music play')
+            if isinstance(user, discord.Member):
+                await secret_roles(member=user, guild=guild, event='using command /music play')
 
             try:
                 voice_channel = user.voice.channel
@@ -571,7 +572,7 @@ class DiscordBotCommand:
                 await guild.change_voice_state(channel=voice_channel)
             else:
                 if not voice_client.is_connected():
-                    voice_client = await voice_client.connect(reconnect=True, timeout=3000)
+                    voice_client = await voice_channel.connect(reconnect=True, timeout=3000)
                     await guild.change_voice_state(channel=voice_channel)
 
             voice_client_is_busy = voice_client.is_playing()  # or voice_client.is_paused()

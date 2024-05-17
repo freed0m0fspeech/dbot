@@ -300,6 +300,7 @@ class WebServerHandler:
 
             voicetime = dbot_document.get('members', {}).get(f'{member.id}', {}).get('stats', {}).get('voicetime', 0)
             messages_count = dbot_document.get('members', {}).get(f'{member.id}', {}).get('stats', {}).get('messages_count', 0)
+            reactions_count = dbot_document.get('members', {}).get(f'{member.id}', {}).get('stats', {}).get('reactions_count', 0)
             # member_messages_count = messages_count.get(f'{member.id}', 0)
             # xp = (messages_count * message_xp) + ((voicetime // 60) * voice_xp)
             xp = dbot_document.get('members', {}).get(f'{member.id}', {}).get('stats', {}).get('xp', 0)
@@ -311,6 +312,7 @@ class WebServerHandler:
             member_parameters['voicetime'] = voicetime
             member_parameters['xp'] = xp
             member_parameters['messages_count'] = messages_count
+            members_parameters['reactions_count'] = reactions_count
 
             members_parameters[f'{member.id}'] = member_parameters
 

@@ -1163,6 +1163,12 @@ class DiscordBotHandler:
         """
         await self._on_event_send_embed('on_presence_update', after.guild, before, after)
 
+    async def _on_reaction_add_count(self, guild: discord.Guild, author: discord.Member):
+        reactions_count = 1
+        reactions_count += cache.stats.get(guild.id, {}).get('members', {}).get(author.id, {}).get('reactions_count', 0)
+
+        cache.stats[guild.id]['members'][author.id]['reactions_count'] = reactions_count
+
     async def on_reaction_add(self, reaction: discord.Reaction, user: Union[discord.Member, discord.User]):
         """
         Called when a message has a reaction added to it. Similar to on_message_edit(), if the message is not found in the internal message cache, then this event will not be called. Consider using on_raw_reaction_add() instead.
@@ -1176,10 +1182,20 @@ class DiscordBotHandler:
         member = user
         guild = member.guild
 
+        if not user == reaction.message.author:
+            # Reaction count
+            await self._on_reaction_add_count(guild=guild, author=reaction.message.author)
+
         await self._on_event_send_embed('on_reaction_add', guild, reaction)
 
         # Chance to get role for adding reaction to message
         await secret_roles(member=member, guild=guild, event='adding reaction to message')
+
+    async def _on_reaction_remove_count(self, guild: discord.Guild, author: discord.Member):
+        reactions_count = -1
+        reactions_count += cache.stats.get(guild.id, {}).get('members', {}).get(author.id, {}).get('reactions_count', 0)
+
+        cache.stats[guild.id]['members'][author.id]['reactions_count'] = reactions_count
 
     async def on_reaction_remove(self, reaction: discord.Reaction, user: Union[discord.Member, discord.User]):
         """
@@ -1193,6 +1209,10 @@ class DiscordBotHandler:
 
         member = user
         guild = member.guild
+
+        if not user == reaction.message.author:
+            # Reaction count
+            await self._on_reaction_remove_count(guild=guild, author=reaction.message.author)
 
         await self._on_event_send_embed('on_reaction_remove', guild, reaction)
 
