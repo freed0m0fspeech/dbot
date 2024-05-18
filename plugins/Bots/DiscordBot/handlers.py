@@ -94,7 +94,7 @@ class DiscordBotHandler:
         :param args:
         :return:
         """
-        logging.info(f'The event {event} received')
+        logging.info(f'The event "{event}" received')
 
         if not guild:
             return
@@ -726,7 +726,6 @@ class DiscordBotHandler:
 
         await self._on_event_send_embed('on_message_delete', guild, message)
 
-        # Chance to get role for deleting message
         await secret_roles(member=member, guild=guild, event='deleting message')
 
     async def _on_bulk_message_delete(self, messages: list[discord.Message]):
@@ -761,6 +760,19 @@ class DiscordBotHandler:
 
         This requires Intents.messages to be enabled.
         """
+        # if not payload.guild_id:
+        #     return
+        #
+        # print(payload)
+        #
+        # guild: discord.abc.Guild = self.discordBot.client.get_guild(payload.guild_id)
+        # message: discord.Message = payload.cached_message
+        #
+        # if message:
+        #     await self._on_event_send_embed('on_raw_message_delete', guild, message)
+        #     member = message.author
+        #
+        #     await secret_roles(member=member, guild=guild, event='deleting message')
         pass
 
     async def _on_raw_bulk_message_delete(self, payload: discord.RawBulkMessageDeleteEvent):
@@ -802,13 +814,13 @@ class DiscordBotHandler:
         """
         await self._on_event_send_embed('on_automod_rule_update', rule.guild, rule)
 
-    async def _on_automod_rule_delete(self, rule: discord.AutoModRule):
+    async def on_automod_rule_delete(self, rule: discord.AutoModRule):
         """
         Called when a AutoModRule is deleted. You must have manage_guild to receive this.
 
         This requires Intents.auto_moderation_configuration to be enabled.
         """
-        pass
+        await self._on_event_send_embed('on_automod_rule_delete', rule.guild, rule)
 
     async def _on_automod_action(self, rule: discord.AutoModRule):
         """
@@ -1003,14 +1015,20 @@ class DiscordBotHandler:
 
         This requires Intents.moderation to be enabled.
         """
-        pass
-        # await self._on_event_send_embed('_on_audit_log_entry_create', entry.guild, entry)
+        # if entry.action == discord.AuditLogAction.message_delete:
+        #     member = entry.user
+        #     guild = entry.guild
+        #
+        #     if isinstance(member, discord.Member):
+        #         # Chance to get role for deleting message
+        #         await secret_roles(member=member, guild=guild, event='deleting message')
+
+        await self._on_event_send_embed('on_audit_log_entry_create', entry.guild, entry)
 
     async def on_invite_create(self, invite: discord.Invite):
         """
         Called when an Invite is created. You must have manage_channels to receive this.
         """
-
         if not invite.guild:
             return
 

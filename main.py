@@ -58,7 +58,7 @@ async def main():
         # Root logger StreamHandler()
         logging.getLogger().handlers[0].addFilter(GatewayEventFilter())
     else:
-        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
     # if not discord.opus.is_loaded():
     #     discord.opus.load_opus('./libopus.so.0.8.0')

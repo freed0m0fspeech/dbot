@@ -29,7 +29,7 @@ async def secret_roles(member: Member, guild: Guild, event: str):
         if member.bot:
             return
 
-        logging.info(f'Secret role event {event} received')
+        logging.info(f'Secret role event: "{event}" received, member: @{member.name}')
 
         if event == 'joining voice channel':
             return await roll_role(member=member, guild=guild, name='👣 Бродяга', rate=3)

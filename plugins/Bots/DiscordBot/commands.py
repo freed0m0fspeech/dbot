@@ -13,7 +13,7 @@ import pytz
 import plugins.Helpers.youtube_dl
 import utils
 
-from discord import FFmpegPCMAudio
+from discord import FFmpegPCMAudio, FFmpegOpusAudio
 from plugins.DataBase.mongo import MongoDataBase
 from plugins.Helpers.logger_filters import YouTubeLogFilter
 from utils import cache
@@ -538,7 +538,7 @@ class DiscordBotCommand:
 
         # await guild.voice_client.connect(reconnect=True, timeout=3000)
 
-        guild.voice_client.play(FFmpegPCMAudio(url, **ffmpeg_options),
+        guild.voice_client.play(FFmpegOpusAudio(url, **ffmpeg_options),
                                 after=lambda ex: asyncio.run(self._play(guild=guild)))
 
     async def music_play(self, interaction: discord.Interaction, text: str):

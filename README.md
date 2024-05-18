@@ -31,14 +31,14 @@ Commands to interact with music (/music):
   * /play [text] - Play music from YouTube
   * /queue - Show music queue of the server
   * /skip - Skip currently playing music
-  * /clear [count] - Clear music queue
+  * /clear [0/count/-count] - Clear music queue
   * /lyrics [text] - Lyrics for title or currently playing music
 
 ---------------
 Functionality:
 
   * Temporary voice channels
-  * Stats (voicetime, messages count)
+  * Stats (voicetime, messages count, reactions count)
   * Scheduled tasks
   * Application cache
   * DataBase
