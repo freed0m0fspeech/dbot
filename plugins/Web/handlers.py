@@ -312,7 +312,7 @@ class WebServerHandler:
             member_parameters['voicetime'] = voicetime
             member_parameters['xp'] = xp
             member_parameters['messages_count'] = messages_count
-            members_parameters['reactions_count'] = reactions_count
+            member_parameters['reactions_count'] = reactions_count
 
             members_parameters[f'{member.id}'] = member_parameters
 
