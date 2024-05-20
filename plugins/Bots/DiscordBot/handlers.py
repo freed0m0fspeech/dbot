@@ -180,7 +180,7 @@ class DiscordBotHandler:
                             continue
 
                         if value_after != value_before:
-                            if isinstance(value_after, discord.utils.SequenceProxy):
+                            if isinstance(value_after, list):
                                 if tuple(value_before) == tuple(value_after):
                                     continue
 
@@ -200,7 +200,7 @@ class DiscordBotHandler:
                                 permissions = [permission for permission, value in value_after if value]
 
                                 value = f'{value}- `{permissions}`'
-                            elif isinstance(value_after, discord.utils.SequenceProxy) and attr == 'roles':
+                            elif isinstance(value_after, list) and attr == 'roles':
                                 value = f"- `{', '.join([role.name for role in value_after])}`"
                             else:
                                 value = f'- `{value_before}` -> `{value_after}`'
