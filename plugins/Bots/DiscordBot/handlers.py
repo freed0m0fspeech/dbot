@@ -123,7 +123,7 @@ class DiscordBotHandler:
                     event_embed.set_author(name=arg.name, icon_url=arg.avatar)
                     event_embed.set_thumbnail(url=arg.avatar)
                 else:
-                    arg_name = f'`{arg.name}`'
+                    arg_name = f'```{arg.name}```'
             except AttributeError:
                 try:
                     arg_name = f'[link]({arg.url})'
@@ -148,7 +148,7 @@ class DiscordBotHandler:
                     else:
                         date = args[1]
 
-                    changes = f'last_pin\n - `{date}`'
+                    changes = f'last_pin\n- ```{date}```'
                 else:
                     if len(args) == 3:
                         before = args[1]
@@ -184,6 +184,20 @@ class DiscordBotHandler:
                                 if tuple(value_before) == tuple(value_after):
                                     continue
 
+                            if attr == 'clean_content':
+                                value = f' - ```{value_before}``` ↓ ```{value_after}```'
+                                changes = f'{changes}- {attr}\n{value}\n\n'
+                                continue
+
+                            if attr == 'content':
+                                continue
+
+                            if attr == 'system_content':
+                                continue
+
+                            if attr == 'color':
+                                continue
+
                             if isinstance(value_after, dict):
                                 overwrites_after = value_after.copy()
 
@@ -195,17 +209,17 @@ class DiscordBotHandler:
                                 # for name, permissions in value_after.items():
                                 #     value = f'{value}- `{name}` -> `{permissions}`\n'
 
-                                value = '\n'.join([f'{value}- `{name}` -> `{permissions}`' for name, permissions in value_after.items()])
+                                value = '\n'.join([f'{value} - ```{name}``` ↓ ```{permissions}```' for name, permissions in value_after.items()])
                             elif isinstance(value_after, discord.Permissions):
                                 permissions = [permission for permission, value in value_after if value]
 
-                                value = f'{value}- `{permissions}`'
-                            elif isinstance(value_after, list) and attr == 'roles':
-                                value = f"- `{', '.join([role.name for role in value_after])}`"
+                                value = f'{value} - ```{permissions}```'
+                            elif isinstance(value_after, list) and (attr == 'roles' or attr == 'changed_roles'):
+                                value = f" - ```{', '.join([role.name for role in value_after])}```"
                             else:
-                                value = f'- `{value_before}` -> `{value_after}`'
+                                value = f' - ```{value_before}``` ↓ ```{value_after}```'
 
-                            changes = f'{changes}{attr}\n{value}\n'
+                            changes = f'{changes}- {attr}\n{value}\n\n'
             if not changes:
                 return
 
@@ -214,7 +228,7 @@ class DiscordBotHandler:
             elif isinstance(arg, discord.Message):
                 arg_name = f'{arg.author.mention}'
             else:
-                arg_name = f'`{arg.name}`'
+                arg_name = f'```{arg.name}```'
 
             event_embed.description = f"🚧\n\n**{arg_name}**\n\n> {arg.__class__.__name__}\n\n{changes}"
         elif event_type_upper in ('DELETE', 'REMOVE'):
@@ -227,7 +241,7 @@ class DiscordBotHandler:
             fields = ''
 
             try:
-                arg_name = f'`{arg.name}`'
+                arg_name = f'```{arg.name}```'
 
                 if isinstance(arg, discord.Member):
                     event_embed.set_author(name=arg.name, icon_url=arg.avatar)
@@ -240,7 +254,7 @@ class DiscordBotHandler:
                     arg_name = f'{arg.author.mention}'
 
                     if arg.clean_content:
-                        fields = f'{fields}content\n```{arg.clean_content}```'
+                        fields = f'{fields}clean_content\n```{arg.clean_content}```'
 
                     if arg.attachments:
                         attachments = []
@@ -252,7 +266,7 @@ class DiscordBotHandler:
                         embeds = []
                         for embed in arg.embeds:
                             if embed.title:
-                                embeds.append(f"`{embed.title}`")
+                                embeds.append(f"```{embed.title}```")
                                 break
 
                             if embed.video:
@@ -1193,7 +1207,6 @@ class DiscordBotHandler:
 
         This requires Intents.reactions to be enabled.
         """
-
         if not isinstance(user, discord.Member):
             return
 
@@ -1221,7 +1234,6 @@ class DiscordBotHandler:
 
         This requires both Intents.reactions and Intents.members to be enabled.
         """
-
         if not isinstance(user, discord.Member):
             return
 
