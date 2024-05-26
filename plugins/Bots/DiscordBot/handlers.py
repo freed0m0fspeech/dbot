@@ -1,63 +1,20 @@
-# import asyncio
 import logging
-import os
-import sys
-from typing import Union, Optional, Sequence
-
+from typing import Union, Optional
 import discord.ext.commands
 import discord.utils
-import pymongo
 import pytz
-import utils
-import random
+import pandas as pd
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from plugins.DataBase.mongo import MongoDataBase
 from version import __version__
 from utils import *
 from utils import cache
 from plugins.Bots.DiscordBot.roles import secret_roles
 
-bad_words = (
-    'ебал',
-    'пидар',
-    'хуй',
-    'пиздец',
-    'блять',
-    'пизда',
-    'залупа',
-    'гандон',
-    'еблан',
-    'ублюдок',
-    'сука',
-    'долбаеб',
-    'блядина',
-    'шлюха',
-    'анус',
-    'ебу',
-    'ебать',
-    'хуйня',
-    'проебали',
-    'похуй',
-    'проебал',
-    'нахуй',
-    'пздц',
-    'ахуеть',
-    'пиздос',
-    'хуита',
-    'ебани',
-    'ебни',
-    'ёбни',
-    'ёбаный',
-    'ебануться',
-    'пиздюк',
-    'уебище',
-    'уёбище',
-    'блядина',
-    'пидарас',
-    'уебан',
-)
-
+bad_words = pd.read_csv('bad_words.csv', encoding='windows-1251')
+# drop rows with different language
+# bad_words = bad_words[bad_words['language'] == 'ru']
 
 class DiscordBotHandler:
     """
@@ -73,12 +30,6 @@ class DiscordBotHandler:
         for handler in [handler for handler in dir(DiscordBotHandler) if not handler.startswith('_')]:
             callback = getattr(self, handler)
             self.discordBot.client.event(callback)
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # OTHER -----------------------------------------------------------------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-
-
 
     # ------------------------------------------------------------------------------------------------------------------
     # EVENTS -----------------------------------------------------------------------------------------------------------
@@ -564,12 +515,10 @@ class DiscordBotHandler:
         last_message = cache.stats[guild.id]['members'][author.id]['last_message']
         last_message_seconds = None
         if last_message:
-            last_message_seconds = (datetime.now(tz=pytz.utc).replace(tzinfo=None) - datetime.strptime(last_message,
-                                                                                                       '%Y-%m-%d %H:%M:%S')).total_seconds()
+            last_message_seconds = (datetime.now(tz=pytz.utc).replace(tzinfo=None) - datetime.strptime(last_message,'%Y-%m-%d %H:%M:%S')).total_seconds()
 
         messages_count = 1
-        messages_count += cache.stats.get(guild.id, {}).get('members', {}).get(author.id, {}).get('messages_count',
-                                                                                                  0)
+        messages_count += cache.stats.get(guild.id, {}).get('members', {}).get(author.id, {}).get('messages_count', 0)
 
         cache.stats[guild.id]['members'][author.id]['messages_count'] = messages_count
         message_xp_delay = cache.stats.get(guild.id, {}).get('xp', {}).get('message_xp_delay', 60)
@@ -580,8 +529,7 @@ class DiscordBotHandler:
             date = date.strftime('%Y-%m-%d %H:%M:%S')
 
             messages_count_xp = 1
-            messages_count_xp += cache.stats.get(guild.id, {}).get('members', {}).get(author.id, {}).get(
-                'messages_count_xp', 0)
+            messages_count_xp += cache.stats.get(guild.id, {}).get('members', {}).get(author.id, {}).get('messages_count_xp', 0)
 
             cache.stats[guild.id]['members'][author.id]['messages_count_xp'] = messages_count_xp
             cache.stats[guild.id]['members'][author.id]['last_message'] = date
@@ -626,7 +574,9 @@ class DiscordBotHandler:
             await secret_roles(member=author, guild=guild, event='sending message')
 
             # Chance to get role for sending toxic message Toxic words (1 in 1.000)
-            if any(word.lower() in bad_words for word in message.content.split(' ')):
+            words = message.content.lower().split(' ')
+
+            if any(bad_words['word'].isin(words)):
                 await secret_roles(member=author, guild=guild, event='sending toxic message')
 
             # Chance to get role for sending message with . in the end of sentence (1 in 1.000)
