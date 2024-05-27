@@ -13,7 +13,6 @@ from utils import cache
 from plugins.Bots.DiscordBot.roles import secret_roles
 
 bad_words = pd.read_csv('bad_words.csv', encoding='windows-1251')
-print(bad_words)
 
 # drop rows with different language
 # bad_words = bad_words[bad_words['language'] == 'ru']
