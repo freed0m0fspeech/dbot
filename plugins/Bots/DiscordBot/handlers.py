@@ -13,6 +13,8 @@ from utils import cache
 from plugins.Bots.DiscordBot.roles import secret_roles
 
 bad_words = pd.read_csv('bad_words.csv', encoding='windows-1251')
+print(bad_words)
+
 # drop rows with different language
 # bad_words = bad_words[bad_words['language'] == 'ru']
 
@@ -574,17 +576,19 @@ class DiscordBotHandler:
             await secret_roles(member=author, guild=guild, event='sending message')
 
             # Chance to get role for sending toxic message Toxic words (1 in 1.000)
-            words = message.content.lower().split(' ')
+            # words = message.content.lower().split(' ')
 
-            if any(bad_words['word'].isin(words)):
+            # if any(bad_words['word'].isin(words)):
+            content = message.content.lower()
+            if any([word in content for word in bad_words['word']]):
                 await secret_roles(member=author, guild=guild, event='sending toxic message')
 
             # Chance to get role for sending message with . in the end of sentence (1 in 1.000)
-            if message.content.endswith('.'):
+            if content.endswith('.'):
                 await secret_roles(member=author, guild=guild, event='sending message with . in the end of sentence')
 
             # Chance to get role for sending message 'пам' in sentence (1 in 1.000)
-            if 'пам' in message.content.lower():
+            if 'пам' in content:
                 await secret_roles(member=author, guild=guild, event='sending message пам in sentence')
 
         except Exception as e:
