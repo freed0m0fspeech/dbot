@@ -150,6 +150,9 @@ class DiscordBotHandler:
                             if attr == 'color':
                                 continue
 
+                            if attr == 'embeds':
+                                continue
+
                             if isinstance(value_after, dict):
                                 overwrites_after = value_after.copy()
 
