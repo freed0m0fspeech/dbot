@@ -14,15 +14,18 @@ async def roll_role(member: Member, guild: Guild, name: str, rate=3):
     :param rate:
     """
     if guild and member and name:
-        if rate == 0 or random() < (10 ** -rate):
-            if not utils.get(member.roles, name=name):
-                role = utils.get(guild.roles, name=name)
+        if not rate == 0:
+            if not random() < (10 ** -rate):
+                return
 
-                if not role:
-                    role = await guild.create_role(name=name, color=Color.random(), hoist=True)
+        if not utils.get(member.roles, name=name):
+            role = utils.get(guild.roles, name=name)
 
-                await member.add_roles(role)
-                await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
+            if not role:
+                role = await guild.create_role(name=name, color=Color.random(), hoist=True)
+
+            await member.add_roles(role)
+            await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
 
 async def secret_roles(member: Member, guild: Guild, event: str):
     if member and guild and event:
