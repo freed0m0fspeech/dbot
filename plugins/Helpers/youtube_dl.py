@@ -1,10 +1,11 @@
+import logging
 import os
 import subprocess
 import re
 #import streamlink
 # import youtube_dl
 import yt_dlp as youtube_dl
-from yt_dlp import DownloadError
+from yt_dlp import DownloadError, extractor
 
 from datetime import datetime
 from datetime import timedelta
@@ -55,7 +56,6 @@ ydl_opts_soundcloud = {
     'noplaylist': True,
 }
 
-
 async def is_supported_url_youtube(url):
     """
     Check if url is supported by youtube_dl
@@ -98,7 +98,7 @@ async def get_info_media(title: str, ydl_opts=None, search_engine=None, result_c
             try:
                 info = ydl.extract_info(url, download=False)
             except DownloadError:
-                print('DownloadError')
+                logging.warning('DownloadError')
                 return False
         else:
             if search_engine:
@@ -110,7 +110,7 @@ async def get_info_media(title: str, ydl_opts=None, search_engine=None, result_c
                     try:
                         info = ydl.extract_info(f"scsearch{result_count}:{title}", download=False)
                     except DownloadError:
-                        print('DownloadError')
+                        logging.warning('DownloadError')
                         return False
 
     if not info:
@@ -134,7 +134,7 @@ async def get_best_info_media(title: str, ydl_opts=None, search_engine=None, res
     if ydl_opts is None:
         ydl_opts = {
             # 'format': 'best[ext!=wav]/best',
-            'format': 'best',
+            'format': 'bestaudio/best',
             'quiet': False,
             'ignoreerrors': True,
             'noplaylist': True,
@@ -154,8 +154,8 @@ async def get_best_info_media(title: str, ydl_opts=None, search_engine=None, res
             # if is_supported_url_youtube(url=url):
             try:
                 info = ydl.extract_info(url, download=False)
-            except DownloadError:
-                print('DownloadError')
+            except Exception as e:
+                logging.warning(e)
                 return False
                 # else:
                 #    print('Not supported url')
@@ -190,10 +190,11 @@ async def get_best_info_media(title: str, ydl_opts=None, search_engine=None, res
                     try:
                         info = ydl.extract_info(f"scsearch{result_count}:{title}", download=False)
                     except DownloadError:
-                        print('DownloadError')
+                        logging.warning('DownloadError')
                         return False
     if not info:
         return False
+
     # print(info)
     # if 'entries' in info:
     #    if len(info['entries']) > 0:

@@ -501,7 +501,7 @@ class DiscordBotCommand:
         except Exception as e:
             return await webhook.send(str(e))
 
-    async def _play(self, guild):
+    async def _play(self, guild, user=None):
         if not guild.voice_client:
             return
 
@@ -521,16 +521,24 @@ class DiscordBotCommand:
             'quiet': True,
             'ignoreerrors': True,
             'noplaylist': True,
-            'logger': YouTubeLogFilter()
+            'playliststart': '1',
+            'playlistend': '20',
+            # 'skip_download': True,
+            'extract_flat': 'in_playlist',
+            'logger': YouTubeLogFilter(),
         }
 
         ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-                          'options': '-vn -loglevel warning'}
+                          'options': '-vn'}
 
         info = await plugins.Helpers.youtube_dl.get_best_info_media(title=title, ydl_opts=ydl_opts)
 
         if isinstance(info, list):
-            info = info[0]
+            if user:
+                for video in info:
+                    self.discordBot.music[guild.id]['queue'].append((video.get('url', ''), user))
+
+                return await self._play(guild=guild, user=user)
 
         self.discordBot.music['now'] = info
 
@@ -593,7 +601,7 @@ class DiscordBotCommand:
                 await webhook.send(f'Максимальная длина музыкальной очереди 20 элементов')
 
             if not voice_client_is_busy:
-                return await self._play(guild=guild)
+                return await self._play(guild=guild, user=user)
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -644,7 +652,7 @@ class DiscordBotCommand:
                 except Exception as e:
                     break
 
-                user: discord.User
+                user: discord.Member
 
                 content = f'{content}{i}. `{title}` добавил(а) {user.mention}\n'
 
