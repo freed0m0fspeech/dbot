@@ -501,7 +501,7 @@ class DiscordBotCommand:
         except Exception as e:
             return await webhook.send(str(e))
 
-    async def _play(self, guild, user=None):
+    async def _play(self, guild):
         if not guild.voice_client:
             return
 
@@ -511,7 +511,9 @@ class DiscordBotCommand:
         music_queue = self.discordBot.music.get(guild.id, {}).get('queue', [])
 
         try:
-            title = music_queue.pop(0)[0]
+            music_queue = music_queue.pop(0)
+            title = music_queue[0]
+            user = music_queue[1]
         except Exception:
             # return await guild.voice_client.voice_disconnect()
             return
@@ -520,8 +522,8 @@ class DiscordBotCommand:
             'format': 'bestaudio/best',
             'quiet': True,
             'ignoreerrors': True,
-            'noplaylist': True,
-            'playliststart': '1',
+            'noplaylist': True, # https://www.youtube.com/watch?v=PDjRAJlP3BY&list=PLs6raD4eTyko0Jmuu0O5nAkpt-Tq8DJ3b example of link that will add playlist (noplaylist true)
+            'playliststart': '1', # https://www.youtube.com/playlist?list=PLgULlLHTSGIQ9BeVZY37fJP50CYc3lkW2 - example of link will add playlist ignoring no playlist
             'playlistend': '20',
             # 'skip_download': True,
             'extract_flat': 'in_playlist',
@@ -529,7 +531,7 @@ class DiscordBotCommand:
         }
 
         ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-                          'options': '-vn'}
+                          'options': '-vn -loglevel warning'}
 
         info = await plugins.Helpers.youtube_dl.get_best_info_media(title=title, ydl_opts=ydl_opts)
 
@@ -538,17 +540,19 @@ class DiscordBotCommand:
                 for video in info:
                     self.discordBot.music[guild.id]['queue'].append((video.get('url', ''), user))
 
-                return await self._play(guild=guild, user=user)
+                return await self._play(guild=guild)
 
-        self.discordBot.music['now'] = info
+        self.discordBot.music['now'] = (info, user)
 
         url = info.get('url', '')
 
-        # await guild.voice_client.connect(reconnect=True, timeout=3000)
+        if url:
+            # await guild.voice_client.connect(reconnect=True, timeout=3000)
 
-        guild.voice_client.play(FFmpegOpusAudio(url, **ffmpeg_options),
-                                after=lambda ex: asyncio.run(self._play(guild=guild)))
-
+            guild.voice_client.play(FFmpegOpusAudio(url, **ffmpeg_options),
+                                    after=lambda ex: asyncio.run(self._play(guild=guild)))
+        else:
+            return await self._play(guild=guild)
     async def music_play(self, interaction: discord.Interaction, text: str):
         response = interaction.response
         response: discord.InteractionResponse
@@ -601,7 +605,7 @@ class DiscordBotCommand:
                 await webhook.send(f'Максимальная длина музыкальной очереди 20 элементов')
 
             if not voice_client_is_busy:
-                return await self._play(guild=guild, user=user)
+                return await self._play(guild=guild)
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -760,13 +764,18 @@ class DiscordBotCommand:
             if not voice_client.is_playing():  # and not voice_client.is_paused()
                 return await webhook.send('Ничего не воспроизводится')
 
-            info = self.discordBot.music.get('now', {})
+            now = self.discordBot.music.get('now', {})
+            info = now[0]
+            user = now[1]
 
             now_embed = discord.Embed(title=f"{info['title']}",
                                       description=f"[{info['channel']}]({info['channel_url']})",
                                       color=discord.Color.random(),
                                       timestamp=datetime.datetime.now(tz=pytz.timezone('Europe/Kiev')),
                                       url=info['webpage_url'])
+            now_embed.add_field(name='Добавил(а)',
+                                value=f"{user.mention}",
+                                inline=True)
             now_embed.add_field(name='Длительность',
                                 value=f"{datetime.timedelta(seconds=info['duration'])}",
                                 inline=True)
@@ -801,7 +810,8 @@ class DiscordBotCommand:
                 if not voice_client.is_playing():  # and not voice_client.is_paused()
                     return await webhook.send('Ничего не воспроизводится')
 
-                info = self.discordBot.music.get('now', {})
+                now = self.discordBot.music.get('now', {})
+                info = now[0]
                 lyrics = self.discordBot.google.lyrics(song_name=f"{info['title']} lyrics")
 
                 if not lyrics:
