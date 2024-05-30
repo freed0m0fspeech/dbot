@@ -549,7 +549,7 @@ class DiscordBotCommand:
         if url:
             # await guild.voice_client.connect(reconnect=True, timeout=3000)
 
-            guild.voice_client.play(FFmpegOpusAudio(url, **ffmpeg_options),
+            guild.voice_client.play(FFmpegPCMAudio(url, **ffmpeg_options),
                                     after=lambda ex: asyncio.run(self._play(guild=guild)))
         else:
             return await self._play(guild=guild)
