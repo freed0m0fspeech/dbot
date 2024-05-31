@@ -3,12 +3,14 @@ import json
 import logging
 import math
 import datetime
+import os
 import random
-
+import shutil
 import aiohttp
 import discord
 import pymongo
 import pytz
+import youtube_dl
 
 import plugins.Helpers.youtube_dl
 import utils
@@ -522,18 +524,39 @@ class DiscordBotCommand:
             'format': 'bestaudio/best',
             'quiet': True,
             'ignoreerrors': True,
-            'noplaylist': True, # https://www.youtube.com/watch?v=PDjRAJlP3BY&list=PLs6raD4eTyko0Jmuu0O5nAkpt-Tq8DJ3b example of link that will add playlist (noplaylist true)
+            'noplaylist': True, # https://www.youtube.com/watch?v=PDjRAJlP3BY&list=PLs6raD4eTyko0Jmuu0O5nAkpt-Tq8DJ3b - example of link that will add playlist (noplaylist true)
             'playliststart': '1', # https://www.youtube.com/playlist?list=PLgULlLHTSGIQ9BeVZY37fJP50CYc3lkW2 - example of link will add playlist ignoring no playlist
             'playlistend': '20',
             # 'skip_download': True,
             'extract_flat': 'in_playlist',
+            'outtmpl': '/temp/media/%(title)s.%(ext)s', # Change download path
             'logger': YouTubeLogFilter(),
         }
 
-        ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-                          'options': '-vn -loglevel warning'}
+        # ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+        #                   'options': '-vn -loglevel warning'}
+        ffmpeg_options = {'options': '-vn -loglevel warning'}
 
-        info = await plugins.Helpers.youtube_dl.get_best_info_media(title=title, ydl_opts=ydl_opts)
+        # if os.path.isdir("temp/media"):
+        #     shutil.rmtree("temp/media")
+
+        # Delete previous temp files
+        dirpath = "temp/media"
+        if os.path.isdir(dirpath):
+            for filename in os.listdir(dirpath):
+                filepath = os.path.join(dirpath, filename)
+                try:
+                    shutil.rmtree(filepath)
+                except OSError:
+                    try:
+                        os.remove(filepath)
+                    except PermissionError:
+                        continue
+
+        # if os.path.exists(f"{os.getcwd()}/temp"):
+        #     shutil.rmtree(f"/temp")
+
+        info = await plugins.Helpers.youtube_dl.get_best_info_media(title=title, ydl_opts=ydl_opts, download=True)
 
         if isinstance(info, list):
             if user:
@@ -544,15 +567,16 @@ class DiscordBotCommand:
 
         self.discordBot.music['now'] = (info, user)
 
-        url = info.get('url', '')
+        # url = info.get('url', '')
+        filepath = info.get('requested_downloads', [])[0].get('filepath', '') if info.get('requested_downloads', []) else ''
 
-        if url:
+        if filepath:
+            # guild.voice_client.play(FFmpegPCMAudio(url, **ffmpeg_options), after=lambda ex: asyncio.run(self._play(guild=guild)))
             # await guild.voice_client.connect(reconnect=True, timeout=3000)
-
-            guild.voice_client.play(FFmpegPCMAudio(url, **ffmpeg_options),
-                                    after=lambda ex: asyncio.run(self._play(guild=guild)))
+            guild.voice_client.play(FFmpegPCMAudio(filepath, **ffmpeg_options), after=lambda ex: asyncio.run(self._play(guild=guild)))
         else:
             return await self._play(guild=guild)
+
     async def music_play(self, interaction: discord.Interaction, text: str):
         response = interaction.response
         response: discord.InteractionResponse

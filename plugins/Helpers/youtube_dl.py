@@ -69,7 +69,7 @@ async def is_supported_url_youtube(url):
     return False
 
 
-async def get_info_media(title: str, ydl_opts=None, search_engine=None, result_count=1):
+async def get_info_media(title: str, ydl_opts=None, search_engine=None, result_count=1, download=False):
     """
 
     :param title:
@@ -96,19 +96,19 @@ async def get_info_media(title: str, ydl_opts=None, search_engine=None, result_c
 
         if url:
             try:
-                info = ydl.extract_info(url, download=False)
+                info = ydl.extract_info(url, download=download)
             except DownloadError:
                 logging.warning('DownloadError')
                 return False
         else:
             if search_engine:
-                info = ydl.extract_info(f"{search_engine}{result_count}:{title}", download=False)
+                info = ydl.extract_info(f"{search_engine}{result_count}:{title}", download=download)
             else:
                 try:
-                    info = ydl.extract_info(f"ytsearch{result_count}:{title}", download=False)
+                    info = ydl.extract_info(f"ytsearch{result_count}:{title}", download=download)
                 except DownloadError:
                     try:
-                        info = ydl.extract_info(f"scsearch{result_count}:{title}", download=False)
+                        info = ydl.extract_info(f"scsearch{result_count}:{title}", download=download)
                     except DownloadError:
                         logging.warning('DownloadError')
                         return False
@@ -122,7 +122,7 @@ async def get_info_media(title: str, ydl_opts=None, search_engine=None, result_c
         return info
 
 
-async def get_best_info_media(title: str, ydl_opts=None, search_engine=None, result_count=1):
+async def get_best_info_media(title: str, ydl_opts=None, search_engine=None, result_count=1, download=False):
     """
 
     :param title:
@@ -153,7 +153,7 @@ async def get_best_info_media(title: str, ydl_opts=None, search_engine=None, res
             #    print('Youtube')
             # if is_supported_url_youtube(url=url):
             try:
-                info = ydl.extract_info(url, download=False)
+                info = ydl.extract_info(url, download=download)
             except Exception as e:
                 logging.warning(e)
                 return False
@@ -182,13 +182,13 @@ async def get_best_info_media(title: str, ydl_opts=None, search_engine=None, res
             """
         else:
             if search_engine:
-                info = ydl.extract_info(f"{search_engine}{result_count}:{title}", download=False)
+                info = ydl.extract_info(f"{search_engine}{result_count}:{title}", download=download)
             else:
                 try:
-                    info = ydl.extract_info(f"ytsearch{result_count}:{title}", download=False)
+                    info = ydl.extract_info(f"ytsearch{result_count}:{title}", download=download)
                 except DownloadError:
                     try:
-                        info = ydl.extract_info(f"scsearch{result_count}:{title}", download=False)
+                        info = ydl.extract_info(f"scsearch{result_count}:{title}", download=download)
                     except DownloadError:
                         logging.warning('DownloadError')
                         return False
