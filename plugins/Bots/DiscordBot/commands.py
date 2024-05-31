@@ -10,7 +10,6 @@ import aiohttp
 import discord
 import pymongo
 import pytz
-import youtube_dl
 
 import plugins.Helpers.youtube_dl
 import utils
