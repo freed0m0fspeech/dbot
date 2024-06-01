@@ -532,25 +532,25 @@ class DiscordBotCommand:
             'logger': YouTubeLogFilter(),
         }
 
-        # ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-        #                   'options': '-vn -loglevel warning'}
-        ffmpeg_options = {'options': '-vn -loglevel warning'}
+        ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+                          'options': '-vn -loglevel warning'}
+        # ffmpeg_options = {'options': '-vn -loglevel warning'}
 
         # if os.path.isdir("temp/media"):
         #     shutil.rmtree("temp/media")
 
         # Delete previous temp files
-        dirpath = "temp/media"
-        if os.path.isdir(dirpath):
-            for filename in os.listdir(dirpath):
-                filepath = os.path.join(dirpath, filename)
-                try:
-                    shutil.rmtree(filepath)
-                except OSError:
-                    try:
-                        os.remove(filepath)
-                    except PermissionError:
-                        continue
+        # dirpath = "temp/media"
+        # if os.path.isdir(dirpath):
+        #     for filename in os.listdir(dirpath):
+        #         filepath = os.path.join(dirpath, filename)
+        #         try:
+        #             shutil.rmtree(filepath)
+        #         except OSError:
+        #             try:
+        #                 os.remove(filepath)
+        #             except PermissionError:
+        #                 continue
 
         # if os.path.exists(f"{os.getcwd()}/temp"):
         #     shutil.rmtree(f"/temp")
@@ -566,13 +566,13 @@ class DiscordBotCommand:
 
         self.discordBot.music['now'] = (info, user)
 
-        # url = info.get('url', '')
-        filepath = info.get('requested_downloads', [])[0].get('filepath', '') if info.get('requested_downloads', []) else ''
+        url = info.get('url', '') if isinstance(info, dict) else ''
+        # filepath = info.get('requested_downloads', [])[0].get('filepath', '') if info.get('requested_downloads', []) else ''
 
-        if filepath:
-            # guild.voice_client.play(FFmpegPCMAudio(url, **ffmpeg_options), after=lambda ex: asyncio.run(self._play(guild=guild)))
+        if url:
+            guild.voice_client.play(FFmpegOpusAudio(url, **ffmpeg_options), after=lambda ex: asyncio.run(self._play(guild=guild)))
             # await guild.voice_client.connect(reconnect=True, timeout=3000)
-            guild.voice_client.play(FFmpegPCMAudio(filepath, **ffmpeg_options), after=lambda ex: asyncio.run(self._play(guild=guild)))
+            # guild.voice_client.play(FFmpegPCMAudio(filepath, **ffmpeg_options), after=lambda ex: asyncio.run(self._play(guild=guild)))
         else:
             return await self._play(guild=guild)
 
