@@ -528,7 +528,7 @@ class DiscordBotCommand:
             'playlistend': '20',
             # 'skip_download': True,
             'extract_flat': 'in_playlist',
-            'outtmpl': '/temp/media/%(title)s.%(ext)s', # Change download path
+            # 'outtmpl': '/temp/media/%(title)s.%(ext)s', # Change download path
             'logger': YouTubeLogFilter(),
         }
 
@@ -555,7 +555,7 @@ class DiscordBotCommand:
         # if os.path.exists(f"{os.getcwd()}/temp"):
         #     shutil.rmtree(f"/temp")
 
-        info = await plugins.Helpers.youtube_dl.get_best_info_media(title=title, ydl_opts=ydl_opts, download=True)
+        info = await plugins.Helpers.youtube_dl.get_best_info_media(title=title, ydl_opts=ydl_opts)
 
         if isinstance(info, list):
             if user:
