@@ -66,9 +66,9 @@ class WebServerHandler:
         return Response(text="I'm Web handler")
 
     async def __send_message_handler(self, request: 'Request'):
-        if request.headers.get('Origin', '').split("//")[-1].split("/")[0].split('?')[0] not in ALLOWED_HOSTS:
-            if not os.getenv('DEBUG', False):
-                return Response(status=403)
+        # if request.headers.get('Origin', '').split("//")[-1].split("/")[0].split('?')[0] not in ALLOWED_HOSTS:
+        #     if not os.getenv('DEBUG', False):
+        #         return Response(status=403)
 
         guild_id = request.match_info['guild_id']
         channel_id = request.match_info['channel_id']
@@ -98,9 +98,9 @@ class WebServerHandler:
         return Response()
 
     async def __member_parameters_handler(self, request: 'Request'):
-        if request.headers.get('Origin', '').split("//")[-1].split("/")[0].split('?')[0] not in ALLOWED_HOSTS:
-            if not os.getenv('DEBUG', False):
-                return Response(status=403)
+        # if request.headers.get('Origin', '').split("//")[-1].split("/")[0].split('?')[0] not in ALLOWED_HOSTS:
+        #     if not os.getenv('DEBUG', False):
+        #         return Response(status=403)
 
         member_id = request.match_info['member_id']
         guild_id = request.match_info['guild_id']
@@ -149,9 +149,9 @@ class WebServerHandler:
         return json_response(response)
 
     async def __user_parameters_handler(self, request: 'Request'):
-        if request.headers.get('Origin', '').split("//")[-1].split("/")[0].split('?')[0] not in ALLOWED_HOSTS:
-            if not os.getenv('DEBUG', False):
-                return Response(status=403)
+        # if request.headers.get('Origin', '').split("//")[-1].split("/")[0].split('?')[0] not in ALLOWED_HOSTS:
+        #     if not os.getenv('DEBUG', False):
+        #         return Response(status=403)
 
         user_id = request.match_info['user_id']
 
@@ -199,9 +199,9 @@ class WebServerHandler:
         return json_response(response)
 
     async def __guild_parameters_handler(self, request: 'Request'):
-        if request.headers.get('Origin', '').split("//")[-1].split("/")[0].split('?')[0] not in ALLOWED_HOSTS:
-            if not os.getenv('DEBUG', False):
-                return Response(status=403)
+        # if request.headers.get('Origin', '').split("//")[-1].split("/")[0].split('?')[0] not in ALLOWED_HOSTS:
+        #     if not os.getenv('DEBUG', False):
+        #         return Response(status=403)
 
         guild_id = request.match_info['guild_id']
 
@@ -345,9 +345,9 @@ class WebServerHandler:
         return json_response(response)
 
     async def __manage_guild_handler(self, request: 'Request'):
-        if request.headers.get('Origin', '').split("//")[-1].split("/")[0].split('?')[0] not in ALLOWED_HOSTS:
-            if not os.getenv('DEBUG', False):
-                return Response(status=403)
+        # if request.headers.get('Origin', '').split("//")[-1].split("/")[0].split('?')[0] not in ALLOWED_HOSTS:
+        #     if not os.getenv('DEBUG', False):
+        #         return Response(status=403)
 
         member_id = request.match_info['member_id']
         guild_id = request.match_info['guild_id']
