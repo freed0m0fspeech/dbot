@@ -52,6 +52,25 @@ class Cache():
             self.stats[guild.get('id', '')]['xp']['message_xp_delay'] = guild_xp.get('message_xp_delay', 60)
 
 
+class AudioSourceTracked(discord.AudioSource):
+    def __init__(self, source, url, seconds=0):
+        self._source = source
+        self.url = url
+        # self.count_20ms = int(seconds / 0.02)
+        self.count_20ms = seconds
+
+
+    def read(self) -> bytes:
+        data = self._source.read()
+        if data:
+            self.count_20ms += 1
+        return data
+
+    @property
+    def progress(self) -> float:
+        return self.count_20ms * 0.02  # count_20ms * 20ms
+
+
 dataBases = DataBases()
 cache = Cache(dataBases)
 # mongoDataBase = dataBases.mongodb_client

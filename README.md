@@ -28,7 +28,7 @@ Commands to interact with voice channels (/voice):
 Commands to interact with music (/music):
 
   * /now - Show currently playing music
-  * /play [text] [playliststart] [playlistend] - Play music
+  * /play [text] - Play music
   * /queue - Show music queue of the server
   * /skip - Skip currently playing music
   * /clear [count/-count] - Clear music queue

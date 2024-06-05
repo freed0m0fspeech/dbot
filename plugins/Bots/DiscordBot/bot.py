@@ -188,6 +188,7 @@ class DiscordBot:
         self.mongoDataBase = mongoDataBase
         self.discordBotCommand = DiscordBotCommand(self, mongoDataBase=mongoDataBase)
         self.google = google
+        self.audiosource = None
 
         # Cached guilds
         self.guilds = {}
