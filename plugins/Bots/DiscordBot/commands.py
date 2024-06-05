@@ -525,7 +525,7 @@ class DiscordBotCommand:
             'ignoreerrors': True,
             'noplaylist': True, # https://www.youtube.com/watch?v=PDjRAJlP3BY&list=PLs6raD4eTyko0Jmuu0O5nAkpt-Tq8DJ3b - example of link that will add playlist (noplaylist true)
             'playliststart': '1', # https://www.youtube.com/playlist?list=PLgULlLHTSGIQ9BeVZY37fJP50CYc3lkW2 - example of link will add playlist ignoring no playlist
-            'playlistend': '20',
+            # 'playlistend': '20',
             # 'skip_download': True,
             'extract_flat': 'in_playlist',
             # 'outtmpl': '/temp/media/%(title)s.%(ext)s', # Change download path
@@ -574,6 +574,7 @@ class DiscordBotCommand:
             # await guild.voice_client.connect(reconnect=True, timeout=3000)
             # guild.voice_client.play(FFmpegPCMAudio(filepath, **ffmpeg_options), after=lambda ex: asyncio.run(self._play(guild=guild)))
         else:
+            logging.info('Not found url for music queue item')
             return await self._play(guild=guild)
 
     async def music_play(self, interaction: discord.Interaction, text: str):
@@ -621,11 +622,11 @@ class DiscordBotCommand:
                 else:
                     return await webhook.send('Кто-то уже использует меня в другом голосовом канале')
 
-            if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) < 20:
-                self.discordBot.music[guild.id]['queue'].append((text, user))
-                await webhook.send(f'Запрос `{text}` был добавлен в очередь')
-            else:
-                await webhook.send(f'Максимальная длина музыкальной очереди 20 элементов')
+            # if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) < 20:
+            self.discordBot.music[guild.id]['queue'].append((text, user))
+            await webhook.send(f'Запрос `{text}` был добавлен в очередь')
+            # else:
+            #     await webhook.send(f'Максимальная длина музыкальной очереди 20 элементов')
 
             if not voice_client_is_busy:
                 return await self._play(guild=guild)
@@ -748,6 +749,9 @@ class DiscordBotCommand:
             voice_channel = user.voice.channel
             voice_client = guild.voice_client
 
+            if not voice_client:
+                return await webhook.send("Меня нет в голосовом канале")
+
             if not voice_client.channel == voice_channel:
                 return await webhook.send('Вы находитесь в другом голосовом канале')
 
@@ -758,11 +762,15 @@ class DiscordBotCommand:
             if count > 0:
                 for _ in range(count):
                     self.discordBot.music[guild.id]['queue'].pop(0)
-                return await webhook.send(f'{count} запрос(ов) удалено с начала музыкальной очереди')
+                return await webhook.send(f'{count} запрос(ов) удалено в начале музыкальной очереди')
             else:
                 for _ in range(abs(count)):
                     self.discordBot.music[guild.id]['queue'].pop()
-                return await webhook.send(f'{abs(count)} запрос(ов) удалено с конца музыкальной очереди')
+                return await webhook.send(f'{abs(count)} запрос(ов) удалено в конце музыкальной очереди')
+        except IndexError:
+            return await webhook.send('Музыкальная очередь пуста')
+        except AttributeError:
+            return await webhook.send(f"Вы не в голосовом канале")
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -780,6 +788,9 @@ class DiscordBotCommand:
 
             voice_channel = user.voice.channel
             voice_client = guild.voice_client
+
+            if not voice_client:
+                return await webhook.send("Меня нет в голосовом канале")
 
             if not voice_client.channel == voice_channel:
                 return await webhook.send('Вы находитесь в другом голосовом канале')
@@ -808,6 +819,8 @@ class DiscordBotCommand:
             now_embed.set_author(name=guild.name, icon_url=guild.icon)
 
             return await webhook.send(embed=now_embed)
+        except AttributeError:
+            return await webhook.send(f"Вы не в голосовом канале")
         except Exception as e:
             return await webhook.send(str(e))
 
@@ -826,6 +839,9 @@ class DiscordBotCommand:
             if not text:
                 voice_channel = user.voice.channel
                 voice_client = guild.voice_client
+
+                if not voice_client:
+                    return await webhook.send("Меня нет в голосовом канале")
 
                 if not voice_client.channel == voice_channel:
                     return await webhook.send('Вы находитесь в другом голосовом канале')
@@ -856,5 +872,7 @@ class DiscordBotCommand:
                 content = f"{content[:1998]}.." if len(content) > 2000 else content
 
                 return await webhook.send(content)
+        except AttributeError:
+            return await webhook.send(f"Вы не в голосовом канале")
         except Exception as e:
             return await webhook.send(str(e))
