@@ -19,6 +19,9 @@ from plugins.DataBase.mongo import MongoDataBase
 from plugins.Helpers.logger_filters import YouTubeLogFilter
 from utils import cache
 from plugins.Bots.DiscordBot.roles import secret_roles
+from collections import deque
+
+max_music_queue_len = 5000
 
 
 class DiscordBotCommand:
@@ -506,26 +509,41 @@ class DiscordBotCommand:
         if not guild.voice_client:
             return
 
-        if guild.voice_client.channel.members == 1:
+        if len(guild.voice_client.channel.members) == 1:
             return await guild.voice_client.voice_disconnect()
 
-        music_queue = self.discordBot.music.get(guild.id, {}).get('queue', [])
+        music_queue = self.discordBot.music.get(guild.id, {}).get('queue', deque())
+        music_queue_len = len(self.discordBot.music.get(guild.id, {}).get('queue', {}))
+        max_items = max_music_queue_len - music_queue_len
+        max_items += 1
+
+        music_queue = music_queue.popleft()
+        title = music_queue[0]
+        user = music_queue[1]
 
         try:
-            music_queue = music_queue.pop(0)
-            title = music_queue[0]
-            user = music_queue[1]
-        except Exception:
-            # return await guild.voice_client.voice_disconnect()
-            return
+            playliststart = music_queue[2]
+            playlistend = music_queue[3]
+
+            if playlistend:
+                playlistend = min(playlistend, max_items)
+        except IndexError:
+            playliststart = 1
+            playlistend = max_items
+
+        if not playliststart:
+            playliststart = 1
+
+        if not playlistend:
+            playlistend = max_items
 
         ydl_opts = {
             'format': 'bestaudio/best',
             'quiet': True,
             'ignoreerrors': True,
             'noplaylist': True, # https://www.youtube.com/watch?v=PDjRAJlP3BY&list=PLs6raD4eTyko0Jmuu0O5nAkpt-Tq8DJ3b - example of link that will add playlist (noplaylist true)
-            'playliststart': '1', # https://www.youtube.com/playlist?list=PLgULlLHTSGIQ9BeVZY37fJP50CYc3lkW2 - example of link will add playlist ignoring no playlist
-            # 'playlistend': '20',
+            'playliststart': f'{playliststart}', # https://www.youtube.com/playlist?list=PLgULlLHTSGIQ9BeVZY37fJP50CYc3lkW2 - example of link will add playlist ignoring no playlist
+            'playlistend': f'{playlistend}',
             # 'skip_download': True,
             'extract_flat': 'in_playlist',
             # 'outtmpl': '/temp/media/%(title)s.%(ext)s', # Change download path
@@ -533,7 +551,7 @@ class DiscordBotCommand:
         }
 
         ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-                          'options': '-vn -loglevel warning'}
+                          'options': f'-vn -loglevel warning'}
         # ffmpeg_options = {'options': '-vn -loglevel warning'}
 
         # if os.path.isdir("temp/media"):
@@ -559,8 +577,12 @@ class DiscordBotCommand:
 
         if isinstance(info, list):
             if user:
-                for video in info:
-                    self.discordBot.music[guild.id]['queue'].append((video.get('url', ''), user))
+                # if music_queue_len < len(info):
+                for video in reversed(info):
+                    self.discordBot.music[guild.id]['queue'].appendleft((video.get('url', ''), user))
+                # else:
+                #     for video in info[0:max_items]:
+                #         self.discordBot.music[guild.id]['queue'].appendleft((video.get('url', ''), user))
 
                 return await self._play(guild=guild)
 
@@ -574,10 +596,10 @@ class DiscordBotCommand:
             # await guild.voice_client.connect(reconnect=True, timeout=3000)
             # guild.voice_client.play(FFmpegPCMAudio(filepath, **ffmpeg_options), after=lambda ex: asyncio.run(self._play(guild=guild)))
         else:
-            logging.info('Not found url for music queue item')
+            # logging.info('Not found url for music queue item')
             return await self._play(guild=guild)
 
-    async def music_play(self, interaction: discord.Interaction, text: str):
+    async def music_play(self, interaction: discord.Interaction, text: str, playliststart: int = None, playlistend: int = None):
         response = interaction.response
         response: discord.InteractionResponse
         await response.defer(ephemeral=True)  # ephemeral - only you can see this
@@ -614,19 +636,28 @@ class DiscordBotCommand:
             voice_client_is_busy = voice_client.is_playing()  # or voice_client.is_paused()
 
             if not voice_client.channel.id == voice_channel.id:
-                if not voice_client_is_busy:
+                if not voice_client_is_busy or len(voice_client.channel.members) == 1:
                     await voice_client.disconnect(force=True)
                     voice_client = await voice_channel.connect(reconnect=True, timeout=3000)
                     await guild.change_voice_state(channel=voice_channel)
                     # await voice_client.move_to(channel=voice_channel)
+
+                    voice_client_is_busy = False
                 else:
                     return await webhook.send('Кто-то уже использует меня в другом голосовом канале')
 
-            # if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) < 20:
-            self.discordBot.music[guild.id]['queue'].append((text, user))
-            await webhook.send(f'Запрос `{text}` был добавлен в очередь')
-            # else:
-            #     await webhook.send(f'Максимальная длина музыкальной очереди 20 элементов')
+            if playliststart or playlistend:
+                if not playliststart or not playlistend:
+                    return await webhook.send('Задайте оба параметра start и end')
+
+                if playliststart < 0 or playlistend < 0 or playliststart > playlistend:
+                    return await webhook.send('Неверные значения параметров start и end')
+
+            if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) < max_music_queue_len:
+                self.discordBot.music[guild.id]['queue'].append((text, user, playliststart, playlistend))
+                await webhook.send(f'`{text}` был добавлен в очередь')
+            else:
+                await webhook.send(f'Достигнута максимальная длина музыкальной очереди')
 
             if not voice_client_is_busy:
                 return await self._play(guild=guild)
@@ -677,12 +708,22 @@ class DiscordBotCommand:
                     music = music_queue[i]
                     title = music[0]
                     user = music[1]
+
+                    try:
+                        playliststart = music[2]
+                        playlistend = music[3]
+                    except IndexError:
+                        playliststart = None
+                        playlistend = None
                 except Exception as e:
                     break
 
                 user: discord.Member
 
-                content = f'{content}{i}. `{title}` добавил(а) {user.mention}\n'
+                if playliststart and playlistend:
+                    content = f'{content}{i}. `{title}` **{playliststart} - {playlistend}** добавил(а) {user.mention}\n'
+                else:
+                    content = f'{content}{i}. `{title}` добавил(а) {user.mention}\n'
 
             queue_embed = discord.Embed(title=f"Музыкальная очередь ({guild.name}) - {len(music_queue)}",
                                         description=f"{content}",
@@ -734,7 +775,7 @@ class DiscordBotCommand:
         except Exception as e:
             return await webhook.send(str(e))
 
-    async def music_clear(self, interaction: discord.Interaction, count: int):
+    async def music_clear(self, interaction: discord.Interaction, count: int = None):
         response = interaction.response
         response: discord.InteractionResponse
         await response.defer(ephemeral=True)  # ephemeral - only you can see this
@@ -755,13 +796,13 @@ class DiscordBotCommand:
             if not voice_client.channel == voice_channel:
                 return await webhook.send('Вы находитесь в другом голосовом канале')
 
-            if count == 0:
-                self.discordBot.music[guild.id]['queue'] = []
+            if not count:
+                self.discordBot.music[guild.id]['queue'].clear()
                 return await webhook.send('Музыкальная очередь полностью очищена')
 
             if count > 0:
                 for _ in range(count):
-                    self.discordBot.music[guild.id]['queue'].pop(0)
+                    self.discordBot.music[guild.id]['queue'].popleft()
                 return await webhook.send(f'{count} запрос(ов) удалено в начале музыкальной очереди')
             else:
                 for _ in range(abs(count)):

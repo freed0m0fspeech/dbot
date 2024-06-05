@@ -1,6 +1,6 @@
 import asyncio
 import os
-from collections import defaultdict
+from collections import defaultdict, deque
 
 import discord
 from discord import FFmpegPCMAudio
@@ -40,7 +40,7 @@ class Cache():
         #     self.guilds[guild.get('id', '')] = guild
 
         # count of defaultdict - count inner dicts
-        self.stats = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(list)))))
+        self.stats = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(deque)))))
 
         query = {'_id': 0, 'id': 1, 'xp': 1}
         for guild in databases.mongodb_client.get_documents(database_name='dbot', collection_name='guilds',

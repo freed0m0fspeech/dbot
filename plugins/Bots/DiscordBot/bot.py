@@ -4,7 +4,7 @@ DiscordBot plugin to work with discord
 import discord
 
 from typing import Any
-from collections import defaultdict
+from collections import defaultdict, deque
 from plugins.Bots.DiscordBot.commands import DiscordBotCommand
 
 command_description = {
@@ -128,8 +128,8 @@ command_description = {
     },
     'music': {
         'play': {
-            "en-US": 'Play music from YouTube',
-            "ru-RU": 'Воспроизвести музыку из Youtube',
+            "en-US": 'Play music',
+            "ru-RU": 'Воспроизвести музыку',
             "default": "en-US",
         },
         'queue': {
@@ -196,7 +196,7 @@ class DiscordBot:
         for guild in self.mongoDataBase.get_documents(database_name='dbot', collection_name='guilds', query=query):
             self.guilds[guild.get('id', '')] = guild
 
-        self.music = defaultdict(lambda: defaultdict(list))
+        self.music = defaultdict(lambda: defaultdict(deque))
 
     async def set_default_commands(self, guild=None):
         try:

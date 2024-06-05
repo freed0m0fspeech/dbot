@@ -28,10 +28,10 @@ Commands to interact with voice channels (/voice):
 Commands to interact with music (/music):
 
   * /now - Show currently playing music
-  * /play [text] - Play music from YouTube
+  * /play [text] [playliststart] [playlistend] - Play music
   * /queue - Show music queue of the server
   * /skip - Skip currently playing music
-  * /clear [0/count/-count] - Clear music queue
+  * /clear [count/-count] - Clear music queue
   * /lyrics [text] - Lyrics for title or currently playing music
 
 ---------------
