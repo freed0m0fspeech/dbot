@@ -1,18 +1,14 @@
 import asyncio
-import json
-import logging
-import math
-import datetime
 import os
-import random
 import shutil
-import aiohttp
+import sys
+import datetime
+import threading
+from random import shuffle
+
 import discord
 import pymongo
 import pytz
-
-import plugins.Helpers.youtube_dl
-import utils
 
 from discord import FFmpegPCMAudio, FFmpegOpusAudio
 from plugins.DataBase.mongo import MongoDataBase
@@ -20,6 +16,7 @@ from plugins.Helpers.logger_filters import YouTubeLogFilter
 from utils import cache, AudioSourceTracked
 from plugins.Bots.DiscordBot.roles import secret_roles
 from collections import deque
+from plugins.Helpers.youtube_dl import get_best_info_media
 
 max_music_queue_len = 5000
 
@@ -548,35 +545,58 @@ class DiscordBotCommand:
             'playlistend': f'{max_items}',
             # 'skip_download': True,
             'extract_flat': 'in_playlist',
-            # 'outtmpl': '/temp/media/%(title)s.%(ext)s', # Change download path
+            'outtmpl': '/temp/media/%(title)s.%(ext)s', # Change download path
             'logger': YouTubeLogFilter(),
         }
 
-        ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-                          'options': f'-vn -loglevel fatal'}
+        # ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+        #                   'options': f'-vn -loglevel fatal'}
+
         # '-ss 50' seconds start from
-        # ffmpeg_options = {'options': '-vn -loglevel warning'}
+        ffmpeg_options = {'options': '-vn -loglevel fatal'}
 
         # if os.path.isdir("temp/media"):
         #     shutil.rmtree("temp/media")
 
         # Delete previous temp files
-        # dirpath = "temp/media"
-        # if os.path.isdir(dirpath):
-        #     for filename in os.listdir(dirpath):
-        #         filepath = os.path.join(dirpath, filename)
-        #         try:
-        #             shutil.rmtree(filepath)
-        #         except OSError:
-        #             try:
-        #                 os.remove(filepath)
-        #             except PermissionError:
-        #                 continue
+        dirpath = "temp/media"
+        if os.path.isdir(dirpath):
+            for filename in os.listdir(dirpath):
+                filepath = os.path.join(dirpath, filename)
+                # try:
+                #     shutil.rmtree(filepath)
+                # except OSError:
+                try:
+                    os.remove(filepath)
+                except PermissionError:
+                    continue
 
         # if os.path.exists(f"{os.getcwd()}/temp"):
         #     shutil.rmtree(f"/temp")
 
-        info = await plugins.Helpers.youtube_dl.get_best_info_media(title=title, ydl_opts=ydl_opts)
+        # from multiprocessing.pool import ThreadPool
+        # pool = ThreadPool(processes=1)
+        #
+        # async_result = pool.apply_async(plugins.Helpers.youtube_dl.get_best_info_media, (title, ydl_opts))
+        #
+        # # do some other stuff in the main process
+        #
+        # info = async_result.get()  # get the return value from your function.
+
+        # with concurrent.futures.ThreadPoolExecutor() as executor:
+        #     future = executor.submit(plugins.Helpers.youtube_dl.get_best_info_media, (title, ydl_opts))
+        #     return_value = future.result()
+        #     info = return_value
+
+        results = [None] * 1
+
+        thread = threading.Thread(target=get_best_info_media, args=(results, title, ydl_opts, None, 1, True))
+        thread.start()
+
+        while thread.is_alive():
+            await asyncio.sleep(1)
+
+        info = results[0]
 
         if isinstance(info, list):
             if user:
@@ -591,14 +611,18 @@ class DiscordBotCommand:
 
         self.discordBot.music['now'] = (info, user)
 
-        url = info.get('url', '') if isinstance(info, dict) else ''
-        # filepath = info.get('requested_downloads', [])[0].get('filepath', '') if info.get('requested_downloads', []) else ''
+        # url = info.get('url', '') if isinstance(info, dict) else ''
+        filepath = info.get('requested_downloads', [])[0].get('filepath', '') if info.get('requested_downloads', []) else ''
 
-        if url:
-            audioSource = AudioSourceTracked(FFmpegPCMAudio(url, **ffmpeg_options), url=url)
+        if filepath:
+            # audioSource = AudioSourceTracked(FFmpegPCMAudio(url, **ffmpeg_options), path=url)
+            audioSource = AudioSourceTracked(FFmpegPCMAudio(filepath, **ffmpeg_options), path=filepath)
             self.discordBot.audiosource = audioSource
 
-            guild.voice_client.play(self.discordBot.audiosource, after=lambda ex: asyncio.run(self._play(guild=guild)))
+            try:
+                guild.voice_client.play(self.discordBot.audiosource, after=lambda ex: asyncio.run(self._play(guild=guild)))
+            except discord.errors.ClientException:
+                return self.discordBot.music[guild.id]['queue'].appendleft(music_queue)
             # await guild.voice_client.connect(reconnect=True, timeout=3000)
             # guild.voice_client.play(FFmpegPCMAudio(filepath, **ffmpeg_options), after=lambda ex: asyncio.run(self._play(guild=guild)))
         else:
@@ -670,27 +694,56 @@ class DiscordBotCommand:
         except Exception as e:
             return await webhook.send(str(e))
 
-    # async def music_seek(self, interaction: discord.Interaction, seconds: int):
-    #     response = interaction.response
-    #     response: discord.InteractionResponse
-    #     await response.defer(ephemeral=True)  # ephemeral - only you can see this
-    #
-    #     webhook = interaction.followup
-    #     webhook: discord.Webhook
-    #
-    #     guild = interaction.guild
-    #     voice_client = guild.voice_client
-    #     voice_client.pause()
-    #
-    #     ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-    #                       'options': f'-vn -loglevel fatal -ss {seconds}'}
-    #
-    #     url = self.discordBot.audiosource.url
-    #     audioSource = AudioSourceTracked(FFmpegPCMAudio(url, **ffmpeg_options), url, seconds)
-    #     self.discordBot.audiosource = audioSource
-    #     voice_client.play(audioSource, after=lambda ex: asyncio.run(self._play(guild=guild)))
-    #
-    #     return await webhook.send(f'Seeked to {seconds} seconds')
+    async def music_seek(self, interaction: discord.Interaction, time: str):
+        response = interaction.response
+        response: discord.InteractionResponse
+        await response.defer(ephemeral=True)  # ephemeral - only you can see this
+
+        webhook = interaction.followup
+        webhook: discord.Webhook
+
+        try:
+            guild = interaction.guild
+            user = interaction.user
+            voice_client = guild.voice_client
+
+            try:
+                voice_channel = user.voice.channel
+            except Exception:
+                voice_channel = None
+
+            try:
+                voice_client_channel = guild.voice_client.channel
+            except Exception:
+                voice_client_channel = None
+
+            if not voice_channel:
+                return await webhook.send('Вы не в голосовом канале')
+
+            if voice_client_channel:
+                if not voice_client_channel == voice_channel:
+                    return await webhook.send('Вы находитесь в другом голосовом канале')
+
+            if not voice_client:
+                return await webhook.send("Меня нет в голосовом канале")
+
+            dtime = datetime.datetime.strptime(f"{time}", "%H:%M:%S")
+            dtimedelta = datetime.timedelta(hours=dtime.hour, minutes=dtime.minute, seconds=dtime.second)
+
+            # ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+            #                   'options': f'-vn -loglevel fatal -ss {seconds}'}
+            ffmpeg_options = {'options': f'-vn -loglevel fatal -ss {dtimedelta.seconds}'}
+
+            path = self.discordBot.audiosource.path
+            audioSource = AudioSourceTracked(FFmpegPCMAudio(path, **ffmpeg_options), path, dtimedelta.seconds)
+            self.discordBot.audiosource = audioSource
+
+            voice_client.pause()
+            voice_client.play(audioSource, after=lambda ex: asyncio.run(self._play(guild=guild)))
+
+            return await webhook.send(f'Текущая музыка перемотана на {dtimedelta}')
+        except Exception as e:
+            return await webhook.send(str(e))
 
     async def music_queue(self, interaction: discord.Interaction):
         response = interaction.response
@@ -721,7 +774,7 @@ class DiscordBotCommand:
                 if not voice_client_channel == voice_channel:
                     return await webhook.send('Вы находитесь в другом голосовом канале')
 
-            music_queue = self.discordBot.music.get(guild.id, {}).get('queue', {})
+            music_queue = self.discordBot.music.get(guild.id, {}).get('queue', deque())
 
             if not music_queue:
                 return await webhook.send(f"Музыкальная очередь пуста")
@@ -761,6 +814,47 @@ class DiscordBotCommand:
             queue_embed.set_thumbnail(url=guild.icon)
 
             return await webhook.send(embed=queue_embed)
+        except Exception as e:
+            return await webhook.send(str(e))
+
+    async def music_shuffle(self, interaction: discord.Interaction):
+        response = interaction.response
+        response: discord.InteractionResponse
+        await response.defer(ephemeral=True)  # ephemeral - only you can see this
+
+        webhook = interaction.followup
+        webhook: discord.Webhook
+
+        try:
+            guild = interaction.guild
+            user = interaction.user
+
+            try:
+                voice_channel = user.voice.channel
+            except Exception:
+                voice_channel = None
+
+            try:
+                voice_client_channel = guild.voice_client.channel
+            except Exception:
+                voice_client_channel = None
+
+            if not voice_channel:
+                return await webhook.send('Вы не в голосовом канале')
+
+            if voice_client_channel:
+                if not voice_client_channel == voice_channel:
+                    return await webhook.send('Вы находитесь в другом голосовом канале')
+
+            music_queue = self.discordBot.music.get(guild.id, {}).get('queue', deque())
+
+            if not music_queue:
+                return await webhook.send(f"Музыкальная очередь пуста")
+
+            shuffle(music_queue)
+            self.discordBot.music[guild.id]['queue'] = music_queue
+
+            return await webhook.send('Музыкальная очередь была перемешана')
         except Exception as e:
             return await webhook.send(str(e))
 

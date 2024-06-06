@@ -53,12 +53,11 @@ class Cache():
 
 
 class AudioSourceTracked(discord.AudioSource):
-    def __init__(self, source, url, seconds=0):
+    def __init__(self, source, path, seconds=0):
         self._source = source
-        self.url = url
-        # self.count_20ms = int(seconds / 0.02)
-        self.count_20ms = seconds
-
+        self.path = path
+        self.count_20ms = int(seconds / 0.02)
+        # self.count_20ms = seconds
 
     def read(self) -> bytes:
         data = self._source.read()

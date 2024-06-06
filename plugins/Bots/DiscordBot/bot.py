@@ -153,7 +153,7 @@ command_description = {
             "default": "en-US",
         },
         'seek': {
-            "en-US": 'Go to position in currently playing music',
+            "en-US": 'Seek currently playing music',
             "ru-RU": 'Перемотать музыку',
             "default": "en-US",
         },
@@ -167,6 +167,11 @@ command_description = {
             "ru-RU": 'Текст песни по названию или для текущей музыки',
             "default": "en-US",
         },
+        'shuffle': {
+            "en-US": 'Shuffle music queue of the server',
+            "ru-RU": 'Перемешать музыкальную очередь сервера',
+            "default": "en-US",
+        }
     },
     'member': {
         'avatar': {

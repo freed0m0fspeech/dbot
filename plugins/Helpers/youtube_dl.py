@@ -2,6 +2,8 @@ import logging
 import os
 import subprocess
 import re
+from collections import deque
+
 #import streamlink
 # import youtube_dl
 import yt_dlp as youtube_dl
@@ -56,7 +58,7 @@ ydl_opts_soundcloud = {
     'noplaylist': True,
 }
 
-async def is_supported_url_youtube(url):
+def is_supported_url_youtube(url):
     """
     Check if url is supported by youtube_dl
     :param url:
@@ -69,7 +71,7 @@ async def is_supported_url_youtube(url):
     return False
 
 
-async def get_info_media(title: str, ydl_opts=None, search_engine=None, result_count=1, download=False):
+def get_info_media(title: str, ydl_opts=None, search_engine=None, result_count=1, download=False):
     """
 
     :param title:
@@ -122,7 +124,7 @@ async def get_info_media(title: str, ydl_opts=None, search_engine=None, result_c
         return info
 
 
-async def get_best_info_media(title: str, ydl_opts=None, search_engine=None, result_count=1, download=False):
+def get_best_info_media(results: list, title: str, ydl_opts=None, search_engine=None, result_count=1, download=False):
     """
 
     :param title:
@@ -146,7 +148,11 @@ async def get_best_info_media(title: str, ydl_opts=None, search_engine=None, res
         url = None
 
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        ydl.cache.remove()
+        try:
+            ydl.cache.remove()
+        except PermissionError:
+            results[0] = None
+            return
 
         if url:
             # if 'youtube.com' in url or 'youtu.be' in url:
@@ -156,6 +162,7 @@ async def get_best_info_media(title: str, ydl_opts=None, search_engine=None, res
                 info = ydl.extract_info(url, download=download)
             except Exception as e:
                 logging.warning(e)
+                results[0] = None
                 return False
                 # else:
                 #    print('Not supported url')
@@ -191,8 +198,10 @@ async def get_best_info_media(title: str, ydl_opts=None, search_engine=None, res
                         info = ydl.extract_info(f"scsearch{result_count}:{title}", download=download)
                     except DownloadError:
                         logging.warning('DownloadError')
+                        results[0] = None
                         return False
     if not info:
+        results[0] = None
         return False
 
     # print(info)
@@ -225,9 +234,13 @@ async def get_best_info_media(title: str, ydl_opts=None, search_engine=None, res
             ydl.add_extra_info(format, info['entries'][i])
             i += 1
 
+        results[0] = bestFormats
+
         return bestFormats
 
     ydl.add_extra_info(bestFormat, info)
+
+    results[0] = bestFormat
 
     return bestFormat
 
