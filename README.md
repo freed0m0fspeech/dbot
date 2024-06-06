@@ -33,7 +33,6 @@ Commands to interact with music (/music):
   * /skip - Skip currently playing music
   * /clear [count/-count] - Clear music queue
   * /lyrics [text] - Lyrics for title or currently playing music
-  * /seek [time] - Seek currently playing music
   * /shuffle - Shuffle music queue of the server
 
 ---------------
