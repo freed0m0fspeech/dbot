@@ -694,56 +694,56 @@ class DiscordBotCommand:
         except Exception as e:
             return await webhook.send(str(e))
 
-    async def music_seek(self, interaction: discord.Interaction, time: str):
-        response = interaction.response
-        response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
-
-        webhook = interaction.followup
-        webhook: discord.Webhook
-
-        try:
-            guild = interaction.guild
-            user = interaction.user
-            voice_client = guild.voice_client
-
-            try:
-                voice_channel = user.voice.channel
-            except Exception:
-                voice_channel = None
-
-            try:
-                voice_client_channel = guild.voice_client.channel
-            except Exception:
-                voice_client_channel = None
-
-            if not voice_channel:
-                return await webhook.send('Вы не в голосовом канале')
-
-            if voice_client_channel:
-                if not voice_client_channel == voice_channel:
-                    return await webhook.send('Вы находитесь в другом голосовом канале')
-
-            if not voice_client:
-                return await webhook.send("Меня нет в голосовом канале")
-
-            dtime = datetime.datetime.strptime(f"{time}", "%H:%M:%S")
-            dtimedelta = datetime.timedelta(hours=dtime.hour, minutes=dtime.minute, seconds=dtime.second)
-
-            ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-                              'options': f'-vn -loglevel fatal -ss {dtimedelta.seconds}'}
-            # ffmpeg_options = {'options': f'-vn -loglevel fatal -ss {dtimedelta.seconds}'}
-
-            path = self.discordBot.audiosource.path
-            audioSource = AudioSourceTracked(FFmpegPCMAudio(path, **ffmpeg_options), path, dtimedelta.seconds)
-            self.discordBot.audiosource = audioSource
-
-            voice_client.pause()
-            voice_client.play(audioSource, after=lambda ex: asyncio.run(self._play(guild=guild)))
-
-            return await webhook.send(f'Текущая музыка перемотана на {dtimedelta}')
-        except Exception as e:
-            return await webhook.send(str(e))
+    # async def music_seek(self, interaction: discord.Interaction, time: str):
+    #     response = interaction.response
+    #     response: discord.InteractionResponse
+    #     await response.defer(ephemeral=True)  # ephemeral - only you can see this
+    #
+    #     webhook = interaction.followup
+    #     webhook: discord.Webhook
+    #
+    #     try:
+    #         guild = interaction.guild
+    #         user = interaction.user
+    #         voice_client = guild.voice_client
+    #
+    #         try:
+    #             voice_channel = user.voice.channel
+    #         except Exception:
+    #             voice_channel = None
+    #
+    #         try:
+    #             voice_client_channel = guild.voice_client.channel
+    #         except Exception:
+    #             voice_client_channel = None
+    #
+    #         if not voice_channel:
+    #             return await webhook.send('Вы не в голосовом канале')
+    #
+    #         if voice_client_channel:
+    #             if not voice_client_channel == voice_channel:
+    #                 return await webhook.send('Вы находитесь в другом голосовом канале')
+    #
+    #         if not voice_client:
+    #             return await webhook.send("Меня нет в голосовом канале")
+    #
+    #         dtime = datetime.datetime.strptime(f"{time}", "%H:%M:%S")
+    #         dtimedelta = datetime.timedelta(hours=dtime.hour, minutes=dtime.minute, seconds=dtime.second)
+    #
+    #         ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+    #                           'options': f'-vn -loglevel fatal -ss {dtimedelta.seconds}'}
+    #         # ffmpeg_options = {'options': f'-vn -loglevel fatal -ss {dtimedelta.seconds}'}
+    #
+    #         path = self.discordBot.audiosource.path
+    #         audioSource = AudioSourceTracked(FFmpegPCMAudio(path, **ffmpeg_options), path, dtimedelta.seconds)
+    #         self.discordBot.audiosource = audioSource
+    #
+    #         voice_client.pause()
+    #         voice_client.play(audioSource, after=lambda ex: asyncio.run(self._play(guild=guild)))
+    #
+    #         return await webhook.send(f'Текущая музыка перемотана на {dtimedelta}')
+    #     except Exception as e:
+    #         return await webhook.send(str(e))
 
     async def music_queue(self, interaction: discord.Interaction):
         response = interaction.response
