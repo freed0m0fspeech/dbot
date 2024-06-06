@@ -545,31 +545,31 @@ class DiscordBotCommand:
             'playlistend': f'{max_items}',
             # 'skip_download': True,
             'extract_flat': 'in_playlist',
-            'outtmpl': '/temp/media/%(title)s.%(ext)s', # Change download path
+            # 'outtmpl': '/temp/media/%(title)s.%(ext)s', # Change download path
             'logger': YouTubeLogFilter(),
         }
 
-        # ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-        #                   'options': f'-vn -loglevel fatal'}
+        ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+                          'options': f'-vn -loglevel fatal'}
 
         # '-ss 50' seconds start from
-        ffmpeg_options = {'options': '-vn -loglevel fatal'}
+        # ffmpeg_options = {'options': '-vn -loglevel fatal'}
 
         # if os.path.isdir("temp/media"):
         #     shutil.rmtree("temp/media")
 
         # Delete previous temp files
-        dirpath = "temp/media"
-        if os.path.isdir(dirpath):
-            for filename in os.listdir(dirpath):
-                filepath = os.path.join(dirpath, filename)
-                # try:
-                #     shutil.rmtree(filepath)
-                # except OSError:
-                try:
-                    os.remove(filepath)
-                except PermissionError:
-                    continue
+        # dirpath = "temp/media"
+        # if os.path.isdir(dirpath):
+        #     for filename in os.listdir(dirpath):
+        #         filepath = os.path.join(dirpath, filename)
+        #         # try:
+        #         #     shutil.rmtree(filepath)
+        #         # except OSError:
+        #         try:
+        #             os.remove(filepath)
+        #         except PermissionError:
+        #             continue
 
         # if os.path.exists(f"{os.getcwd()}/temp"):
         #     shutil.rmtree(f"/temp")
@@ -590,7 +590,7 @@ class DiscordBotCommand:
 
         results = [None] * 1
 
-        thread = threading.Thread(target=get_best_info_media, args=(results, title, ydl_opts, None, 1, True))
+        thread = threading.Thread(target=get_best_info_media, args=(results, title, ydl_opts))
         thread.start()
 
         while thread.is_alive():
@@ -611,12 +611,12 @@ class DiscordBotCommand:
 
         self.discordBot.music['now'] = (info, user)
 
-        # url = info.get('url', '') if isinstance(info, dict) else ''
-        filepath = info.get('requested_downloads', [])[0].get('filepath', '') if info.get('requested_downloads', []) else ''
+        url = info.get('url', '') if isinstance(info, dict) else ''
+        # filepath = info.get('requested_downloads', [])[0].get('filepath', '') if info.get('requested_downloads', []) else ''
 
-        if filepath:
-            # audioSource = AudioSourceTracked(FFmpegPCMAudio(url, **ffmpeg_options), path=url)
-            audioSource = AudioSourceTracked(FFmpegPCMAudio(filepath, **ffmpeg_options), path=filepath)
+        if url:
+            audioSource = AudioSourceTracked(FFmpegPCMAudio(url, **ffmpeg_options), path=url)
+            # audioSource = AudioSourceTracked(FFmpegPCMAudio(filepath, **ffmpeg_options), path=filepath)
             self.discordBot.audiosource = audioSource
 
             try:
@@ -730,9 +730,9 @@ class DiscordBotCommand:
             dtime = datetime.datetime.strptime(f"{time}", "%H:%M:%S")
             dtimedelta = datetime.timedelta(hours=dtime.hour, minutes=dtime.minute, seconds=dtime.second)
 
-            # ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-            #                   'options': f'-vn -loglevel fatal -ss {seconds}'}
-            ffmpeg_options = {'options': f'-vn -loglevel fatal -ss {dtimedelta.seconds}'}
+            ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+                              'options': f'-vn -loglevel fatal -ss {dtimedelta.seconds}'}
+            # ffmpeg_options = {'options': f'-vn -loglevel fatal -ss {dtimedelta.seconds}'}
 
             path = self.discordBot.audiosource.path
             audioSource = AudioSourceTracked(FFmpegPCMAudio(path, **ffmpeg_options), path, dtimedelta.seconds)
