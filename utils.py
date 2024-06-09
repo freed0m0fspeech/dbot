@@ -1,5 +1,6 @@
 import asyncio
 import os
+import threading
 from collections import defaultdict, deque
 
 import discord
@@ -10,6 +11,7 @@ import plugins
 from plugins.DataBase.mongo import (
     MongoDataBase
 )
+from plugins.Helpers.youtube_dl import get_best_info_media
 
 load_dotenv()
 
@@ -68,6 +70,17 @@ class AudioSourceTracked(discord.AudioSource):
     @property
     def progress(self) -> float:
         return self.count_20ms * 0.02  # count_20ms * 20ms
+
+class ResultThread(threading.Thread):
+    def __init__(self, target: lambda: None):
+        super().__init__()
+
+        self.target = target
+        self.result = None
+        self.daemon = True
+
+    def run(self):
+        self.result = self.target()
 
 
 dataBases = DataBases()

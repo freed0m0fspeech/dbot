@@ -13,7 +13,7 @@ import pytz
 from discord import FFmpegPCMAudio, FFmpegOpusAudio
 from plugins.DataBase.mongo import MongoDataBase
 from plugins.Helpers.logger_filters import YouTubeLogFilter
-from utils import cache, AudioSourceTracked
+from utils import cache, AudioSourceTracked, ResultThread
 from plugins.Bots.DiscordBot.roles import secret_roles
 from collections import deque
 from plugins.Helpers.youtube_dl import get_best_info_media
@@ -588,15 +588,19 @@ class DiscordBotCommand:
         #     return_value = future.result()
         #     info = return_value
 
-        results = [None] * 1
+        # results = [None] * 1
+        #
+        # thread = threading.Thread(target=get_best_info_media, args=(results, title, ydl_opts))
+        # thread.start()
 
-        thread = threading.Thread(target=get_best_info_media, args=(results, title, ydl_opts))
-        thread.start()
+        infoThread = ResultThread(lambda: get_best_info_media(title, ydl_opts))
+        infoThread.start()
 
-        while thread.is_alive():
+        while infoThread.is_alive():
             await asyncio.sleep(1)
 
-        info = results[0]
+        # info = results[0]
+        info = infoThread.result
 
         if isinstance(info, list):
             if user:
@@ -609,12 +613,12 @@ class DiscordBotCommand:
 
                 return await self._play(guild=guild)
 
-        self.discordBot.music['now'] = (info, user)
-
         url = info.get('url', '') if isinstance(info, dict) else ''
         # filepath = info.get('requested_downloads', [])[0].get('filepath', '') if info.get('requested_downloads', []) else ''
 
         if url:
+            self.discordBot.music['now'] = (info, user)
+
             audioSource = AudioSourceTracked(FFmpegPCMAudio(url, **ffmpeg_options), path=url)
             # audioSource = AudioSourceTracked(FFmpegPCMAudio(filepath, **ffmpeg_options), path=filepath)
             self.discordBot.audiosource = audioSource
@@ -1014,7 +1018,7 @@ class DiscordBotCommand:
 
                 now = self.discordBot.music.get('now', {})
                 info = now[0]
-                lyrics = self.discordBot.google.lyrics(song_name=f"{info['title']} lyrics")
+                lyrics = await self.discordBot.google.lyrics(song_name=f"{info['title']} lyrics")
 
                 if not lyrics:
                     return await webhook.send('Текст песни не найден')
@@ -1025,7 +1029,7 @@ class DiscordBotCommand:
 
                 return await webhook.send(content)
             else:
-                lyrics = self.discordBot.google.lyrics(song_name=f"{text} lyrics")
+                lyrics = await self.discordBot.google.lyrics(song_name=f"{text} lyrics")
 
                 if not lyrics:
                     return await webhook.send('Текст песни не найден')

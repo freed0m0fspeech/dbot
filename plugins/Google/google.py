@@ -47,8 +47,8 @@ class ScraperFactory:
 
     def genius_scraper(self):
         lyrics = self._genius_scraper_method_1() or self._genius_scraper_method_2()
-        title = self.title.replace(' Lyrics - Genius', '').replace(' Lyrics', '')
-        self._update_title(title)
+        # title = self.title.replace(' Lyrics - Genius', '').replace(' Lyrics', '')
+        # self._update_title(title)
 
         return lyrics
 
@@ -135,7 +135,7 @@ class Google:
         self.__api_key = api_key
         self.__engine_id = engine_id
 
-    def __handle_search_request(self, title):
+    async def __handle_search_request(self, title):
         title = urllib.parse.quote_plus(title)
         url = f"https://www.googleapis.com/customsearch/v1?key={self.__api_key}&cx={self.__engine_id}&q={title}"
         request_results = requests.get(url)
@@ -161,19 +161,20 @@ class Google:
 
         return data
 
-    def __extract_lyrics(self, result_url, title):
+    async def __extract_lyrics(self, result_url, title):
         # Get the page source code
         page = requests.get(result_url)
         source_code = BeautifulSoup(page.content, 'lxml')
 
         self.scraper_factory(source_code, title)
+        lyrics = None
         for domain, scraper in self.SCRAPERS.items():
             if domain in result_url:
                 lyrics = scraper()
 
         return lyrics
 
-    def lyrics(self, song_name: str) -> Union[dict, None]:
+    async def lyrics(self, song_name: str) -> Union[dict, None]:
         """
             Fetches and autocorrects (if incorrect) song name.
             Gets URL and title of the top Results.
@@ -182,7 +183,7 @@ class Google:
             Returns dict with title, lyrics and link.
         """
 
-        data = self.__handle_search_request(song_name)
+        data = await self.__handle_search_request(song_name)
 
         #spell = data.get('spelling', {}).get('correctedQuery')
         #data = (spell and self.__handle_search_request(spell)) or data
@@ -194,7 +195,7 @@ class Google:
             result_url = query_results[i]["link"]
             title = query_results[i]["title"]
             try:
-                lyrics = self.__extract_lyrics(result_url, title)
+                lyrics = await self.__extract_lyrics(result_url, title)
             except Exception as err:
                 raise LyricScraperException(err)
                 # TODO exception
