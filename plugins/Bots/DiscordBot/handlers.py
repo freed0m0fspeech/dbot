@@ -6,7 +6,6 @@ import pytz
 import pandas as pd
 
 from datetime import datetime
-from plugins.DataBase.mongo import MongoDataBase
 from version import __version__
 from utils import *
 from utils import cache
@@ -141,16 +140,7 @@ class DiscordBotHandler:
                                 changes = f'{changes}- {attr}\n{value}\n\n'
                                 continue
 
-                            if attr == 'content':
-                                continue
-
-                            if attr == 'system_content':
-                                continue
-
-                            if attr == 'color':
-                                continue
-
-                            if attr == 'embeds':
+                            if attr in ('content', 'system_content', 'color', 'embeds', 'flags'):
                                 continue
 
                             if isinstance(value_after, dict):
@@ -252,10 +242,9 @@ class DiscordBotHandler:
         guild = voice_channel.guild
 
         voice_channel_cache = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {})
+
         member_cache = cache.stats.get(guild.id, {}).get('members', {}).get(member.id, {})
-
         member_joined = member_cache.get('joined', '')
-
         if member_joined:
             voicetime = (datetime.now(tz=pytz.utc).replace(tzinfo=None) - datetime.strptime(member_joined,
                                                                                             '%Y-%m-%d %H:%M:%S')).total_seconds()
@@ -286,9 +275,14 @@ class DiscordBotHandler:
                 if members[0].bot:
                     # Bot last member in voice channel
                     voice_client = guild.voice_client
-                    await voice_client.disconnect()
 
-                    await voice_channel.delete()
+                    if voice_client:
+                        await voice_client.disconnect()
+
+                    try:
+                        await voice_channel.delete()
+                    except discord.errors.NotFound:
+                        pass
 
                     del cache.stats[guild.id]['tvoice_channels'][voice_channel.id]
 
@@ -316,6 +310,36 @@ class DiscordBotHandler:
                     await voice_channel.edit(name=f'@{new_owner.name}', overwrites=overwrites)
 
                     cache.stats[guild.id]['tvoice_channels'][voice_channel.id]['owner']['id'] = new_owner.id
+        else:
+            # Not temporary voice channel
+
+            # In voice channel left more than 1 member
+            if len(members) > 1:
+                return
+
+            # Last member in voice channel is not bot
+            if len(members) == 1:
+                if not members[0].bot:
+                    return
+
+            # No one in voice channel or only bot in voice channel
+            guild_cache = self.discordBot.guilds.get(guild.id, {})
+            if not guild_cache:
+                return
+
+            init_channel = guild_cache.get('temporary', {}).get('inits', {}).get(f'{voice_channel.id}', '')
+
+            # Delete voice channel if it is not init voice channel
+            if not init_channel:
+                voice_client = guild.voice_client
+
+                if voice_client:
+                    await voice_client.disconnect()
+
+                try:
+                    return await voice_channel.delete()
+                except discord.errors.NotFound:
+                    pass
 
     async def _on_voice_state_join(self, after, member):
         voice_channel = after.channel

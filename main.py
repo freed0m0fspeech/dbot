@@ -2,9 +2,7 @@ import asyncio
 import logging
 import os
 
-# import discord
 from aiohttp.web import AppRunner, TCPSite
-# from dotenv import load_dotenv
 from plugins.Bots.DiscordBot.bot import DiscordBot
 from plugins.Google.google import Google
 from plugins.Web.server import WebServer
