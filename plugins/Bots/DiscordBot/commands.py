@@ -1,5 +1,7 @@
 import asyncio
 import datetime
+import logging
+import re
 from random import shuffle
 
 import discord
@@ -8,10 +10,10 @@ import pytz
 
 from plugins.DataBase.mongo import MongoDataBase
 from plugins.Helpers.logger_filters import YouTubeLogFilter
-from utils import cache, AudioSourceTracked, ResultThread
+from utils import cache, AudioSourceTracked, delete_slice, ResultThread
 from plugins.Bots.DiscordBot.roles import secret_roles
 from collections import deque
-from plugins.Helpers.youtube_dl import get_best_info_media
+from plugins.Helpers.youtube_dl import get_best_info_media, regex_link
 
 max_music_queue_len = 5000
 
@@ -89,7 +91,6 @@ class DiscordBotCommand:
     #             return await webhook.send(f"Меня нет в голосовом канале")
     #
     #         voice_channel = voice_client.channel
-    #
     #         if not voice_channel:
     #             return await webhook.send(f"Меня нет в голосовом канале")
     #
@@ -97,7 +98,6 @@ class DiscordBotCommand:
     #             return await webhook.send(f"Вы не в голосовом канале")
     #
     #         user_voice_channel = user_voice.channel
-    #
     #         if not user_voice_channel:
     #             return await webhook.send(f"Вы не в голосовом канале")
     #
@@ -154,36 +154,69 @@ class DiscordBotCommand:
     #     except Exception as e:
     #         return await webhook.send(str(e))
 
-    async def voice_lock(self, interaction: discord.Interaction):
+    async def _defer(self, interaction: discord.Interaction, ephemeral: bool = True) -> discord.Webhook:
         response = interaction.response
         response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
+        await response.defer(ephemeral=ephemeral)  # ephemeral - only you can see this
 
         webhook = interaction.followup
         webhook: discord.Webhook
+
+        return webhook
+
+    async def _check_user_in_voice(self, user: discord.Member, webhook: discord.Webhook):
+        user_voice = user.voice
+        if not user_voice:
+            await webhook.send("Вы не в голосовом канале", ephemeral=True)
+            return None
+
+        voice_channel = user_voice.channel
+        if not voice_channel:
+            await webhook.send("Вы не в голосовом канале", ephemeral=True)
+            return None
+
+        return voice_channel
+
+    async def _check_user_owner_of_voice_channel(self, user: discord.Member, guild: discord.Guild, voice_channel: discord.VoiceChannel, webhook: discord.Webhook):
+        owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
+
+        if not owner:
+            await webhook.send('Информация о владельце голосового канала не найдена')
+            return None
+
+        if not owner.get('id', '') == user.id:
+            await webhook.send('Вы не владелец этого голосового канала')
+            return None
+
+        return owner
+    async def _check_user_together_with_voice_client(self, guild: discord.Guild, voice_channel:discord.VoiceChannel, webhook: discord.Webhook):
+        voice_client = guild.voice_client
+        if not voice_client:
+            await webhook.send("Меня нет в голосовом канале", ephemeral=True)
+            return None
+
+        if not voice_client.channel == voice_channel:
+            await webhook.send('Вы находитесь в другом голосовом канале', ephemeral=True)
+            return None
+
+        return voice_client
+
+    async def voice_lock(self, interaction: discord.Interaction):
+        webhook = await self._defer(interaction)
 
         try:
             guild = interaction.guild
             user = interaction.user
 
-            try:
-                voice_channel = user.voice.channel
-            except Exception:
-                voice_channel = None
-
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
             if not voice_channel:
-                return await webhook.send('Вы не в голосовом канале')
+                return
 
-            owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
-
+            owner = await self._check_user_owner_of_voice_channel(user=user, guild=guild, voice_channel=voice_channel, webhook=webhook)
             if not owner:
-                return await webhook.send('Информация о владельце голосового канала не найдена')
-
-            if not owner.get('id', '') == user.id:
-                return await webhook.send('Вы не владелец этого голосового канала')
+                return
 
             overwrites = voice_channel.overwrites_for(guild.default_role)
-
             if overwrites.is_empty() or overwrites.view_channel:
                 overwrites.update(view_channel=False)
                 # overwrites.view_channel = True
@@ -198,35 +231,22 @@ class DiscordBotCommand:
             return await webhook.send(str(e))
 
     async def voice_role(self, interaction: discord.Interaction, role: discord.Role):
-        response = interaction.response
-        response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
-
-        webhook = interaction.followup
-        webhook: discord.Webhook
+        webhook = await self._defer(interaction)
 
         try:
             guild = interaction.guild
             user = interaction.user
 
-            try:
-                voice_channel = user.voice.channel
-            except Exception:
-                voice_channel = None
-
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
             if not voice_channel:
-                return await webhook.send('Вы не в голосовом канале')
+                return
 
-            owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
-
+            owner = await self._check_user_owner_of_voice_channel(user=user, guild=guild, voice_channel=voice_channel,
+                                                                  webhook=webhook)
             if not owner:
-                return await webhook.send('Информация о владельце голосового канала не найдена')
-
-            if not owner.get('id', '') == user.id:
-                return await webhook.send('Вы не владелец этого голосового канала')
+                return
 
             overwrites = voice_channel.overwrites_for(role)
-
             if overwrites.view_channel:
                 overwrites = None
                 await webhook.send(f'<@&{role.id}> кикнут(а) с голосового канала')
@@ -239,35 +259,21 @@ class DiscordBotCommand:
             return await webhook.send(str(e))
 
     async def voice_disconnect(self, interaction: discord.Interaction, member: discord.Member):
-        response = interaction.response
-        response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
-
-        webhook = interaction.followup
-        webhook: discord.Webhook
+        webhook = await self._defer(interaction)
 
         try:
             guild = interaction.guild
             user = interaction.user
 
-            try:
-                voice_channel = user.voice.channel
-            except Exception:
-                voice_channel = None
-
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
             if not voice_channel:
-                return await webhook.send('Вы не в голосовом канале')
+                return
 
-            owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
-
+            owner = await self._check_user_owner_of_voice_channel(user=user, guild=guild, voice_channel=voice_channel, webhook=webhook)
             if not owner:
-                return await webhook.send('Информация о владельце голосового канала не найдена')
-
-            if not owner.get('id', '') == user.id:
-                return await webhook.send('Вы не владелец этого голосового канала')
+                return
 
             member_voice = member.voice
-
             if not member_voice:
                 return await webhook.send('Участник не в вашем голосовом канале')
 
@@ -280,35 +286,22 @@ class DiscordBotCommand:
             return await webhook.send(str(e))
 
     async def voice_member(self, interaction: discord.Interaction, member: discord.Member):
-        response = interaction.response
-        response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
-
-        webhook = interaction.followup
-        webhook: discord.Webhook
+        webhook = await self._defer(interaction)
 
         try:
             guild = interaction.guild
             user = interaction.user
 
-            try:
-                voice_channel = user.voice.channel
-            except Exception:
-                voice_channel = None
-
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
             if not voice_channel:
-                return await webhook.send('Вы не в голосовом канале')
+                return
 
-            owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
-
+            owner = await self._check_user_owner_of_voice_channel(user=user, guild=guild, voice_channel=voice_channel,
+                                                                  webhook=webhook)
             if not owner:
-                return await webhook.send('Информация о владельце голосового канала не найдена')
-
-            if not owner.get('id', '') == user.id:
-                return await webhook.send('Вы не владелец этого голосового канала')
+                return
 
             overwrites = voice_channel.overwrites_for(member)
-
             if overwrites.view_channel:
                 overwrites = None
                 await webhook.send(f'<@{member.id}> кикнут(а) с голосового канала')
@@ -321,32 +314,19 @@ class DiscordBotCommand:
             return await webhook.send(str(e))
 
     async def voice_name(self, interaction: discord.Interaction, text: str):
-        response = interaction.response
-        response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
-
-        webhook = interaction.followup
-        webhook: discord.Webhook
+        webhook = await self._defer(interaction)
 
         try:
             guild = interaction.guild
             user = interaction.user
 
-            try:
-                voice_channel = user.voice.channel
-            except Exception:
-                voice_channel = None
-
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
             if not voice_channel:
-                return await webhook.send('Вы не в голосовом канале')
+                return
 
-            owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
-
+            owner = await self._check_user_owner_of_voice_channel(user=user, guild=guild, voice_channel=voice_channel, webhook=webhook)
             if not owner:
-                return await webhook.send('Информация о владельце голосового канала не найдена')
-
-            if not owner.get('id', '') == user.id:
-                return await webhook.send('Вы не владелец этого голосового канала')
+                return
 
             await voice_channel.edit(name=f'{text}')
             await webhook.send(f'Голосовой канал {voice_channel.mention} был переименован')
@@ -354,12 +334,7 @@ class DiscordBotCommand:
             return await webhook.send(str(e))
 
     async def voice_init(self, interaction: discord.Interaction, voice_channel: discord.VoiceChannel = None):
-        response = interaction.response
-        response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
-
-        webhook = interaction.followup
-        webhook: discord.Webhook
+        webhook = await self._defer(interaction)
 
         try:
             guild = interaction.guild
@@ -419,27 +394,17 @@ class DiscordBotCommand:
             return await webhook.send(str(e))
 
     async def voice_owner(self, interaction: discord.Interaction, member: discord.Member = None):
-        response = interaction.response
-        response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
-
-        webhook = interaction.followup
-        webhook: discord.Webhook
+        webhook = await self._defer(interaction)
 
         try:
             guild = interaction.guild
             user = interaction.user
 
-            try:
-                voice_channel = user.voice.channel
-            except Exception:
-                voice_channel = None
-
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
             if not voice_channel:
-                return await webhook.send('Вы не в голосовом канале')
+                return
 
             owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
-
             if not owner:
                 return await webhook.send('Информация о владельце голосового канала не найдена')
 
@@ -453,7 +418,6 @@ class DiscordBotCommand:
                 del overwrites[user]
 
                 await voice_channel.edit(name=f'@{member.name}', overwrites=overwrites)
-
                 await webhook.send(f'Новый владелец голосового канала {voice_channel.mention}: <@{member.id}> :)')
 
                 cache.stats[guild.id]['tvoice_channels'][voice_channel.id]['owner']['id'] = member.id
@@ -463,45 +427,31 @@ class DiscordBotCommand:
             return await webhook.send(str(e))
 
     async def voice_limit(self, interaction: discord.Interaction, user_limit: int):
-        response = interaction.response
-        response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
-
-        webhook = interaction.followup
-        webhook: discord.Webhook
+        webhook = await self._defer(interaction)
 
         try:
             guild = interaction.guild
             user = interaction.user
 
-            try:
-                voice_channel = user.voice.channel
-            except Exception:
-                voice_channel = None
-
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
             if not voice_channel:
-                return await webhook.send('Вы не в голосовом канале')
+                return
 
-            owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
-
+            owner = await self._check_user_owner_of_voice_channel(user=user, guild=guild, voice_channel=voice_channel, webhook=webhook)
             if not owner:
-                return await webhook.send('Информация о владельце голосового канала не найдена')
-
-            if not owner.get('id', '') == user.id:
-                return await webhook.send('Вы не владелец этого голосового канала')
+                return
 
             await voice_channel.edit(user_limit=user_limit)
-            await webhook.send(
-                f'Лимит пользователей для голосового канала {voice_channel.mention} изменен на {user_limit}')
+            await webhook.send(f'Лимит пользователей для голосового канала {voice_channel.mention} изменен на {user_limit}')
         except Exception as e:
             return await webhook.send(str(e))
 
-    async def _play(self, guild):
+    async def _play(self, guild, leave: bool = False):
         if not guild.voice_client:
             return
 
         if len(guild.voice_client.channel.members) == 1:
-            return await guild.voice_client.voice_disconnect()
+            return await guild.voice_client.disconnect(force=True)
 
         music_queue = self.discordBot.music.get(guild.id, {}).get('queue', deque())
         music_queue_len = len(self.discordBot.music.get(guild.id, {}).get('queue', {}))
@@ -510,26 +460,10 @@ class DiscordBotCommand:
 
         try:
             music_queue = music_queue.popleft()
-            title = music_queue[0]
+            info = music_queue[0]
             user = music_queue[1]
         except IndexError:
             return
-
-        # try:
-        #     playliststart = music_queue[2]
-        #     playlistend = music_queue[3]
-        #
-        #     if playlistend:
-        #         playlistend = min(playlistend, max_items)
-        # except IndexError:
-        #     playliststart = 1
-        #     playlistend = max_items
-        #
-        # if not playliststart:
-        #     playliststart = 1
-        #
-        # if not playlistend:
-        #     playlistend = max_items
 
         ydl_opts = {
             'format': 'bestaudio/best',
@@ -546,9 +480,6 @@ class DiscordBotCommand:
 
         ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                           'options': f'-vn -loglevel fatal'}
-
-        # '-ss 50' seconds start from
-        # ffmpeg_options = {'options': '-vn -loglevel fatal'}
 
         # if os.path.isdir("temp/media"):
         #     shutil.rmtree("temp/media")
@@ -569,26 +500,7 @@ class DiscordBotCommand:
         # if os.path.exists(f"{os.getcwd()}/temp"):
         #     shutil.rmtree(f"/temp")
 
-        # from multiprocessing.pool import ThreadPool
-        # pool = ThreadPool(processes=1)
-        #
-        # async_result = pool.apply_async(plugins.Helpers.youtube_dl.get_best_info_media, (title, ydl_opts))
-        #
-        # # do some other stuff in the main process
-        #
-        # info = async_result.get()  # get the return value from your function.
-
-        # with concurrent.futures.ThreadPoolExecutor() as executor:
-        #     future = executor.submit(plugins.Helpers.youtube_dl.get_best_info_media, (title, ydl_opts))
-        #     return_value = future.result()
-        #     info = return_value
-
-        # results = [None] * 1
-        #
-        # thread = threading.Thread(target=get_best_info_media, args=(results, title, ydl_opts))
-        # thread.start()
-
-        infoThread = ResultThread(lambda: get_best_info_media(title, ydl_opts))
+        infoThread = ResultThread(lambda: get_best_info_media(info.get('original_url', info.get('url', '')), ydl_opts))
         infoThread.start()
 
         while infoThread.is_alive():
@@ -597,11 +509,13 @@ class DiscordBotCommand:
         # info = results[0]
         info = infoThread.result
 
+        # info = await self.discordBot.client.loop.run_in_executor(None, lambda: get_best_info_media(info.get('original_url', info.get('url', '')), ydl_opts))
+
         if isinstance(info, list):
             if user:
                 # if music_queue_len < len(info):
                 for video in reversed(info):
-                    self.discordBot.music[guild.id]['queue'].appendleft((video.get('url', ''), user))
+                    self.discordBot.music[guild.id]['queue'].appendleft((video, user))
                 # else:
                 #     for video in info[0:max_items]:
                 #         self.discordBot.music[guild.id]['queue'].appendleft((video.get('url', ''), user))
@@ -612,14 +526,26 @@ class DiscordBotCommand:
         # filepath = info.get('requested_downloads', [])[0].get('filepath', '') if info.get('requested_downloads', []) else ''
 
         if url:
-            self.discordBot.music['now'] = (info, user)
-
             audioSource = AudioSourceTracked(discord.FFmpegPCMAudio(url, **ffmpeg_options), path=url)
             # audioSource = AudioSourceTracked(FFmpegPCMAudio(filepath, **ffmpeg_options), path=filepath)
             self.discordBot.audiosource = audioSource
 
             try:
-                guild.voice_client.play(self.discordBot.audiosource, after=lambda ex: asyncio.run(self._play(guild=guild)))
+                if leave:
+                    after = None
+                else:
+                    after = lambda ex: asyncio.run(self._play(guild=guild))
+
+                voice_client = guild.voice_client
+                voice_client_is_busy = voice_client.is_playing()
+
+                if voice_client_is_busy and leave:
+                    voice_client.pause()
+
+                voice_client.play(self.discordBot.audiosource, after=after)
+
+                self.discordBot.music['now'] = (info, user)
+                self.discordBot.music[guild.id]['queue_history'].appendleft((info, user))
             except discord.errors.ClientException:
                 return self.discordBot.music[guild.id]['queue'].appendleft(music_queue)
             # await guild.voice_client.connect(reconnect=True, timeout=3000)
@@ -628,28 +554,45 @@ class DiscordBotCommand:
             # logging.info('Not found url for music queue item')
             return await self._play(guild=guild)
 
-    async def music_play(self, interaction: discord.Interaction, text: str):
-        response = interaction.response
-        response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
+    async def _music_play_callback(self, interaction: discord.Interaction):
+        data: dict = interaction.data
 
-        webhook = interaction.followup
-        webhook: discord.Webhook
+        if data:
+            arguments = data.get('custom_id', '').split(' ')
+
+            try:
+                url = data.get('values', [])[0]
+            except IndexError:
+                url = None
+
+            try:
+                appendleft = arguments[0] == 'True'
+            except IndexError:
+                appendleft = None
+
+            try:
+                leave = arguments[1] == 'True'
+            except IndexError:
+                leave = None
+
+            await self.music_play(interaction=interaction, text=url, appendleft=appendleft, leave=leave)
+
+    async def music_play(self, interaction: discord.Interaction, text: str, appendleft: bool = False, result_count: int = 1, leave: bool = False):
+        webhook = await self._defer(interaction)
 
         try:
+            if not text:
+                return await webhook.send('Текст не найден')
+
             guild = interaction.guild
             user = interaction.user
 
             if isinstance(user, discord.Member):
                 await secret_roles(member=user, guild=guild, event='using command /music play')
 
-            try:
-                voice_channel = user.voice.channel
-            except Exception:
-                voice_channel = None
-
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
             if not voice_channel:
-                return await webhook.send('Вы не в голосовом канале')
+                return
 
             voice_client = guild.voice_client
             voice_client: discord.VoiceClient
@@ -672,6 +615,9 @@ class DiscordBotCommand:
                     # await voice_client.move_to(channel=voice_channel)
 
                     voice_client_is_busy = False
+
+                    self.discordBot.music[guild.id]['queue_history'] = deque(maxlen=10)
+                    self.discordBot.music[guild.id]['queue'] = deque()
                 else:
                     return await webhook.send('Кто-то уже использует меня в другом голосовом канале')
 
@@ -683,93 +629,195 @@ class DiscordBotCommand:
             #         return await webhook.send('Неверные значения параметров start и end')
 
             if len(self.discordBot.music.get(guild.id, {}).get('queue', {})) < max_music_queue_len:
-                self.discordBot.music[guild.id]['queue'].append((text, user))
-                await webhook.send(f'`{text}` был добавлен в очередь')
+                music_queue_len = len(self.discordBot.music.get(guild.id, {}).get('queue', {}))
+                max_items = max_music_queue_len - music_queue_len
+                max_items += 1
+
+                ydl_opts = {
+                    'format': 'bestaudio/best',
+                    'quiet': True,
+                    'ignoreerrors': True,
+                    'noplaylist': True,
+                    'playliststart': f'1',
+                    'playlistend': f'{max_items}',
+                    # 'skip_download': True,
+                    'extract_flat': True, # 'in_playlist'
+                    # 'outtmpl': '/temp/media/%(title)s.%(ext)s', # Change download path
+                    'logger': YouTubeLogFilter(),
+                    # 'cachedir': False,
+                }
+
+                if re.match(regex_link, text):
+                    url = text
+                else:
+                    url = None
+
+                if result_count < 0:
+                    result_count = 1
+
+                # info = await self.discordBot.client.loop.run_in_executor(None, lambda: get_best_info_media(text, ydl_opts, result_count=result_count))
+                infoThread = ResultThread(lambda: get_best_info_media(text, ydl_opts, result_count=result_count))
+                infoThread.start()
+
+                while infoThread.is_alive():
+                    await asyncio.sleep(1)
+
+                info = infoThread.result
+
+                if not url and result_count > 1:
+                    results = [(item.get('title', ''), item.get('url', ''), item.get('duration', 0)) for item in info]
+
+                    if len(results) == 0:
+                        return await webhook.send(f"Ничего не найдено по запросу `{text}`")
+
+                    select = discord.ui.Select(options=[discord.SelectOption(label=f"{datetime.timedelta(seconds=round(result[2]))} {result[0]}"[:100], value=result[1][:100]) for result in results],
+                                               placeholder='Выбери что добавить', custom_id=f'{appendleft} {leave}')
+                    select.callback = self._music_play_callback
+                    return await webhook.send(view=discord.ui.View().add_item(select))
+
+                if isinstance(info, dict):
+                    if appendleft:
+                        self.discordBot.music[guild.id]['queue'].appendleft((info, user))
+                    else:
+                        self.discordBot.music[guild.id]['queue'].append((info, user))
+                    await webhook.send(f"`{info.get('title', '')}` был добавлен в музыкальную очередь")
+                elif isinstance(info, list):
+                    if user:
+                        count = 0
+
+                        if appendleft:
+                            info.reverse()
+
+                        for video in info:
+                            if video.get('title', '') == '[Deleted video]':
+                                continue
+
+                            if appendleft:
+                                self.discordBot.music[guild.id]['queue'].appendleft((video, user))
+                            else:
+                                self.discordBot.music[guild.id]['queue'].append((video, user))
+                            count += 1
+
+                        if len(info) == 0:
+                            return await webhook.send(f"Ничего не найдено по запросу `{text}`")
+
+                        if len(info) == 1:
+                            await webhook.send(f"`{info[0].get('title', '')}` был добавлен в музыкальную очередь")
+                        else:
+                            await webhook.send(f"`{count}` элементов было добавлено в музыкальную очередь")
             else:
                 await webhook.send(f'Достигнута максимальная длина музыкальной очереди')
 
-            if not voice_client_is_busy:
-                return await self._play(guild=guild)
+            if result_count > 1:
+                await interaction.delete_original_response()
+
+            if not voice_client_is_busy or leave:
+                return await self._play(guild=guild, leave=leave)
         except Exception as e:
             return await webhook.send(str(e))
 
-    # async def music_seek(self, interaction: discord.Interaction, time: str):
-    #     response = interaction.response
-    #     response: discord.InteractionResponse
-    #     await response.defer(ephemeral=True)  # ephemeral - only you can see this
-    #
-    #     webhook = interaction.followup
-    #     webhook: discord.Webhook
-    #
-    #     try:
-    #         guild = interaction.guild
-    #         user = interaction.user
-    #         voice_client = guild.voice_client
-    #
-    #         try:
-    #             voice_channel = user.voice.channel
-    #         except Exception:
-    #             voice_channel = None
-    #
-    #         try:
-    #             voice_client_channel = guild.voice_client.channel
-    #         except Exception:
-    #             voice_client_channel = None
-    #
-    #         if not voice_channel:
-    #             return await webhook.send('Вы не в голосовом канале')
-    #
-    #         if voice_client_channel:
-    #             if not voice_client_channel == voice_channel:
-    #                 return await webhook.send('Вы находитесь в другом голосовом канале')
-    #
-    #         if not voice_client:
-    #             return await webhook.send("Меня нет в голосовом канале")
-    #
-    #         dtime = datetime.datetime.strptime(f"{time}", "%H:%M:%S")
-    #         dtimedelta = datetime.timedelta(hours=dtime.hour, minutes=dtime.minute, seconds=dtime.second)
-    #
-    #         ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-    #                           'options': f'-vn -loglevel fatal -ss {dtimedelta.seconds}'}
-    #         # ffmpeg_options = {'options': f'-vn -loglevel fatal -ss {dtimedelta.seconds}'}
-    #
-    #         path = self.discordBot.audiosource.path
-    #         audioSource = AudioSourceTracked(FFmpegPCMAudio(path, **ffmpeg_options), path, dtimedelta.seconds)
-    #         self.discordBot.audiosource = audioSource
-    #
-    #         voice_client.pause()
-    #         voice_client.play(audioSource, after=lambda ex: asyncio.run(self._play(guild=guild)))
-    #
-    #         return await webhook.send(f'Текущая музыка перемотана на {dtimedelta}')
-    #     except Exception as e:
-    #         return await webhook.send(str(e))
-
-    async def music_queue(self, interaction: discord.Interaction):
-        response = interaction.response
-        response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
-
-        webhook = interaction.followup
-        webhook: discord.Webhook
+    async def music_seek(self, interaction: discord.Interaction, time: str):
+        webhook = await self._defer(interaction)
 
         try:
             guild = interaction.guild
             user = interaction.user
 
-            user_voice = user.voice
-            if not user_voice:
-                return await webhook.send("Вы не в голосовом канале")
-
-            voice_channel = user_voice.channel
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
             if not voice_channel:
-                return await webhook.send("Вы не в голосовом канале")
+                return
 
-            voice_client = guild.voice_client
+            voice_client = await self._check_user_together_with_voice_client(guild=guild, voice_channel=voice_channel, webhook=webhook)
             if not voice_client:
-                return await webhook.send("Меня нет в голосовом канале")
+                return
 
-            if not voice_client.channel == voice_channel:
-                return await webhook.send('Вы находитесь в другом голосовом канале')
+            if not voice_client.is_playing() and not voice_client.is_paused():
+                return await webhook.send('Ничего не воспроизводится', ephemeral=True)
+
+            dtime = datetime.datetime.strptime(f"{time}", "%H:%M:%S")
+            dtimedelta = datetime.timedelta(hours=dtime.hour, minutes=dtime.minute, seconds=dtime.second)
+
+            now = self.discordBot.music.get('now', [{}, None])
+            info = now[0]
+            duration = round(info.get('duration', 0))
+            if duration > 600:
+                return await webhook.send('Возможно перемотать только песню длительность которой менее 10 минут', ephemeral=True)
+
+            if duration < dtimedelta.seconds:
+                return await webhook.send('Длительность песни меньше перематываемого значения', ephemeral=True)
+
+            ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+                              'options': f'-vn -loglevel fatal -ss {dtimedelta.seconds}'}
+            # ffmpeg_options = {'options': f'-vn -loglevel fatal -ss {dtimedelta.seconds}'}
+
+            path = self.discordBot.audiosource.path
+            audioSource = AudioSourceTracked(discord.FFmpegPCMAudio(path, **ffmpeg_options), path, dtimedelta.seconds)
+            self.discordBot.audiosource = audioSource
+
+            if voice_client.is_playing():
+                voice_client.pause()
+
+            voice_client.play(self.discordBot.audiosource, after=lambda ex: asyncio.run(self._play(guild=guild)))
+
+            return await webhook.send(f'Текущая песня перемотана на {dtimedelta}', ephemeral=True)
+        except Exception as e:
+            return await webhook.send(str(e))
+
+    async def _music_repeat(self, interaction: discord.Interaction):
+        webhook = await self._defer(interaction)
+
+        try:
+            guild = interaction.guild
+            user = interaction.user
+
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
+            if not voice_channel:
+                return
+
+            voice_client = await self._check_user_together_with_voice_client(guild=guild, voice_channel=voice_channel, webhook=webhook)
+            if not voice_client:
+                return
+
+            if not voice_client.is_playing() and not voice_client.is_paused():
+                return await webhook.send('Ничего не воспроизводится', ephemeral=True)
+
+            audioSource = self.discordBot.audiosource
+            ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+                              'options': f'-vn -loglevel fatal'}
+            audioSource = AudioSourceTracked(discord.FFmpegPCMAudio(audioSource.path, **ffmpeg_options), path=audioSource.path)
+            self.discordBot.audiosource = audioSource
+
+            if voice_client.is_playing():
+                voice_client.pause()
+
+            voice_client.play(self.discordBot.audiosource, after=lambda ex: repeat())
+
+            def repeat():
+                audioSource = self.discordBot.audiosource
+                ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+                                  'options': f'-vn -loglevel fatal'}
+                audioSource = AudioSourceTracked(discord.FFmpegPCMAudio(audioSource.path, **ffmpeg_options), path=audioSource.path)
+                self.discordBot.audiosource = audioSource
+                voice_client.play(self.discordBot.audiosource, after=lambda ex: repeat())
+
+            return await webhook.send(f'Текущая песня поставлена на повтор', ephemeral=True)
+        except Exception as e:
+            return await webhook.send(str(e), ephemeral=True)
+
+    async def music_queue(self, interaction: discord.Interaction):
+        webhook = await self._defer(interaction)
+
+        try:
+            guild = interaction.guild
+            user = interaction.user
+
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
+            if not voice_channel:
+                return
+
+            voice_client = await self._check_user_together_with_voice_client(guild=guild, voice_channel=voice_channel, webhook=webhook)
+            if not voice_client:
+                return
 
             music_queue = self.discordBot.music.get(guild.id, {}).get('queue', deque())
 
@@ -784,7 +832,7 @@ class DiscordBotCommand:
             for i in range(0, 20):
                 try:
                     music = music_queue[i]
-                    title = music[0]
+                    info = music[0]
                     user = music[1]
 
                     # try:
@@ -801,7 +849,7 @@ class DiscordBotCommand:
                 # if playliststart and playlistend:
                 #     content = f'{content}{i}. `{title}` **{playliststart} - {playlistend}** добавил(а) {user.mention}\n'
                 # else:
-                content = f'{content}{i}. `{title}` добавил(а) {user.mention}\n'
+                content = f"{content}{i}. `{info.get('title', info.get('url', '')) if isinstance(info, dict) else info}` добавил(а) {user.mention}\n"
 
             queue_embed = discord.Embed(title=f"Музыкальная очередь ({guild.name}) - {len(music_queue)}",
                                         description=f"{content}",
@@ -814,32 +862,64 @@ class DiscordBotCommand:
         except Exception as e:
             return await webhook.send(str(e))
 
-    async def music_shuffle(self, interaction: discord.Interaction):
-        response = interaction.response
-        response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
-
-        webhook = interaction.followup
-        webhook: discord.Webhook
+    async def _music_history(self, interaction: discord.Interaction):
+        webhook = await self._defer(interaction)
 
         try:
             guild = interaction.guild
             user = interaction.user
 
-            user_voice = user.voice
-            if not user_voice:
-                return await webhook.send("Вы не в голосовом канале")
-
-            voice_channel = user_voice.channel
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
             if not voice_channel:
-                return await webhook.send("Вы не в голосовом канале")
+                return
 
-            voice_client = guild.voice_client
+            voice_client = await self._check_user_together_with_voice_client(guild=guild, voice_channel=voice_channel, webhook=webhook)
             if not voice_client:
-                return await webhook.send("Меня нет в голосовом канале")
+                return
 
-            if not voice_client.channel == voice_channel:
-                return await webhook.send('Вы находитесь в другом голосовом канале')
+            music_queue_history = self.discordBot.music.get(guild.id, {}).get('queue_history', deque())
+
+            if not music_queue_history:
+                return await webhook.send(f"История музыкальной очереди пуста")
+
+            content = ''
+            # First 20 queue items
+            for i in range(0, 10):
+                try:
+                    music = music_queue_history[i]
+                    info = music[0]
+                    user = music[1]
+                except Exception as e:
+                    break
+
+                user: discord.Member
+                content = f"{content}{i}. `{info.get('title', '')}` добавил(а) {user.mention}\n"
+
+            queue_embed = discord.Embed(title=f"История музыкальной очереди ({guild.name}) - {len(music_queue_history)}",
+                                        description=f"{content}",
+                                        color=discord.Color.random(),
+                                        timestamp=datetime.datetime.now(tz=pytz.timezone('Europe/Kiev')))
+            queue_embed.set_author(name=guild.name, icon_url=guild.icon)
+            queue_embed.set_thumbnail(url=guild.icon)
+
+            return await webhook.send(embed=queue_embed)
+        except Exception as e:
+            return await webhook.send(str(e))
+
+    async def music_shuffle(self, interaction: discord.Interaction):
+        webhook = await self._defer(interaction)
+
+        try:
+            guild = interaction.guild
+            user = interaction.user
+
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
+            if not voice_channel:
+                return
+
+            voice_client = await self._check_user_together_with_voice_client(guild=guild, voice_channel=voice_channel, webhook=webhook)
+            if not voice_client:
+                return
 
             music_queue = self.discordBot.music.get(guild.id, {}).get('queue', deque())
             if not music_queue:
@@ -852,117 +932,243 @@ class DiscordBotCommand:
         except Exception as e:
             return await webhook.send(str(e))
 
-    async def music_skip(self, interaction: discord.Interaction):
-        response = interaction.response
-        response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
-
-        webhook = interaction.followup
-        webhook: discord.Webhook
+    async def music_reverse(self, interaction: discord.Interaction):
+        webhook = await self._defer(interaction)
 
         try:
             guild = interaction.guild
             user = interaction.user
 
-            user_voice = user.voice
-            if not user_voice:
-                return await webhook.send("Вы не в голосовом канале")
-
-            voice_channel = user_voice.channel
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
             if not voice_channel:
-                return await webhook.send("Вы не в голосовом канале")
+                return
 
-            voice_client = guild.voice_client
+            voice_client = await self._check_user_together_with_voice_client(guild=guild, voice_channel=voice_channel, webhook=webhook)
             if not voice_client:
-                return await webhook.send("Меня нет в голосовом канале")
+                return
 
-            if not voice_client.channel == voice_channel:
-                return await webhook.send('Вы находитесь в другом голосовом канале')
+            music_queue = self.discordBot.music.get(guild.id, {}).get('queue', deque())
+            if not music_queue:
+                return await webhook.send(f"Музыкальная очередь пуста")
 
-            if voice_client.is_playing():  # or voice_client.is_paused()
-                voice_client.stop()
-                return await webhook.send('Музыка пропущена')
+            music_queue.reverse()
+            self.discordBot.music[guild.id]['queue'] = music_queue
 
-            return await webhook.send('Ничего не воспроизводится')
-
+            return await webhook.send('Музыкальная очередь была перевернута')
         except Exception as e:
             return await webhook.send(str(e))
 
-    async def music_clear(self, interaction: discord.Interaction, count: int = None):
-        response = interaction.response
-        response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
+    async def music_skip(self, interaction: discord.Interaction):
+        webhook = await self._defer(interaction)
 
-        webhook = interaction.followup
-        webhook: discord.Webhook
+        try:
+            guild = interaction.guild
+            user = interaction.user
+            custom_id = interaction.data.get('custom_id', '')
+
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
+            if not voice_channel:
+                return
+
+            voice_client = await self._check_user_together_with_voice_client(guild=guild, voice_channel=voice_channel, webhook=webhook)
+            if not voice_client:
+                return
+
+            if len(self.discordBot.music.get(guild.id, {}).get('queue', deque())) == 0:
+                return await webhook.send('Нет следующей песни', ephemeral=True)
+
+            if voice_client.is_playing() or voice_client.is_paused():
+                voice_client.stop()
+                if len(self.discordBot.music.get(guild.id, {}).get('queue', deque())) == 0:
+                    return await webhook.send('Нет следующей песни', ephemeral=True)
+                else:
+                    if not custom_id:
+                        return await webhook.send(content='Воспроизведение следующей песни', ephemeral=True)
+        except Exception as e:
+            logging.warning(e)
+            return await webhook.send(content=str(e), ephemeral=True)
+
+    async def music_pause(self, interaction: discord.Interaction):
+        webhook = await self._defer(interaction)
+
+        try:
+            guild = interaction.guild
+            user = interaction.user
+            custom_id = interaction.data.get('custom_id', '')
+
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
+            if not voice_channel:
+                return
+
+            voice_client = await self._check_user_together_with_voice_client(guild=guild, voice_channel=voice_channel, webhook=webhook)
+            if not voice_client:
+                return
+
+            if voice_client.is_playing():
+                voice_client.pause()
+
+                if not custom_id:
+                    await webhook.send('Воспроизведение песни приостановлено', ephemeral=True)
+            elif voice_client.is_paused():
+                voice_client.resume()
+
+                if not custom_id:
+                    await webhook.send('Воспроизведение песни возобновлено', ephemeral=True)
+            else:
+                return await webhook.send('Ничего не воспроизводится', ephemeral=True)
+        except Exception as e:
+            logging.warning(e)
+            return await webhook.send(str(e), ephemeral=True)
+
+    async def music_clear(self, interaction: discord.Interaction, count: int = None, start: int = None):
+        webhook = await self._defer(interaction)
 
         try:
             guild = interaction.guild
             user = interaction.user
 
-            user_voice = user.voice
-            if not user_voice:
-                return await webhook.send("Вы не в голосовом канале")
-
-            voice_channel = user_voice.channel
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
             if not voice_channel:
-                return await webhook.send("Вы не в голосовом канале")
+                return
 
-            voice_client = guild.voice_client
+            voice_client = await self._check_user_together_with_voice_client(guild=guild, voice_channel=voice_channel, webhook=webhook)
             if not voice_client:
-                return await webhook.send("Меня нет в голосовом канале")
-
-            if not voice_client.channel == voice_channel:
-                return await webhook.send('Вы находитесь в другом голосовом канале')
+                return
 
             if not count:
                 self.discordBot.music[guild.id]['queue'].clear()
                 return await webhook.send('Музыкальная очередь полностью очищена')
 
-            if count > 0:
-                for _ in range(count):
-                    self.discordBot.music[guild.id]['queue'].popleft()
-                return await webhook.send(f'{count} запрос(ов) удалено в начале музыкальной очереди')
+            if start and start > 0:
+                start_index = start - 1
+                if count > 0:
+                    delete_slice(self.discordBot.music[guild.id]['queue'], start=start_index, stop=start_index + count)
+
+                    return await webhook.send(f'{count} запрос(ов) удалено начиная с {start} позиции музыкальной очереди')
             else:
-                for _ in range(abs(count)):
-                    self.discordBot.music[guild.id]['queue'].pop()
-                return await webhook.send(f'{abs(count)} запрос(ов) удалено в конце музыкальной очереди')
+                if count > 0:
+                    for _ in range(count):
+                        self.discordBot.music[guild.id]['queue'].popleft()
+                    return await webhook.send(f'{count} запрос(ов) удалено в начале музыкальной очереди')
+                else:
+                    for _ in range(abs(count)):
+                        self.discordBot.music[guild.id]['queue'].pop()
+                    return await webhook.send(f'{abs(count)} запрос(ов) удалено в конце музыкальной очереди')
         except IndexError:
             return await webhook.send('Музыкальная очередь пуста')
         except Exception as e:
             return await webhook.send(str(e))
 
-    async def music_now(self, interaction: discord.Interaction):
-        response = interaction.response
-        response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
+    async def music_previous(self, interaction: discord.Interaction):
+        webhook = await self._defer(interaction)
 
-        webhook = interaction.followup
-        webhook: discord.Webhook
+        try:
+            guild = interaction.guild
+            user = interaction.user
+            custom_id = interaction.data.get('custom_id', '')
+
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
+            if not voice_channel:
+                return
+
+            voice_client = await self._check_user_together_with_voice_client(guild=guild, voice_channel=voice_channel, webhook=webhook)
+            if not voice_client:
+                return
+
+            now_playing = None
+            if voice_client.is_playing() or voice_client.is_paused():
+                try:
+                    now_playing = self.discordBot.music[guild.id].get('queue_history', deque()).popleft()
+                except IndexError:
+                    now_playing = None
+
+            try:
+                previous_info = self.discordBot.music[guild.id].get('queue_history', deque()).popleft()
+            except IndexError:
+                if now_playing is not None:
+                    self.discordBot.music[guild.id]['queue_history'].appendleft(now_playing)
+
+                return await webhook.send('Нет предыдущей песни', ephemeral=True)
+
+            ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+                              'options': f'-vn -loglevel fatal'}
+
+            info = previous_info[0]
+            user = previous_info[1]
+
+            url = info.get('original_url', '') if isinstance(info, dict) else ''
+
+            if url:
+                ydl_opts = {
+                    'format': 'bestaudio/best',
+                    'quiet': True,
+                    'ignoreerrors': True,
+                    'noplaylist': True,
+                    # https://www.youtube.com/watch?v=PDjRAJlP3BY&list=PLs6raD4eTyko0Jmuu0O5nAkpt-Tq8DJ3b - example of link that will add playlist (noplaylist true)
+                    'playliststart': f'1',
+                    # https://www.youtube.com/playlist?list=PLgULlLHTSGIQ9BeVZY37fJP50CYc3lkW2 - example of link will add playlist ignoring no playlist
+                    'playlistend': f'1',
+                    # 'skip_download': True,
+                    # 'extract_flat': 'in_playlist',
+                    # 'outtmpl': '/temp/media/%(title)s.%(ext)s', # Change download path
+                    'logger': YouTubeLogFilter(),
+                }
+
+                infoThread = ResultThread(lambda: get_best_info_media(url, ydl_opts))
+                infoThread.start()
+
+                while infoThread.is_alive():
+                    await asyncio.sleep(1)
+
+                # info = results[0]
+                info = infoThread.result
+
+                # info = await self.discordBot.client.loop.run_in_executor(None, lambda: get_best_info_media(url, ydl_opts))
+
+                url = info.get('url', '') if isinstance(info, dict) else ''
+
+                if url:
+                    audioSource = AudioSourceTracked(discord.FFmpegPCMAudio(url, **ffmpeg_options), path=url)
+                    self.discordBot.audiosource = audioSource
+
+                    if voice_client.is_playing():
+                        voice_client.pause()
+
+                    guild.voice_client.play(self.discordBot.audiosource, after=lambda ex: asyncio.run(self._play(guild=guild)))
+                    self.discordBot.music['now'] = (info, user)
+
+                    self.discordBot.music[guild.id]['queue_history'].appendleft(previous_info)
+
+                    if now_playing is not None:
+                        self.discordBot.music[guild.id]['queue'].appendleft(now_playing)
+
+                    if not custom_id:
+                        return await webhook.send('Воспроизведение предыдущей песни', ephemeral=True)
+            else:
+                return await self._play(guild=guild)
+        except Exception as e:
+            logging.warning(e)
+            return await webhook.send(str(e), ephemeral=True)
+
+    async def music_now(self, interaction: discord.Interaction):
+        webhook = await self._defer(interaction)
 
         try:
             guild = interaction.guild
             user = interaction.user
 
-            user_voice = user.voice
-            if not user_voice:
-                return await webhook.send("Вы не в голосовом канале")
-
-            voice_channel = user_voice.channel
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
             if not voice_channel:
-                return await webhook.send("Вы не в голосовом канале")
+                return
 
-            voice_client = guild.voice_client
+            voice_client = await self._check_user_together_with_voice_client(guild=guild, voice_channel=voice_channel, webhook=webhook)
             if not voice_client:
-                return await webhook.send("Меня нет в голосовом канале")
+                return
 
-            if not voice_client.channel == voice_channel:
-                return await webhook.send('Вы находитесь в другом голосовом канале')
-
-            if not voice_client.is_playing():  # and not voice_client.is_paused()
+            if not voice_client.is_playing() and not voice_client.is_paused():
                 return await webhook.send('Ничего не воспроизводится')
 
-            now = self.discordBot.music.get('now', {})
+            now = self.discordBot.music.get('now', [{}, None])
             info = now[0]
             user = now[1]
 
@@ -974,56 +1180,104 @@ class DiscordBotCommand:
             else:
                 description = ''
 
-            now_embed = discord.Embed(title=f"{info.get('title', 'Неизвестная музыка')}",
+            now_embed = discord.Embed(title=f"{info.get('title', 'Неизвестная песня')}",
                                       description=description,
                                       color=discord.Color.random(),
                                       timestamp=datetime.datetime.now(tz=pytz.timezone('Europe/Kiev')),
                                       url=info.get('webpage_url', ''))
             now_embed.add_field(name='Добавил(а)',
                                 value=f"{user.mention}",
-                                inline=True)
+                                inline=False)
+
+            percent: float = round(self.discordBot.audiosource.progress / info.get('duration', 1), 1)
+            progress_bar = ''
+            for i in range(11):
+                if percent == round(i / 10, 1):
+                    progress_bar += '♡'
+                else:
+                    progress_bar += '─'
+
+            now_embed.add_field(name='Прогресс', value=f"{progress_bar}", inline=False)
             now_embed.add_field(name='Длительность',
                                 value=f"{datetime.timedelta(seconds=round(self.discordBot.audiosource.progress))} | {datetime.timedelta(seconds=round(info.get('duration', 0)))}",
-                                inline=True)
+                                inline=False)
             # now_embed.set_author(icon_url=client.user.avatar.url, name="Now playing")
 
             thumbnail_url = info.get('thumbnails', [{}])[-1].get('url', '')
             now_embed.set_thumbnail(url=thumbnail_url)
             now_embed.set_author(name=guild.name, icon_url=guild.icon)
 
-            return await webhook.send(embed=now_embed)
+            view = discord.ui.View(timeout=None)
+
+            # button = discord.ui.Button(label='↺', style=discord.ButtonStyle.primary)
+            # button.callback = self.music_repeat
+            # view.add_item(button)
+
+            # button = discord.ui.Button(label='𝄞', style=discord.ButtonStyle.primary)
+            # button.callback = self.music_queue
+            # view.add_item(button)
+
+            button = discord.ui.Button(label='|◁', style=discord.ButtonStyle.primary)
+            button.callback = self.music_previous
+            view.add_item(button)
+
+            button = discord.ui.Button(label='II', style=discord.ButtonStyle.primary)
+            button.callback = self.music_pause
+            view.add_item(button)
+
+            button = discord.ui.Button(label='▷|', style=discord.ButtonStyle.primary)
+            button.callback = self.music_skip
+            view.add_item(button)
+
+            # button = discord.ui.TextInput(label='Перемотать музыку', placeholder='hh:mm:ss')
+            # button.callback = self.music_seek
+            # view.add_item(button)
+
+            return await webhook.send(embed=now_embed, view=view)
+        except Exception as e:
+            return await webhook.send(str(e))
+
+    async def music_stop(self, interaction: discord.Interaction):
+        webhook = await self._defer(interaction)
+
+        try:
+            guild = interaction.guild
+            user = interaction.user
+
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
+            if not voice_channel:
+                return
+
+            voice_client = await self._check_user_together_with_voice_client(guild=guild, voice_channel=voice_channel,
+                                                                             webhook=webhook)
+            if not voice_client:
+                return
+
+            # if not voice_client.is_playing() and not voice_client.is_paused():
+            #     return await webhook.send('Ничего не воспроизводится')
+
+            await voice_client.disconnect(force=True)
+            return await webhook.send('Воспроизведение музыки остановлено')
         except Exception as e:
             return await webhook.send(str(e))
 
     async def music_lyrics(self, interaction: discord.Interaction, text: str = None):
-        response = interaction.response
-        response: discord.InteractionResponse
-        await response.defer(ephemeral=True)  # ephemeral - only you can see this
-
-        webhook = interaction.followup
-        webhook: discord.Webhook
+        webhook = await self._defer(interaction)
 
         try:
             guild = interaction.guild
             user = interaction.user
 
             if not text:
-                user_voice = user.voice
-                if not user_voice:
-                    return await webhook.send("Вы не в голосовом канале")
-
-                voice_channel = user_voice.channel
+                voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
                 if not voice_channel:
-                    return await webhook.send("Вы не в голосовом канале")
+                    return
 
-                voice_client = guild.voice_client
+                voice_client = await self._check_user_together_with_voice_client(guild=guild, voice_channel=voice_channel, webhook=webhook)
                 if not voice_client:
-                    return await webhook.send("Меня нет в голосовом канале")
+                    return
 
-                if not voice_client.channel == voice_channel:
-                    return await webhook.send('Вы находитесь в другом голосовом канале')
-
-                if not voice_client.is_playing():  # and not voice_client.is_paused()
+                if not voice_client.is_playing() and not voice_client.is_paused():
                     return await webhook.send('Ничего не воспроизводится')
 
                 now = self.discordBot.music.get('now', [{}])

@@ -83,6 +83,30 @@ class ResultThread(threading.Thread):
         self.result = self.target()
 
 
+def delete_slice(d: deque, start: int, stop: int):
+    length = len(d)
+    stop = min(stop, length) # don't go past the end
+    start = min(start, stop) # don't go past stop
+    if start < length // 2:
+        d.rotate(-start)
+        for i in range(stop-start): # use xrange on Python 2
+            d.popleft()
+        d.rotate(start)
+    else:
+        n = length - stop
+        d.rotate(n)
+        for i in range(stop - start):
+            d.pop()
+        d.rotate(-n)
+
+def repeat(self, voice_client):
+    audioSource = self.discordBot.audiosource
+    ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+                      'options': f'-vn -loglevel fatal'}
+    audioSource = AudioSourceTracked(discord.FFmpegPCMAudio(audioSource.path, **ffmpeg_options), path=audioSource.path)
+    self.discordBot.audiosource = audioSource
+    voice_client.play(audioSource, after=lambda ex: repeat(self, voice_client))
+
 dataBases = DataBases()
 cache = Cache(dataBases)
 # mongoDataBase = dataBases.mongodb_client

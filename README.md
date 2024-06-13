@@ -1,5 +1,4 @@
-<p align="left"> 
-    <img src="https://github.com/freed0m0fspeech/dbot/actions/workflows/fly.yml/badge.svg" />
+<p align="left">
     <img src="https://uptime.betterstack.com/status-badges/v1/monitor/sjz7.svg">
 </p>
 
@@ -28,12 +27,17 @@ Commands to interact with voice channels (/voice):
 Commands to interact with music (/music):
 
   * /now - Show currently playing music
-  * /play [text] - Play music
+  * /play [text] [appendleft] [result_count] [leave] - Play music
   * /queue - Show music queue of the server
   * /skip - Skip currently playing music
-  * /clear [count/-count] - Clear music queue
+  * /stop - Stop playing music
+  * /seek [hh:mm:ss] - Seek currently playing music
+  * /previous - Listen to the previous music
+  * /pause - Pause currently playing music
+  * /clear [count/-count] [start] - Clear music queue
   * /lyrics [text] - Lyrics for title or currently playing music
   * /shuffle - Shuffle music queue of the server
+  * /reverse - Reverse music queue of the server
 
 ---------------
 Functionality:

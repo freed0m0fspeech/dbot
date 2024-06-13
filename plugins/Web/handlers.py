@@ -316,6 +316,16 @@ class WebServerHandler:
 
             members_parameters[f'{member.id}'] = member_parameters
 
+        for invite in await guild.invites():
+            if invite.uses:
+                member = members_parameters.get(f"{invite.inviter.id}", {})
+                if member:
+                    if member.get('invites_count', ''):
+                        members_parameters[f"{invite.inviter.id}"][f"invites_count"] += invite.uses
+                    else:
+                        members_parameters[f"{invite.inviter.id}"][f"invites_count"] = 0
+                        members_parameters[f"{invite.inviter.id}"][f"invites_count"] += invite.uses
+
         stats = []
 
         for member_id, parameters in members_parameters.items():

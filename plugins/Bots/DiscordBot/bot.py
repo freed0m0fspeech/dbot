@@ -1,6 +1,8 @@
 """
 DiscordBot plugin to work with discord
 """
+import logging
+
 import discord
 
 from typing import Any
@@ -129,7 +131,7 @@ command_description = {
     'music': {
         'play': {
             "en-US": 'Play music',
-            "ru-RU": 'Воспроизвести музыку',
+            "ru-RU": 'Воспроизвести песню',
             "default": "en-US",
         },
         'queue': {
@@ -139,22 +141,27 @@ command_description = {
         },
         'pause': {
             "en-US": 'Pause/Resume playing music',
-            "ru-RU": 'Приостановить/Возобновить воспроизведение музыки',
+            "ru-RU": 'Приостановить/Возобновить воспроизведение песни',
             "default": "en-US",
         },
         'skip': {
             "en-US": 'Skip currently playing music',
-            "ru-RU": 'Пропустить текущую музыку',
+            "ru-RU": 'Пропустить текущую песню',
+            "default": "en-US",
+        },
+        'stop': {
+            "en-US": 'Stop playing music',
+            "ru-RU": 'Остановить воспроизведение музыки',
             "default": "en-US",
         },
         'now': {
             "en-US": 'Show currently playing music',
-            "ru-RU": 'Показать текущю музыку',
+            "ru-RU": 'Показать текущю песню',
             "default": "en-US",
         },
         'seek': {
             "en-US": 'Seek currently playing music',
-            "ru-RU": 'Перемотать музыку',
+            "ru-RU": 'Перемотать песню',
             "default": "en-US",
         },
         'clear': {
@@ -164,14 +171,24 @@ command_description = {
         },
         'lyrics': {
             "en-US": 'Lyrics for title or currently playing music',
-            "ru-RU": 'Текст песни по названию или для текущей музыки',
+            "ru-RU": 'Текст песни по названию или для текущей песни',
             "default": "en-US",
         },
         'shuffle': {
             "en-US": 'Shuffle music queue of the server',
             "ru-RU": 'Перемешать музыкальную очередь сервера',
             "default": "en-US",
-        }
+        },
+        'reverse': {
+            "en-US": 'Reverse music queue of the server',
+            "ru-RU": 'Перевернуть музыкальную очередь сервера',
+            "default": "en-US",
+        },
+        'previous': {
+            "en-US": 'Listen to the previous music',
+            "ru-RU": 'Прослушать предыдущую песню',
+            "default": "en-US",
+        },
     },
     'member': {
         'avatar': {
@@ -237,7 +254,7 @@ class DiscordBot:
 
             await commandTree.sync(guild=guild)
         except Exception as e:
-            print(e)
+            logging.warning(e)
 
     async def clear_default_commands(self, guild=None):
         try:
@@ -246,4 +263,4 @@ class DiscordBot:
 
             await commandTree.sync(guild=guild)
         except Exception as e:
-            print(e)
+            logging.warning(e)
