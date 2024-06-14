@@ -7,6 +7,8 @@ from pymongo.cursor import Cursor
 from urllib.parse import quote_plus
 from typing import Optional
 
+import os
+
 
 class MongoDataBase:
     """
