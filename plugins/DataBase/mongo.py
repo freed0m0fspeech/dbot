@@ -7,8 +7,6 @@ from pymongo.cursor import Cursor
 from urllib.parse import quote_plus
 from typing import Optional
 
-import os
-
 
 class MongoDataBase:
     """
@@ -31,7 +29,6 @@ class MongoDataBase:
         :param passwd: Password of MongoDataBase client
         :return: bool
         """
-        print(os.getenv('MONGODATABASE_USER', 'no user'))
         host = self.__host
         user = self.__user
         passwd = self.__passwd
