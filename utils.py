@@ -63,8 +63,10 @@ class AudioSourceTracked(discord.AudioSource):
 
     def read(self) -> bytes:
         data = self._source.read()
+
         if data:
             self.count_20ms += 1
+
         return data
 
     @property

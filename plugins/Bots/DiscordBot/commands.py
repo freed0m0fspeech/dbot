@@ -581,14 +581,14 @@ class DiscordBotCommand:
         webhook = await self._defer(interaction)
 
         try:
-            if not text:
-                return await webhook.send('Текст не найден')
-
             guild = interaction.guild
             user = interaction.user
 
             if isinstance(user, discord.Member):
                 await secret_roles(member=user, guild=guild, event='using command /music play')
+
+            if not text:
+                return await webhook.send('Текст не найден')
 
             voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
             if not voice_channel:
@@ -655,6 +655,9 @@ class DiscordBotCommand:
                 if result_count < 0:
                     result_count = 1
 
+                # 25 max_value for select in discord
+                result_count = min(result_count, 25)
+
                 # info = await self.discordBot.client.loop.run_in_executor(None, lambda: get_best_info_media(text, ydl_opts, result_count=result_count))
                 infoThread = ResultThread(lambda: get_best_info_media(text, ydl_opts, result_count=result_count))
                 infoThread.start()
@@ -665,16 +668,18 @@ class DiscordBotCommand:
                 info = infoThread.result
 
                 if not url and result_count > 1:
-                    results = [(item.get('title', ''), item.get('url', ''), item.get('duration', 0)) for item in info]
+                    if isinstance(info, list):
+                        results = [(item.get('title', ''), item.get('url', ''), item.get('duration', 0)) for item in info]
 
-                    if len(results) == 0:
+                        if not results:
+                            return await webhook.send(f"Ничего не найдено по запросу `{text}`")
+
+                        select = discord.ui.Select(options=[discord.SelectOption(label=f"{datetime.timedelta(seconds=round(result[2])) if result[2] else ''} {result[0]}"[:100], value=result[1][:100]) for result in results],
+                                                   placeholder='Выбери что добавить', custom_id=f'{appendleft} {leave}')
+                        select.callback = self._music_play_callback
+                        return await webhook.send(view=discord.ui.View().add_item(select))
+                    else:
                         return await webhook.send(f"Ничего не найдено по запросу `{text}`")
-
-                    select = discord.ui.Select(options=[discord.SelectOption(label=f"{datetime.timedelta(seconds=round(result[2]))} {result[0]}"[:100], value=result[1][:100]) for result in results],
-                                               placeholder='Выбери что добавить', custom_id=f'{appendleft} {leave}')
-                    select.callback = self._music_play_callback
-                    return await webhook.send(view=discord.ui.View().add_item(select))
-
                 if isinstance(info, dict):
                     if appendleft:
                         self.discordBot.music[guild.id]['queue'].appendleft((info, user))
