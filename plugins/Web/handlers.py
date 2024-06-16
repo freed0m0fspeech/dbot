@@ -210,7 +210,12 @@ class WebServerHandler:
         except JSONDecodeError:
             data = {}
 
+        print(data.get('publicKey', ''))
+        print('\n@\n')
+        print(os.getenv('RSA_PUBLIC_KEY', ''))
+
         if not data.get('publicKey', '') == os.getenv('RSA_PUBLIC_KEY', ''):
+            print('different publicKeys')
             if not os.getenv('DEBUG', False):
                 return Response(status=403)
 
