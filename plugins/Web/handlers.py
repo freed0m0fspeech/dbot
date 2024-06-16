@@ -53,6 +53,7 @@ class WebServerHandler:
                                                self.__send_message_handler)
         self.webServer.client.router.add_route('POST', '/manage/{guild_id:[^\\/]+}/{member_id:[^\\/]+}',
                                                self.__manage_guild_handler)
+        self.webServer.client.router.add_route('GET', '/test', self.__test_handler)
 
     # Discord ----------------------------------------------------------------------------------------------------------
     def __register_handlers_discordmBot(self):
@@ -64,6 +65,19 @@ class WebServerHandler:
 
     async def __default_handler(self, request: 'Request'):
         return Response(text="I'm Web handler")
+
+    async def __test_handler(self, request: 'Request'):
+        try:
+            data = await request.json()
+        except JSONDecodeError:
+            data = {}
+
+        text = 'server: \n'
+        text += os.getenv('RSA_PUBLIC_KEY', '')
+        text += '\nrequest:\n'
+        text += data.get('publicKey', '')
+
+        return Response(text=text)
 
     async def __send_message_handler(self, request: 'Request'):
         # if request.headers.get('Origin', '').split("//")[-1].split("/")[0].split('?')[0] not in ALLOWED_HOSTS:
@@ -210,10 +224,9 @@ class WebServerHandler:
         except JSONDecodeError:
             data = {}
 
-        logging.warning(data.get('publicKey', 'no publicKey'))
+        logging.warning(os.getenv('RSA_PUBLIC_KEY', ''))
 
         if not data.get('publicKey', '') == os.getenv('RSA_PUBLIC_KEY', ''):
-            logging.warning('different publicKeys')
             if not os.getenv('DEBUG', False):
                 return Response(status=403)
 
