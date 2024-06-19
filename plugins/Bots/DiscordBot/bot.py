@@ -195,7 +195,7 @@ command_description = {
             "default": "en-US",
         },
         'start': {
-            "en-US": 'Start playing songs from music queue',
+            "en-US": 'Start playing music from music queue',
             "ru-RU": 'Начать воспроизведение песен из музыкальной очереди',
             "default": "en-US",
         },
