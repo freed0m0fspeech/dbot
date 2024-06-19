@@ -29,6 +29,7 @@ Commands to interact with music (/music):
   * /now - Show currently playing music
   * /play [text] [appendleft] [result_count] [leave] - Play music
   * /queue - Show music queue of the server
+  * /history - Show music queue history of the server
   * /skip - Skip currently playing music
   * /stop - Stop playing music
   * /seek [hh:mm:ss] - Seek currently playing music

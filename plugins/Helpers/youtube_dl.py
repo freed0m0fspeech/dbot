@@ -150,8 +150,8 @@ def get_best_info_media(title: str, ydl_opts=None, search_engine=None, result_co
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         try:
             ydl.cache.remove()
-        except PermissionError:
-            return
+        except (PermissionError, FileNotFoundError, OSError):
+            return False
 
         if url:
             try:

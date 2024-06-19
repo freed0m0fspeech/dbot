@@ -139,6 +139,11 @@ command_description = {
             "ru-RU": 'Показать музыкальную очередь сервера',
             "default": "en-US",
         },
+        'history': {
+            "en-US": 'Show music queue history of the server',
+            "ru-RU": 'Показать историю музыкальной очереди сервера',
+            "default": "en-US",
+        },
         'pause': {
             "en-US": 'Pause/Resume playing music',
             "ru-RU": 'Приостановить/Возобновить воспроизведение песни',
@@ -151,7 +156,7 @@ command_description = {
         },
         'stop': {
             "en-US": 'Stop playing music',
-            "ru-RU": 'Остановить воспроизведение музыки',
+            "ru-RU": 'Остановить воспроизведение песен',
             "default": "en-US",
         },
         'now': {
@@ -187,6 +192,11 @@ command_description = {
         'previous': {
             "en-US": 'Listen to the previous music',
             "ru-RU": 'Прослушать предыдущую песню',
+            "default": "en-US",
+        },
+        'start': {
+            "en-US": 'Start playing songs from music queue',
+            "ru-RU": 'Начать воспроизведение песен из музыкальной очереди',
             "default": "en-US",
         },
     },
