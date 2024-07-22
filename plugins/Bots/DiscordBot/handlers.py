@@ -140,7 +140,7 @@ class DiscordBotHandler:
                                 changes = f'{changes}- {attr}\n{value}\n\n'
                                 continue
 
-                            if attr in ('content', 'system_content', 'color', 'embeds', 'flags'):
+                            if attr in ('content', 'system_content', 'color', 'embeds', 'flags', 'tags'):
                                 continue
 
                             if isinstance(value_after, dict):
