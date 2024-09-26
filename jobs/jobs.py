@@ -18,7 +18,7 @@ def stats_sync(query=None, filter=None):
         if mongoUpdate is None:
             date = datetime.now(tz=utc) + timedelta(minutes=15)
             date = date.strftime('%Y-%m-%d %H:%M:%S')
-            return sched.get_job('stats_sync').modify(date=date, args=[query, filter])
+            return sched.get_job('stats_sync').modify(next_run_time=date, args=[query, filter])
         else:
             return sched.get_job('stats_sync').modify(args=[])
 
