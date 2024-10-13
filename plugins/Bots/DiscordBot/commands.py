@@ -562,8 +562,13 @@ class DiscordBotCommand:
         infoThread = ResultThread(lambda: get_best_info_media(info.get('original_url', info.get('url', '')), ydl_opts))
         infoThread.start()
 
+        timeout = 0
         while infoThread.is_alive():
+            timeout += 1
             await asyncio.sleep(1)
+
+            if timeout >= 60:
+                break
 
         # info = results[0]
         info = infoThread.result
