@@ -140,6 +140,7 @@ def get_best_info_media(title: str, ydl_opts=None, search_engine=None, result_co
             'quiet': False,
             'ignoreerrors': True,
             'noplaylist': True,
+            'socket_timeout': 10,
         }
 
     if re.match(regex_link, title):

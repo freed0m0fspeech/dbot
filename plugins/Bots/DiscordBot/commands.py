@@ -16,6 +16,7 @@ from plugins.Bots.DiscordBot.roles import secret_roles
 from collections import deque
 from plugins.Helpers.youtube_dl import get_best_info_media, regex_link
 from time import time as timenow
+from time import perf_counter
 
 max_music_queue_len = 5000
 
@@ -562,12 +563,13 @@ class DiscordBotCommand:
         infoThread = ResultThread(lambda: get_best_info_media(info.get('original_url', info.get('url', '')), ydl_opts))
         infoThread.start()
 
-        timeout = 0
+        time = perf_counter()
         while infoThread.is_alive():
-            timeout += 1
             await asyncio.sleep(1)
 
-            if timeout >= 60:
+            elapsed_time = perf_counter() - time
+
+            if elapsed_time > 10:
                 break
 
         # info = results[0]
