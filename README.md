@@ -23,6 +23,7 @@ Commands to interact with voice channels (/voice):
   * /owner @member - Show/Give owner of the voice channel
   * /role @role - Allow/Deny access for role to the voice channel 
   * /limit [user_limit] - Change user limit of the voice channel
+  * /random [members_count] - Random members for voice channel
 
 Commands to interact with music (/music):
 
