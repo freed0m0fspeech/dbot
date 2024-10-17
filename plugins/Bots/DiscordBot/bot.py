@@ -95,6 +95,11 @@ command_description = {
             "ru-RU": 'Изменить лимит пользователей для голосового канала',
             "default": "en-US",
         },
+        'random': {
+            "en-US": 'Random members for voice channel',
+            "ru-RU": 'Рандомные пользователей для голосового канала',
+            "default": "en-US",
+        }
     },
     'server': {
         'prefix': {

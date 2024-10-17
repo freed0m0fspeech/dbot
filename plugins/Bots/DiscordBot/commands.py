@@ -506,6 +506,26 @@ class DiscordBotCommand:
         except Exception as e:
             return await webhook.send(str(e), ephemeral=True)
 
+    async def voice_random(self, interaction: discord.Interaction, members_count: int):
+        webhook = await self._defer(interaction)
+
+        if members_count <= 0:
+            return await webhook.send('Неверное число пользователей', ephemeral=True)
+
+        try:
+            user = interaction.user
+
+            voice_channel = await self._check_user_in_voice(user=user, webhook=webhook)
+            if not voice_channel:
+                return
+
+            members = voice_channel.members
+            shuffle(members)
+
+            await webhook.send(f'Рандомные {members_count} пользователей для голосового канала {[member.mention for member in members[0:members_count]]}', ephemeral=True)
+        except Exception as e:
+            return await webhook.send(str(e), ephemeral=True)
+
     async def _play(self, guild, leave: bool = False):
         if not guild.voice_client:
             return
@@ -1032,7 +1052,7 @@ class DiscordBotCommand:
                 user: discord.Member
                 content = f"{content}{i}. `{info.get('title', '')}` добавил(а) {user.mention}\n"
 
-            queue_embed = discord.Embed(title=f"История музыкальной очереди ({guild.name}) - {len(music_queue_history)}",
+            queue_embed = discord.Embed(title=f"История музыкальной очереди ({guild.name}): {len(music_queue_history)}",
                                         description=f"{content}",
                                         color=discord.Color.random(),
                                         timestamp=datetime.datetime.now(tz=pytz.timezone('Europe/Kiev')))
