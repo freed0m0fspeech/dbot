@@ -749,8 +749,14 @@ class DiscordBotCommand:
                 infoThread = ResultThread(lambda: get_best_info_media(text, ydl_opts, result_count=result_count))
                 infoThread.start()
 
+                time = perf_counter()
                 while infoThread.is_alive():
                     await asyncio.sleep(1)
+
+                    elapsed_time = perf_counter() - time
+
+                    if elapsed_time > 10:
+                        break
 
                 info = infoThread.result
 
@@ -1325,8 +1331,14 @@ class DiscordBotCommand:
                 infoThread = ResultThread(lambda: get_best_info_media(url, ydl_opts))
                 infoThread.start()
 
+                time = perf_counter()
                 while infoThread.is_alive():
                     await asyncio.sleep(1)
+
+                    elapsed_time = perf_counter() - time
+
+                    if elapsed_time > 10:
+                        break
 
                 # info = results[0]
                 info = infoThread.result
