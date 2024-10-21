@@ -693,6 +693,9 @@ class DiscordBotCommand:
                     voice_client = await voice_channel.connect()
                     await guild.change_voice_state(channel=voice_channel)
 
+            if not self.discordBot.music[guild.id]['queue_history']:
+                self.discordBot.music[guild.id]['queue_history'] = deque(maxlen=10)
+
             voice_client_is_busy = voice_client.is_playing() or voice_client.is_paused()
             if not voice_client.channel.id == voice_channel.id:
                 if not voice_client_is_busy or len(voice_client.channel.members) == 1:
@@ -803,6 +806,8 @@ class DiscordBotCommand:
                             await webhook.send(f"`{info[0].get('title', '')}` был добавлен в музыкальную очередь", ephemeral=True)
                         else:
                             await webhook.send(f"`{count}` элементов было добавлено в музыкальную очередь", ephemeral=True)
+                else:
+                    return await webhook.send(f"Ничего не найдено по запросу `{text}`", ephemeral=True)
             else:
                 await webhook.send(f'Достигнута максимальная длина музыкальной очереди', ephemeral=True)
 
@@ -836,8 +841,10 @@ class DiscordBotCommand:
                     voice_client = await voice_channel.connect()
                     await guild.change_voice_state(channel=voice_channel)
 
-            voice_client_is_busy = voice_client.is_playing() or voice_client.is_paused()
+            if not self.discordBot.music[guild.id]['queue_history']:
+                self.discordBot.music[guild.id]['queue_history'] = deque(maxlen=10)
 
+            voice_client_is_busy = voice_client.is_playing() or voice_client.is_paused()
             if not voice_client.channel.id == voice_channel.id:
                 if not voice_client_is_busy or len(voice_client.channel.members) == 1:
                     await voice_client.disconnect(force=True)
