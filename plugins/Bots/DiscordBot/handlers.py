@@ -262,7 +262,10 @@ class DiscordBotHandler:
         if voice_channel_cache:
             if len(members) == 0:
                 # Leaves last member in voice channel
-                await voice_channel.delete()
+                try:
+                    await voice_channel.delete()
+                except discord.errors.NotFound:
+                    pass
 
                 del cache.stats[guild.id]['tvoice_channels'][voice_channel.id]
 
