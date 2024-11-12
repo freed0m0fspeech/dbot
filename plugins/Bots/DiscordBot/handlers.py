@@ -308,7 +308,12 @@ class DiscordBotHandler:
                 if new_owner:
                     overwrites = voice_channel.overwrites
                     overwrites[new_owner] = discord.PermissionOverwrite.from_pair(allow=discord.Permissions.all_channel(), deny=discord.Permissions.none())
-                    del overwrites[member]
+
+                    # Restrict pvevious owner of voice channel to only view voice channel
+                    # del overwrites[member]
+                    allow = discord.Permissions.none()
+                    allow.view_channel = True
+                    overwrites[member] = discord.PermissionOverwrite.from_pair(allow=allow, deny=discord.Permissions.none())
 
                     await voice_channel.edit(name=f'@{new_owner.name}', overwrites=overwrites)
 
