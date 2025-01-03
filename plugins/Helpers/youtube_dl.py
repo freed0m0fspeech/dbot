@@ -3,6 +3,7 @@ import os
 import subprocess
 import re
 from collections import deque
+from pathlib import Path
 
 #import streamlink
 # import youtube_dl
@@ -88,6 +89,8 @@ def get_info_media(title: str, ydl_opts=None, search_engine=None, result_count=1
             'noplaylist': True,
         }
 
+    ydl_opts['cookiefile'] = f"{Path(__file__).parent / 'coockies' / 'www.youtube.com_cookies.txt'}"
+
     if re.match(regex_link, title):
         url = title
     else:
@@ -143,6 +146,8 @@ def get_best_info_media(title: str, ydl_opts=None, search_engine=None, result_co
             'socket_timeout': 10,
         }
 
+    ydl_opts['cookiefile'] = f"{Path(__file__).parent / 'cookies' / 'www.youtube.com_cookies.txt'}"
+
     if re.match(regex_link, title):
         url = title
     else:
@@ -166,7 +171,11 @@ def get_best_info_media(title: str, ydl_opts=None, search_engine=None, result_co
             else:
                 try:
                     info = ydl.extract_info(f"ytsearch{result_count}:{title}", download=download)
-                except DownloadError:
+                except DownloadError as e:
+                    logging.warning('DownloadError')
+                    info = None
+
+                if not info:
                     try:
                         info = ydl.extract_info(f"scsearch{result_count}:{title}", download=download)
                     except DownloadError:
