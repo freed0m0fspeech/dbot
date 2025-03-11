@@ -34,6 +34,8 @@ async def roll_role(member: Member, guild: Guild, name: str, rate=3):
             await member.add_roles(role)
             await member.send(f'Поздравляю. Ты разблокировал(а) секретную роль: {role.name}')
 
+            await secret_roles(member, guild, 'getting new role')
+
 async def secret_roles(member: Member, guild: Guild, event: str, *attrs):
     if member and guild and event:
         if member.bot:
@@ -48,27 +50,44 @@ async def secret_roles(member: Member, guild: Guild, event: str, *attrs):
                 if not hasattr(activity, 'name'):
                     return
 
-                if activity.name == 'Counter-Strike 2':
-                    return await roll_role(member=member, guild=guild, name='🕌 Сын миража', rate=3)
-                elif activity.name == 'Banana':
+                if not hasattr(activity, 'application_id'):
+                    return
+
+                activity_name = activity.name.lower()
+
+                if activity_name == 'banana':
                     return await roll_role(member=member, guild=guild, name='🐒 Мавпа', rate=3)
-                elif 'Grand Theft Auto' in activity.name:
-                    return await roll_role(member=member, guild=guild, name='👩🏻‍💼 Офисный планктон', rate=3)
-                elif activity.name == 'Dead by Daylight':
+                elif activity_name == 'dead by daylight':
                     return await roll_role(member=member, guild=guild, name='🔪 Убийца', rate=3)
-                elif activity.name == 'World of Tanks':
+                elif activity_name == 'world of tanks':
                     return await roll_role(member=member, guild=guild, name='🥊 Пробитый', rate=3)
-                elif activity.name == 'Among Us':
+                elif activity_name == 'among us':
                     return await roll_role(member=member, guild=guild, name='🛸 Член экипажа', rate=3)
+                elif activity_name == 'rocket league':
+                    return await roll_role(member=member, guild=guild, name='♿ Инвалид', rate=3)
+                elif activity_name == 'rust':
+                    return await roll_role(member=member, guild=guild, name='⛏️ Клановый игрок', rate=3)
+
+                elif 'counter-strike'in activity_name:
+                    return await roll_role(member=member, guild=guild, name='🕌 Сын миража', rate=3)
+                elif 'grand theft auto' in activity_name:
+                    return await roll_role(member=member, guild=guild, name='👩🏻‍💼 Офисный планктон', rate=3)
+                elif 'escape from tarkov' in activity_name:
+                    return await roll_role(member=member, guild=guild, name='🦟 Тарковский комар', rate=3)
+                elif "tom clancy's rainbow six siege" in activity_name:
+                    return await roll_role(member=member, guild=guild, name='🌈 Радужный', rate=3)
 
             return
 
         if event == 'joining voice channel':
             return await roll_role(member=member, guild=guild, name='👣 Бродяга', rate=3)
+
         if event == 'leaving last from temporary voice channel':
             return await roll_role(member=member, guild=guild, name='🧨 Уничтожитель', rate=3)
+
         if event == 'creation of new temporary voice channel':
             return await roll_role(member=member, guild=guild, name='💥 Создатель', rate=3)
+
         if event == 'being in voice channel 6.9 or more hours':
             return await roll_role(member=member, guild=guild, name='♋ Живая легенда', rate=3)
 
@@ -95,10 +114,13 @@ async def secret_roles(member: Member, guild: Guild, event: str, *attrs):
 
         if event == 'self mute action':
             return await roll_role(member=member, guild=guild, name='🤐 Молчун', rate=3)
+
         if event == 'self deaf action':
             return await roll_role(member=member, guild=guild, name='🙉 Глухонемой', rate=3)
+
         if event == 'self stream action':
             return await roll_role(member=member, guild=guild, name='🎬 Режиссер', rate=3)
+
         if event == 'self video action':
             return await roll_role(member=member, guild=guild, name='🔞 Порнозвезда', rate=3)
 
@@ -110,11 +132,12 @@ async def secret_roles(member: Member, guild: Guild, event: str, *attrs):
                 reaction = attrs[0]
 
                 if hasattr(reaction, 'name'):
-                    if reaction.name == 'WorldWarZ':
+                    reaction_name = reaction.name.lower()
+                    if reaction_name == 'worldwarz':
                         await roll_role(member=member, guild=guild, name='🪆 Пешка Кремля', rate=3)
-                    elif reaction.name == 'AmongUs':
+                    elif reaction_name == 'amongus':
                         await roll_role(member=member, guild=guild, name='💀 Импостер', rate=3)
-                    elif reaction.name == 'WorldofTanks':
+                    elif reaction_name == 'worldoftanks':
                         await roll_role(member=member, guild=guild, name='🦀 Ракообразный', rate=3)
                 else:
                     if reaction == '👍':
@@ -133,6 +156,7 @@ async def secret_roles(member: Member, guild: Guild, event: str, *attrs):
                         await roll_role(member=member, guild=guild, name='🌶️ Перченый', rate=3)
 
             return await roll_role(member=member, guild=guild, name='☢️ Реактор', rate=3)
+
         if event == 'removing reaction from message':
             return await roll_role(member=member, guild=guild, name='☣️ Дезинтегратор', rate=3)
 
@@ -141,8 +165,12 @@ async def secret_roles(member: Member, guild: Guild, event: str, *attrs):
 
         if event == 'deleting message':
             return await roll_role(member=member, guild=guild, name='🗑️ Мусорщик', rate=3)
+
         if event == 'editing message':
             return await roll_role(member=member, guild=guild, name='✏️ Редактор', rate=3)
 
         if event == 'creating invite':
             return await roll_role(member=member, guild=guild, name='💌 Зазывала', rate=3)
+
+        if event == 'getting new role':
+            return await roll_role(member=member, guild=guild, name='💎 Коллекционер', rate=2)
