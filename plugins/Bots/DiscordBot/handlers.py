@@ -3,18 +3,12 @@ from typing import Union, Optional
 import discord.ext.commands
 import discord.utils
 import pytz
-import pandas as pd
 
 from datetime import datetime
 from version import __version__
 from utils import *
 from utils import cache
 from plugins.Bots.DiscordBot.roles import secret_roles
-
-bad_words = pd.read_csv('bad_words.csv', encoding='windows-1251')
-
-# drop rows with different language
-# bad_words = bad_words[bad_words['language'] == 'ru']
 
 class DiscordBotHandler:
     """
@@ -617,25 +611,9 @@ class DiscordBotHandler:
             await self._on_message_count(guild=guild, author=author)
 
             # Unique roles
-
-            # Chance to get role for sending message Lucky message (1 in 100.000)
-            await secret_roles(member=author, guild=guild, event='sending message')
-
-            # Chance to get role for sending toxic message Toxic words (1 in 1.000)
-            # words = message.content.lower().split(' ')
-
-            # if any(bad_words['word'].isin(words)):
             content = message.content.lower()
-            if any([word in content for word in bad_words['word']]):
-                await secret_roles(member=author, guild=guild, event='sending toxic message')
 
-            # Chance to get role for sending message with . in the end of sentence (1 in 1.000)
-            if content.endswith('.'):
-                await secret_roles(member=author, guild=guild, event='sending message with . in the end of sentence')
-
-            # Chance to get role for sending message 'пам' in sentence (1 in 1.000)
-            if 'пам' in content:
-                await secret_roles(member=author, guild=guild, event='sending message пам in sentence')
+            await secret_roles(author, guild, 'sending message', content)
 
         except Exception as e:
             logging.warning(e)
@@ -1183,7 +1161,7 @@ class DiscordBotHandler:
         """
         pass
 
-    async def _on_presence_update(self, before: discord.Member, after: discord.Member):
+    async def on_presence_update(self, before: discord.Member, after: discord.Member):
         """
         Called when a Member updates their presence.
 
@@ -1193,7 +1171,10 @@ class DiscordBotHandler:
 
         This requires Intents.presences and Intents.members to be enabled.
         """
-        await self._on_event_send_embed('on_presence_update', after.guild, before, after)
+        # await self._on_event_send_embed('on_presence_update', after.guild, before, after)
+
+        if before.activities != after.activities:
+            await secret_roles(after, after.guild, 'activity updated', after.activity)
 
     async def _on_reaction_add_count(self, guild: discord.Guild, author: discord.Member):
         reactions_count = 1
@@ -1220,7 +1201,7 @@ class DiscordBotHandler:
         await self._on_event_send_embed('on_reaction_add', guild, reaction)
 
         # Chance to get role for adding reaction to message
-        await secret_roles(member=member, guild=guild, event='adding reaction to message')
+        await secret_roles(member, guild, 'adding reaction to message', reaction.emoji)
 
     async def _on_reaction_remove_count(self, guild: discord.Guild, author: discord.Member):
         reactions_count = -1
