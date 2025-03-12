@@ -67,6 +67,16 @@ async def secret_roles(member: Member, guild: Guild, event: str, *attrs):
                     return await roll_role(member=member, guild=guild, name='♿ Инвалид', rate=3)
                 elif activity_name == 'rust':
                     return await roll_role(member=member, guild=guild, name='⛏️ Клановый игрок', rate=3)
+                elif activity_name == 'terraria':
+                    return await roll_role(member=member, guild=guild, name='🌛 Лунный повелитель', rate=3)
+                elif activity_name == 'dota 2':
+                    return await roll_role(member=member, guild=guild, name='👨‍👩‍👦 Приемный', rate=3)
+                elif activity_name == 'league of legends':
+                    return await roll_role(member=member, guild=guild, name='🧙🏻‍♂️ Легенда', rate=3)
+                elif activity_name == 'minecraft':
+                    return await roll_role(member=member, guild=guild, name='🧊 Квадратный', rate=3)
+                elif activity_name == 'overwatch':
+                    return await roll_role(member=member, guild=guild, name='🍑 Любитель жоп', rate=3)
 
                 elif 'counter-strike'in activity_name:
                     return await roll_role(member=member, guild=guild, name='🕌 Сын миража', rate=3)
@@ -76,6 +86,14 @@ async def secret_roles(member: Member, guild: Guild, event: str, *attrs):
                     return await roll_role(member=member, guild=guild, name='🦟 Тарковский комар', rate=3)
                 elif "tom clancy's rainbow six siege" in activity_name:
                     return await roll_role(member=member, guild=guild, name='🌈 Радужный', rate=3)
+                elif 'starcraft' in activity_name:
+                    return await roll_role(member=member, guild=guild, name='⭐ Звездный', rate=3)
+                elif 'poker' in activity_name:
+                    return await roll_role(member=member, guild=guild, name='🃏 Шулер', rate=3)
+                elif 'need for speed' in activity_name:
+                    return await roll_role(member=member, guild=guild, name='🏎️ Гонщик', rate=3)
+                elif 'dark souls' in activity_name:
+                    return await roll_role(member=member, guild=guild, name='💨 Повелитель пепла', rate=3)
 
             return
 
@@ -133,6 +151,7 @@ async def secret_roles(member: Member, guild: Guild, event: str, *attrs):
 
                 if hasattr(reaction, 'name'):
                     reaction_name = reaction.name.lower()
+
                     if reaction_name == 'worldwarz':
                         await roll_role(member=member, guild=guild, name='🪆 Пешка Кремля', rate=3)
                     elif reaction_name == 'amongus':
@@ -154,6 +173,10 @@ async def secret_roles(member: Member, guild: Guild, event: str, *attrs):
                         await roll_role(member=member, guild=guild, name='🚩 Ред флаг', rate=3)
                     elif reaction == '🌶️':
                         await roll_role(member=member, guild=guild, name='🌶️ Перченый', rate=3)
+                    elif reaction == '😢':
+                        await roll_role(member=member, guild=guild, name='😢 Плакса', rate=3)
+                    elif reaction == '🥺':
+                        await roll_role(member=member, guild=guild, name='🥺 Милашка', rate=3)
 
             return await roll_role(member=member, guild=guild, name='☢️ Реактор', rate=3)
 

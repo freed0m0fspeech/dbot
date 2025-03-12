@@ -565,16 +565,18 @@ class DiscordBotHandler:
         cache.stats[guild.id]['members'][author.id]['messages_count'] = messages_count
         message_xp_delay = cache.stats.get(guild.id, {}).get('xp', {}).get('message_xp_delay', 60)
 
-        # Count messages only every 60 seconds
-        if not last_message_seconds or last_message_seconds > message_xp_delay:
-            date = datetime.now(tz=pytz.utc)
-            date = date.strftime('%Y-%m-%d %H:%M:%S')
+        # If sended messages more than limit don't count as xp
+        if messages_count <= cache.stats.get(guild.id, {}).get('xp', {}).get('message_xp_limit', 60):
+            # Count messages only every 60 seconds
+            if not last_message_seconds or last_message_seconds > message_xp_delay:
+                date = datetime.now(tz=pytz.utc)
+                date = date.strftime('%Y-%m-%d %H:%M:%S')
 
-            messages_count_xp = 1
-            messages_count_xp += cache.stats.get(guild.id, {}).get('members', {}).get(author.id, {}).get('messages_count_xp', 0)
+                messages_count_xp = 1
+                messages_count_xp += cache.stats.get(guild.id, {}).get('members', {}).get(author.id, {}).get('messages_count_xp', 0)
 
-            cache.stats[guild.id]['members'][author.id]['messages_count_xp'] = messages_count_xp
-            cache.stats[guild.id]['members'][author.id]['last_message'] = date
+                cache.stats[guild.id]['members'][author.id]['messages_count_xp'] = messages_count_xp
+                cache.stats[guild.id]['members'][author.id]['last_message'] = date
 
     async def on_message(self, message: discord.Message):
         """
@@ -1173,8 +1175,9 @@ class DiscordBotHandler:
         """
         # await self._on_event_send_embed('on_presence_update', after.guild, before, after)
 
-        if before.activities != after.activities:
-            await secret_roles(after, after.guild, 'activity updated', after.activity)
+        if after.activities:
+            if before.activities != after.activities:
+                await secret_roles(after, after.guild, 'activity updated', after.activities[-1])
 
     async def _on_reaction_add_count(self, guild: discord.Guild, author: discord.Member):
         reactions_count = 1
