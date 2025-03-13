@@ -472,17 +472,23 @@ class DiscordBotCommand:
                 if member.id == owner.get('id', ''):
                     return await webhook.send('Вы и так владелец этого голосового канала', ephemeral=True)
 
+                members = voice_channel.members
                 if not owner.get('id', '') == user.id:
-                    members = voice_channel.members
+                    member_ids = [tmember.id for tmember in members]
 
-                    if owner.get('id', '') in [tmember.id for tmember in members]:
+                    if owner.get('id', '') in member_ids:
                         return await webhook.send('Вы не владелец этого голосового канала', ephemeral=True)
+                    else:
+                        user = discord.utils.get(guild.members, id=owner.get('id', ''))
+
+                if member not in members:
+                    return await webhook.send('Новый владелец должен быть в голосовом канале', ephemeral=True)
 
                 overwrites = voice_channel.overwrites
                 overwrites[member] = discord.PermissionOverwrite.from_pair(allow=discord.Permissions.all_channel(),
                                                                            deny=discord.Permissions.none())
 
-                del overwrites[discord.utils.get(guild.members, id=owner.get('id', ''))]
+                del overwrites[user]
 
                 await voice_channel.edit(name=f'@{member.name}', overwrites=overwrites)
                 await webhook.send(f'Новый владелец голосового канала {voice_channel.mention}: <@{member.id}> :)', ephemeral=True)
