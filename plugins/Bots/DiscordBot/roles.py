@@ -5,7 +5,57 @@ from discord import Member, Guild, utils, Color
 from random import random
 
 bad_words = pd.read_csv('bad_words.csv', encoding='windows-1251')
+
 stalker_words = ['зона', 'свет', 'знания']
+
+game_roles = {
+    'banana': '🐒 Мавпа',
+    'dead by daylight': '🔪 Убийца',
+    'world of tanks': '🥊 Пробитый',
+    'among us': '🛸 Член экипажа',
+    'rocket league': '♿ Инвалид',
+    'rust': '⛏️ Клановый игрок',
+    'terraria': '🌛 Лунный повелитель',
+    'dota 2': '👨‍👩‍👦 Приемный',
+    'league of legends': '🧙🏻‍♂️ Легенда',
+    'minecraft': '🧊 Шахтер с алмазами',
+    'deep rock galactic': '🪨 Камень',
+    'valorant': '🪅 Калорантер',
+}
+
+partial_name_game_roles = {
+    'diablo': '👹 Нефолем',
+    'fifa': '⚽ Офсайдер',
+    'call of duty': '🪖 Генерал диванных войск',
+    'civilization': '🏹 Парашник',
+    'overwatch': '💦 Овердрочер',
+    'counter-strike': '🕌 Сын миража',
+    'grand theft auto': '💲 Бомж-миллионер',
+    'escape from tarkov': '🦟 Тарковский комар',
+    "tom clancy's rainbow six siege": '🌈 Оператор дронов',
+    'starcraft': '⭐ Адепт',
+    'poker': '🃏 Шулер',
+    'need for speed': '🏎️ Гонщик',
+    'dark souls': '💨 Повелитель пепла',
+}
+
+reaction_roles = {
+    '🥺': '🥺 Милашка',
+    '😢': '😢 Плакса',
+    '🌶️': '🌶️ Перченый',
+    '🚩': '🚩 Ред флаг',
+    '💩': '💩 Какашка',
+    '🔥': '🔥 Обжигатель',
+    '🤡': '🤡 Клоун',
+    '👎': '🤬 Хейтер',
+    '👍': '🥰 Доброжелатель',
+}
+
+reaction_name_roles = {
+    'worldwarz': '🪆 Пешка Кремля',
+    'amongus': '💀 Импостер',
+    'worldoftanks': '🦀 Ракообразный',
+}
 
 # drop rows with different language
 # bad_words = bad_words[bad_words['language'] == 'ru']
@@ -55,47 +105,16 @@ async def secret_roles(member: Member, guild: Guild, event: str, *attrs):
 
                 activity_name = activity.name.lower()
 
-                if activity_name == 'banana':
-                    return await roll_role(member=member, guild=guild, name='🐒 Мавпа', rate=3)
-                elif activity_name == 'dead by daylight':
-                    return await roll_role(member=member, guild=guild, name='🔪 Убийца', rate=3)
-                elif activity_name == 'world of tanks':
-                    return await roll_role(member=member, guild=guild, name='🥊 Пробитый', rate=3)
-                elif activity_name == 'among us':
-                    return await roll_role(member=member, guild=guild, name='🛸 Член экипажа', rate=3)
-                elif activity_name == 'rocket league':
-                    return await roll_role(member=member, guild=guild, name='♿ Инвалид', rate=3)
-                elif activity_name == 'rust':
-                    return await roll_role(member=member, guild=guild, name='⛏️ Клановый игрок', rate=3)
-                elif activity_name == 'terraria':
-                    return await roll_role(member=member, guild=guild, name='🌛 Лунный повелитель', rate=3)
-                elif activity_name == 'dota 2':
-                    return await roll_role(member=member, guild=guild, name='👨‍👩‍👦 Приемный', rate=3)
-                elif activity_name == 'league of legends':
-                    return await roll_role(member=member, guild=guild, name='🧙🏻‍♂️ Легенда', rate=3)
-                elif activity_name == 'minecraft':
-                    return await roll_role(member=member, guild=guild, name='🧊 Квадратный', rate=3)
-                elif activity_name == 'overwatch':
-                    return await roll_role(member=member, guild=guild, name='🍑 Любитель жоп', rate=3)
+                role_name = game_roles.get(activity_name, '')
+                if role_name:
+                    await roll_role(member=member, guild=guild, name=f'{role_name}', rate=3)
+                else:
+                    role_names = list(filter(None, [partial_name_game_roles.get(word, '') for word in activity_name.split()]))
+                    if role_names:
+                        role_name = role_names.pop()
+                        await roll_role(member=member, guild=guild, name=f'{role_name}', rate=3)
 
-                elif 'counter-strike'in activity_name:
-                    return await roll_role(member=member, guild=guild, name='🕌 Сын миража', rate=3)
-                elif 'grand theft auto' in activity_name:
-                    return await roll_role(member=member, guild=guild, name='👩🏻‍💼 Офисный планктон', rate=3)
-                elif 'escape from tarkov' in activity_name:
-                    return await roll_role(member=member, guild=guild, name='🦟 Тарковский комар', rate=3)
-                elif "tom clancy's rainbow six siege" in activity_name:
-                    return await roll_role(member=member, guild=guild, name='🌈 Радужный', rate=3)
-                elif 'starcraft' in activity_name:
-                    return await roll_role(member=member, guild=guild, name='⭐ Звездный', rate=3)
-                elif 'poker' in activity_name:
-                    return await roll_role(member=member, guild=guild, name='🃏 Шулер', rate=3)
-                elif 'need for speed' in activity_name:
-                    return await roll_role(member=member, guild=guild, name='🏎️ Гонщик', rate=3)
-                elif 'dark souls' in activity_name:
-                    return await roll_role(member=member, guild=guild, name='💨 Повелитель пепла', rate=3)
-
-            return
+            return await roll_role(member=member, guild=guild, name='🎯 Геймер', rate=3)
 
         if event == 'joining voice channel':
             return await roll_role(member=member, guild=guild, name='👣 Бродяга', rate=3)
@@ -152,31 +171,13 @@ async def secret_roles(member: Member, guild: Guild, event: str, *attrs):
                 if hasattr(reaction, 'name'):
                     reaction_name = reaction.name.lower()
 
-                    if reaction_name == 'worldwarz':
-                        await roll_role(member=member, guild=guild, name='🪆 Пешка Кремля', rate=3)
-                    elif reaction_name == 'amongus':
-                        await roll_role(member=member, guild=guild, name='💀 Импостер', rate=3)
-                    elif reaction_name == 'worldoftanks':
-                        await roll_role(member=member, guild=guild, name='🦀 Ракообразный', rate=3)
+                    role_name = reaction_name_roles.get(reaction_name, '')
+                    if role_name:
+                        await roll_role(member=member, guild=guild, name=f'{role_name}', rate=3)
                 else:
-                    if reaction == '👍':
-                        await roll_role(member=member, guild=guild, name='🥰 Доброжелатель', rate=3)
-                    elif reaction == '👎':
-                        await roll_role(member=member, guild=guild, name='🤬 Хейтер', rate=3)
-                    elif reaction == '🤡':
-                        await roll_role(member=member, guild=guild, name='🤡 Клоун', rate=3)
-                    elif reaction == '🔥':
-                        await roll_role(member=member, guild=guild, name='🔥 Обжигатель', rate=3)
-                    elif reaction == '💩':
-                        await roll_role(member=member, guild=guild, name='💩 Какашка', rate=3)
-                    elif reaction == '🚩':
-                        await roll_role(member=member, guild=guild, name='🚩 Ред флаг', rate=3)
-                    elif reaction == '🌶️':
-                        await roll_role(member=member, guild=guild, name='🌶️ Перченый', rate=3)
-                    elif reaction == '😢':
-                        await roll_role(member=member, guild=guild, name='😢 Плакса', rate=3)
-                    elif reaction == '🥺':
-                        await roll_role(member=member, guild=guild, name='🥺 Милашка', rate=3)
+                    role_name = reaction_roles.get(reaction, '')
+                    if role_name:
+                        await roll_role(member=member, guild=guild, name=f'{role_name}', rate=3)
 
             return await roll_role(member=member, guild=guild, name='☢️ Реактор', rate=3)
 

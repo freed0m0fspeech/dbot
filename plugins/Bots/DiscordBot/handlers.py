@@ -564,7 +564,7 @@ class DiscordBotHandler:
 
         cache.stats[guild.id]['members'][author.id]['messages_count'] = messages_count
         message_xp_delay = cache.stats.get(guild.id, {}).get('xp', {}).get('message_xp_delay', 60)
-        print(cache.stats.get(guild.id, {}).get('xp', {}).get('message_xp_limit', 60))
+
         # If sended messages more than limit don't count as xp
         if messages_count <= cache.stats.get(guild.id, {}).get('xp', {}).get('message_xp_limit', 60):
             # Count messages only every 60 seconds
