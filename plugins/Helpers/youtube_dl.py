@@ -171,7 +171,7 @@ def get_best_info_media(title: str, ydl_opts=None, search_engine=None, result_co
             else:
                 try:
                     info = ydl.extract_info(f"ytsearch{result_count}:{title}", download=download)
-                except DownloadError as e:
+                except DownloadError  as e:
                     logging.warning('DownloadError')
                     info = None
 
