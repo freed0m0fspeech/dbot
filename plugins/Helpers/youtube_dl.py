@@ -193,12 +193,12 @@ def get_best_info_media(title: str, ydl_opts=None, search_engine=None, result_co
         for result in info['entries']:
             try:
                 bestFormats.append(list(formatSelector(result))[0])
-            except (KeyError, StopIteration):
+            except (KeyError, StopIteration, TypeError):
                 bestFormats.append(result)
     else:
         try:
             bestFormat = list(formatSelector(info))[0]
-        except (KeyError, StopIteration):
+        except (KeyError, StopIteration, TypeError):
             bestFormat = info
 
     if bestFormats:
