@@ -5,7 +5,7 @@ discord.py[voice]==2.3.2
 pymongo[srv]==4.6.3
 python-dotenv==1.0.1
 python-dateutil==2.8.2
-Requests==2.32.0
+requests
 yt-dlp
 pandas==2.2.2
 lxml==5.2.2
