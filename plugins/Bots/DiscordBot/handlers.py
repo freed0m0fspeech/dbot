@@ -29,6 +29,65 @@ class DiscordBotHandler:
     # EVENTS -----------------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
 
+    def _validate_embed(self, embed: discord.Embed):
+        """
+        Ensure embed respects Discord API limits.
+        Truncates if necessary.
+        """
+
+        # --- description ---
+        if embed.description and len(embed.description) > 4096:
+            embed.description = embed.description[:4094] + ".."
+
+        # --- title ---
+        if embed.title and len(embed.title) > 256:
+            embed.title = embed.title[:254] + ".."
+
+        # --- footer ---
+        if embed.footer and embed.footer.text and len(embed.footer.text) > 2048:
+            embed.set_footer(text=embed.footer.text[:2046] + "..")
+
+        # --- author ---
+        if embed.author and embed.author.name and len(embed.author.name) > 256:
+            embed.set_author(name=embed.author.name[:254] + "..")
+
+        # --- fields ---
+        if len(embed.fields) > 25:
+            embed._fields = embed.fields[:25]  # keep first 25, drop rest
+
+        fixed_fields = []
+        for field in embed.fields:
+            name = field.name[:253] + "..." if len(field.name) > 256 else field.name
+            value = field.value[:1021] + "..." if len(field.value) > 1024 else field.value
+            fixed_fields.append({"inline": field.inline, "name": name, "value": value})
+        embed.clear_fields()
+        for field in fixed_fields:
+            embed.add_field(**field)
+
+        # --- total character count ---
+        total_len = (
+                len(embed.title or "")
+                + len(embed.description or "")
+                + (len(embed.footer.text) if embed.footer else 0)
+                + (len(embed.author.name) if embed.author else 0)
+        )
+        for field in embed.fields:
+            total_len += len(field.name) + len(field.value)
+
+        if total_len > 6000:
+            # cut description first
+            overflow = total_len - 6000
+            if embed.description and len(embed.description) > overflow:
+                embed.description = embed.description[: len(embed.description) - overflow - 2] + ".."
+            else:
+                # worst case: drop fields until safe
+                while total_len > 6000 and embed.fields:
+                    last = embed.fields[-1]
+                    total_len -= len(last.name) + len(last.value)
+                    embed._fields = embed.fields[:-1]
+
+        return embed
+
     async def _on_event_send_embed(self, event='', guild=None, *args):
         """
         Send an embed to the guild system channel about changes in guild
@@ -45,8 +104,8 @@ class DiscordBotHandler:
             return
         elif not guild.system_channel:
             return
-        else:
-            system_channel = guild.system_channel
+        # else:
+        #     system_channel = guild.system_channel
 
         event_embed = discord.Embed()
         event_embed.title = f'Event ({event})'
@@ -82,7 +141,7 @@ class DiscordBotHandler:
             event_embed.set_thumbnail(url=guild.icon)
 
             arg = args[0]
-            changes = ''
+            # changes = ''
 
             if len(args) in (2, 3):
                 if isinstance(args[1], datetime) or args[1] is None:
@@ -93,7 +152,8 @@ class DiscordBotHandler:
                     else:
                         date = args[1]
 
-                    changes = f'last_pin\n- ```{date}```'
+                    # changes = f'last_pin\n```{date}```'
+                    event_embed.add_field(name='last_pin', value='```{date}```')
                 else:
                     if len(args) == 3:
                         before = args[1]
@@ -130,8 +190,9 @@ class DiscordBotHandler:
                                     continue
 
                             if attr == 'clean_content':
-                                value = f' - ```{value_before}``` ↓ ```{value_after}```'
-                                changes = f'{changes}- {attr}\n{value}\n\n'
+                                value = f'```{value_before}``` ↓ ```{value_after}```'
+                                # changes = f'{changes}{attr}\n{value}\n\n'
+                                event_embed.add_field(name=attr, value=value)
                                 continue
 
                             # Skip attrs
@@ -160,19 +221,21 @@ class DiscordBotHandler:
                                 # for name, permissions in value_after.items():
                                 #     value = f'{value}- `{name}` -> `{permissions}`\n'
 
-                                value = '\n'.join([f'{value} - ```{name}``` ↓ ```{permissions}```' for name, permissions in value_after.items()])
+                                value = '\n'.join([f'{value}```{name}``` ↓ ```{permissions}```' for name, permissions in value_after.items()])
                             elif isinstance(value_after, discord.Permissions):
                                 permissions = [permission for permission, value in value_after if value]
 
-                                value = f'{value} - ```{permissions}```'
+                                value = f'{value}```{permissions}```'
                             elif isinstance(value_after, list) and (attr == 'roles' or attr == 'changed_roles'):
-                                value = f" - ```{', '.join([role.name for role in value_after])}```"
+                                value = f"```{', '.join([role.name for role in value_after])}```"
                             else:
-                                value = f' - ```{value_before}``` ↓ ```{value_after}```'
+                                value = f'```{value_before}``` ↓ ```{value_after}```'
 
-                            changes = f'{changes}- {attr}\n{value}\n\n'
-            if not changes:
-                return
+                            # changes = f'{changes}{attr}\n{value}\n\n'
+                            event_embed.add_field(name=attr, value=value)
+                            continue
+            # if not changes:
+            #     return
 
             if isinstance(arg, discord.Member):
                 arg_name = f'{arg.mention}'
@@ -181,7 +244,7 @@ class DiscordBotHandler:
             else:
                 arg_name = f'```{arg.name}```'
 
-            event_embed.description = f"🚧\n\n**{arg_name}**\n\n> {arg.__class__.__name__}\n\n{changes}"
+            event_embed.description = f"🚧\n\n**{arg_name}**\n\n> {arg.__class__.__name__}"
         elif event_type_upper in ('DELETE', 'REMOVE'):
             event_embed.color = discord.Color.brand_red()
 
@@ -189,7 +252,7 @@ class DiscordBotHandler:
             event_embed.set_thumbnail(url=guild.icon)
 
             arg = args[0]
-            fields = ''
+            # fields = ''
 
             try:
                 arg_name = f'```{arg.name}```'
@@ -205,13 +268,15 @@ class DiscordBotHandler:
                     arg_name = f'{arg.author.mention}'
 
                     if arg.clean_content:
-                        fields = f'{fields}clean_content\n```{arg.clean_content}```'
+                        # fields = f'{fields}clean_content\n```{arg.clean_content}```'
+                        event_embed.add_field(name='clean_content', value=f'```{arg.clean_content}```')
 
                     if arg.attachments:
                         attachments = []
                         for attachment in arg.attachments:
                             attachments.append(attachment.url)
-                        fields = f'{fields}attachments\n- {attachments}\n'
+                        # fields = f'{fields}attachments\n{attachments}\n'
+                        event_embed.add_field(name='attachments', value=attachments)
 
                     if arg.embeds:
                         embeds = []
@@ -228,19 +293,20 @@ class DiscordBotHandler:
                                 embeds.append(embed.image.url)
                                 break
 
-                        fields = f'{fields}embeds\n- {embeds}\n'
+                        # fields = f'{fields}embeds\n{embeds}\n'
+                        event_embed.add_field(name='embeds', value=embeds)
                 else:
                     return
 
             event_embed.description = f"🧨\n\n**{arg_name}**\n\n> {arg.__class__.__name__}"
 
-            if fields:
-                event_embed.description = f'{event_embed.description}\n\n{fields}'
+        self.discordBot.events[guild.id].append(self._validate_embed(event_embed))
 
-        try:
-            await system_channel.send(embed=event_embed)
-        except Exception:
-            return
+        # try:
+        #     # await system_channel.send(embed=event_embed)
+        #     cache.stats[guild.id]['events'].append(event_embed)
+        # except Exception:
+        #     return
 
     async def _on_voice_state_leave(self, before, member):
         voice_channel = before.channel
@@ -534,6 +600,11 @@ class DiscordBotHandler:
         activity = discord.CustomActivity(name=f"v{__version__} | {updated}")
 
         await self.discordBot.client.change_presence(status=status, activity=activity)
+
+        eventsThread = threading.Thread(target=await EventsSender(self.discordBot).send_messages(), daemon=True)
+        eventsThread.start()
+
+        # await self.discordBot.client.loop.run_in_executor(None, asyncio.run(EventsSender(self.discordBot).send_messages()))
 
     async def _on_resumed(self):
         """

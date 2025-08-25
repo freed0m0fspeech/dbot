@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 import threading
 from collections import defaultdict, deque
@@ -14,6 +15,46 @@ from plugins.DataBase.mongo import (
 from plugins.Helpers.youtube_dl import get_best_info_media
 
 load_dotenv()
+
+
+class EventsSender():
+    def __init__(self, discordBot):
+        self.discordBot = discordBot
+
+    async def send_messages(self):
+        await self.discordBot.client.wait_until_ready()
+
+        while not self.discordBot.client.is_closed():
+            for guild_id, stats in cache.stats.items():
+                events = self.discordBot.events.get(guild_id, deque())
+                # events = stats.get('events', {})
+
+                if not events:
+                    continue
+
+                guild = self.discordBot.client.get_guild(guild_id)
+                if not guild or not guild.system_channel:
+                    continue
+
+                system_channel = guild.system_channel
+
+                # send in chunks of 10
+                while events:
+                    chunk = []
+                    for _ in range(min(10, len(events))):
+                        chunk.append(events.popleft())
+
+                    if chunk:
+                        try:
+                            await system_channel.send(embeds=chunk)
+                        except Exception as e:
+                            logging.warning(f"[{guild.name}] Failed to send embeds: {e}")
+
+                    # short delay to avoid blocking other guilds
+                    await asyncio.sleep(1)
+
+            # small pause before next iteration over all guilds
+            await asyncio.sleep(1)
 
 
 class DataBases():

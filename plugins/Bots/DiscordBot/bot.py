@@ -235,6 +235,7 @@ class DiscordBot:
             self.guilds[guild.get('id', '')] = guild
 
         self.music = defaultdict(lambda: defaultdict(deque))
+        self.events = defaultdict(deque)
 
     async def set_default_commands(self, guild=None):
         try:
