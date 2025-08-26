@@ -228,9 +228,9 @@ class DiscordBotHandler:
 
                             # changes = f'{changes}{attr}\n{value}\n\n'
                             event_embed.add_field(name=attr, value=value)
-                            continue
-            # if not changes:
-            #     return
+                            # continue
+            if len(event_embed.fields) == 0:
+                return
 
             if isinstance(arg, discord.Member):
                 arg_name = f'{arg.mention}'
