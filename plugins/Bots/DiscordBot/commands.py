@@ -465,8 +465,8 @@ class DiscordBotCommand:
                 return
 
             owner = cache.stats.get(guild.id, {}).get('tvoice_channels', {}).get(voice_channel.id, {}).get('owner', {})
-            if not owner:
-                return await webhook.send('Информация о владельце голосового канала не найдена', ephemeral=True)
+            # if not owner:
+            #     return await webhook.send('Информация о владельце голосового канала не найдена', ephemeral=True)
 
             if member is not None:
                 if member.id == owner.get('id', ''):
@@ -495,7 +495,17 @@ class DiscordBotCommand:
 
                 cache.stats[guild.id]['tvoice_channels'][voice_channel.id]['owner']['id'] = member.id
             else:
-                await webhook.send(f"Владелец голосового канала {voice_channel.mention}: <@{owner.get('id', '')}>", ephemeral=True)
+                if not owner:
+                    overwrites = voice_channel.overwrites
+                    overwrites[user] = discord.PermissionOverwrite.from_pair(allow=discord.Permissions.all_channel(),
+                                                                               deny=discord.Permissions.none())
+
+                    await voice_channel.edit(name=f'@{user.name}', overwrites=overwrites)
+                    await webhook.send(f'Вы новый владелец голосового канала {voice_channel.mention}', ephemeral=True)
+
+                    cache.stats[guild.id]['tvoice_channels'][voice_channel.id]['owner']['id'] = user.id
+                else:
+                    await webhook.send(f"Владелец голосового канала {voice_channel.mention}: <@{owner.get('id', '')}>", ephemeral=True)
         except Exception as e:
             return await webhook.send(str(e), ephemeral=True)
 
