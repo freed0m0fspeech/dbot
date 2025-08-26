@@ -57,8 +57,8 @@ class DiscordBotHandler:
 
         fixed_fields = []
         for field in embed.fields:
-            name = field.name[:253] + "..." if len(field.name) > 256 else field.name
-            value = field.value[:1021] + "..." if len(field.value) > 1024 else field.value
+            name = field.name[:254] + ".." if len(field.name) > 256 else field.name
+            value = field.value[:1019] + "..```" if len(field.value) > 1024 else field.value
             fixed_fields.append({"inline": field.inline, "name": name, "value": value})
         embed.clear_fields()
         for field in fixed_fields:
@@ -75,16 +75,11 @@ class DiscordBotHandler:
             total_len += len(field.name) + len(field.value)
 
         if total_len > 6000:
-            # cut description first
-            overflow = total_len - 6000
-            if embed.description and len(embed.description) > overflow:
-                embed.description = embed.description[: len(embed.description) - overflow - 2] + ".."
-            else:
-                # worst case: drop fields until safe
-                while total_len > 6000 and embed.fields:
-                    last = embed.fields[-1]
-                    total_len -= len(last.name) + len(last.value)
-                    embed._fields = embed.fields[:-1]
+            # drop fields until safe
+            while total_len > 6000 and embed.fields:
+                last = embed.fields[-1]
+                total_len -= len(last.name) + len(last.value)
+                embed._fields = embed.fields[:-1]
 
         return embed
 
