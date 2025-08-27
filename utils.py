@@ -28,7 +28,7 @@ class EventSender():
 
         while not self.discordBot.client.is_closed():
             # Launch one task per guild
-            tasks = [self.send_guild_messages(guild_id) for guild_id in self.discordBot.events.keys()]
+            tasks = [self.send_guild_messages(guild_id) for guild_id, events in self.discordBot.events.items() if events]
             if tasks:
                 await asyncio.gather(*tasks)
 
