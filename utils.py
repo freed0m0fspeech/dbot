@@ -5,56 +5,69 @@ import threading
 from collections import defaultdict, deque
 
 import discord
-from discord import FFmpegPCMAudio
+from discord import FFmpegPCMAudio, HTTPException, Forbidden
 from dotenv import load_dotenv
 
-import plugins
 from plugins.DataBase.mongo import (
     MongoDataBase
 )
-from plugins.Helpers.youtube_dl import get_best_info_media
 
 load_dotenv()
 
 
-class EventsSender():
+class EventSender():
     def __init__(self, discordBot):
         self.discordBot = discordBot
+
+        # rate limiters
+        self.global_semaphore = asyncio.Semaphore(5)  # allow up to 5 sends at once globally
+        self.guild_locks = {}  # one lock per guild to serialize sends
 
     async def send_messages(self):
         await self.discordBot.client.wait_until_ready()
 
         while not self.discordBot.client.is_closed():
-            for guild_id, stats in cache.stats.items():
-                events = self.discordBot.events.get(guild_id, deque())
-                # events = stats.get('events', {})
+            # Launch one task per guild
+            tasks = [self.send_guild_messages(guild_id) for guild_id in self.discordBot.events.keys()]
+            if tasks:
+                await asyncio.gather(*tasks)
 
-                if not events:
-                    continue
+            # Pause a bit before next full iteration
+            await asyncio.sleep(2)
 
-                guild = self.discordBot.client.get_guild(guild_id)
-                if not guild or not guild.system_channel:
-                    continue
+    async def send_guild_messages(self, guild_id):
+        events = self.discordBot.events.get(guild_id, deque())
+        if not events:
+            return
 
-                system_channel = guild.system_channel
+        guild = self.discordBot.client.get_guild(guild_id)
+        if not guild or not guild.system_channel:
+            return
 
+        system_channel = guild.system_channel
+
+        # Create lock if it doesn't exist
+        if guild_id not in self.guild_locks:
+            self.guild_locks[guild_id] = asyncio.Lock()
+
+        async with self.guild_locks[guild_id]:
+            while events:
                 # send in chunks of 10
-                while events:
-                    chunk = []
-                    for _ in range(min(10, len(events))):
-                        chunk.append(events.popleft())
+                chunk = []
+                for _ in range(min(10, len(events))):
+                    chunk.append(events.popleft())
 
-                    if chunk:
-                        try:
-                            await system_channel.send(embeds=chunk)
-                        except Exception as e:
-                            logging.warning(f"[{guild.name}] Failed to send embeds: {e}")
+                if not chunk:
+                    continue
 
-                    # short delay to avoid blocking other guilds
-                    await asyncio.sleep(1)
-
-            # small pause before next iteration over all guilds
-            await asyncio.sleep(1)
+                try:
+                    # Limit global concurrency
+                    async with self.global_semaphore:
+                        await system_channel.send(embeds=chunk)
+                        await asyncio.sleep(1.25)  # per-guild spacing
+                except (HTTPException, Forbidden) as e:
+                    logging.warning(f"[{guild.name}] Failed to send embeds: {e}")
+                    await asyncio.sleep(2)  # backoff on error
 
 
 class DataBases():
@@ -147,7 +160,7 @@ def repeat(self, voice_client):
     audioSource = self.discordBot.audiosource
     ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                       'options': f'-vn -loglevel fatal'}
-    audioSource = AudioSourceTracked(discord.FFmpegPCMAudio(audioSource.path, **ffmpeg_options), path=audioSource.path)
+    audioSource = AudioSourceTracked(FFmpegPCMAudio(audioSource.path, **ffmpeg_options), path=audioSource.path)
     self.discordBot.audiosource = audioSource
     voice_client.play(audioSource, after=lambda ex: repeat(self, voice_client))
 

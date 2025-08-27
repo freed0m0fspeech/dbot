@@ -1,8 +1,6 @@
 import asyncio
 import datetime
-import logging
 import re
-import threading
 from random import shuffle
 
 import discord

@@ -3,11 +3,12 @@ from typing import Union, Optional
 import discord.ext.commands
 import discord.utils
 import pytz
+import os
+import threading
 
 from datetime import datetime
 from version import __version__
-from utils import *
-from utils import cache
+from utils import cache, EventSender, MongoDataBase
 from plugins.Bots.DiscordBot.roles import secret_roles
 
 class DiscordBotHandler:
@@ -596,7 +597,7 @@ class DiscordBotHandler:
 
         await self.discordBot.client.change_presence(status=status, activity=activity)
 
-        eventsThread = threading.Thread(target=await EventsSender(self.discordBot).send_messages(), daemon=True)
+        eventsThread = threading.Thread(target=await EventSender(self.discordBot).send_messages(), daemon=True)
         eventsThread.start()
 
         # await self.discordBot.client.loop.run_in_executor(None, asyncio.run(EventsSender(self.discordBot).send_messages()))
