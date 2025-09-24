@@ -7,8 +7,12 @@ class GatewayEventFilter(logging.Filter):
         super().__init__('discord.gateway')
 
     def filter(self, record: logging.LogRecord) -> bool:
-        if record.exc_info is not None and isinstance(record.exc_info[1], ConnectionClosed):
-            return False
+        try:
+            if record.exc_info is not None and isinstance(record.exc_info[1], ConnectionClosed):
+                return False
+        except Exception:
+            pass
+
         return True
 
 class YouTubeLogFilter(logging.Filter):
