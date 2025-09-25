@@ -744,22 +744,25 @@ class DiscordBotCommand:
             if not voice_channel:
                 return
 
-            voice_client = guild.voice_client
+            voice_client = getattr(guild, "voice_client", None)
             voice_client: discord.VoiceClient
 
-            if not voice_client:
-                try:
-                    voice_client = await voice_channel.connect()
-                except Exception:
-                    pass
+            if voice_client is None or not getattr(voice_client, "is_connected", lambda: False)():
+                # Disconnect old client if partially connected
+                if voice_client and getattr(voice_client, "is_connected", lambda: False)():
+                    await voice_client.disconnect()
+
+                # Connect properly
+                voice_client = await voice_channel.connect()
                 await guild.change_voice_state(channel=voice_channel)
-            else:
-                if not voice_client.is_connected():
-                    try:
-                        voice_client = await voice_channel.connect()
-                    except Exception:
-                        pass
-                    await guild.change_voice_state(channel=voice_channel)
+
+            # if not voice_client:
+            #     voice_client = await voice_channel.connect()
+            #     await guild.change_voice_state(channel=voice_channel)
+            # else:
+            #     if not voice_client.is_connected():
+            #         voice_client = await voice_channel.connect()
+            #         await guild.change_voice_state(channel=voice_channel)
 
             if not self.discordBot.music[guild.id]['queue_history']:
                 self.discordBot.music[guild.id]['queue_history'] = deque(maxlen=10)
@@ -904,16 +907,25 @@ class DiscordBotCommand:
             if not voice_channel:
                 return
 
-            voice_client = guild.voice_client
+            voice_client = getattr(guild, "voice_client", None)
             voice_client: discord.VoiceClient
 
-            if not voice_client:
+            if voice_client is None or not getattr(voice_client, "is_connected", lambda: False)():
+                # Disconnect old client if partially connected
+                if voice_client and getattr(voice_client, "is_connected", lambda: False)():
+                    await voice_client.disconnect()
+
+                # Connect properly
                 voice_client = await voice_channel.connect()
                 await guild.change_voice_state(channel=voice_channel)
-            else:
-                if not voice_client.is_connected():
-                    voice_client = await voice_channel.connect()
-                    await guild.change_voice_state(channel=voice_channel)
+
+            # if not voice_client:
+            #     voice_client = await voice_channel.connect()
+            #     await guild.change_voice_state(channel=voice_channel)
+            # else:
+            #     if not voice_client.is_connected():
+            #         voice_client = await voice_channel.connect()
+            #         await guild.change_voice_state(channel=voice_channel)
 
             if not self.discordBot.music[guild.id]['queue_history']:
                 self.discordBot.music[guild.id]['queue_history'] = deque(maxlen=10)
