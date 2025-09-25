@@ -576,6 +576,12 @@ class DiscordBotHandler:
             if await self._on_voice_state_join(after=after, member=member) == -1:
                 return
 
+    async def on_close(self):
+        for guild in self.discordBot.guilds:
+            vc = getattr(guild, "voice_client", None)
+            if vc and getattr(vc, "is_connected", lambda: False)():
+                await vc.disconnect()
+
     async def on_ready(self):
         """
         Called when the client is done preparing the data received from Discord. Usually after login is successful and the Client.guilds and co. are filled up.
