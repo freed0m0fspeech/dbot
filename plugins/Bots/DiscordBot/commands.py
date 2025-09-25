@@ -748,11 +748,17 @@ class DiscordBotCommand:
             voice_client: discord.VoiceClient
 
             if not voice_client:
-                voice_client = await voice_channel.connect()
+                try:
+                    voice_client = await voice_channel.connect()
+                except Exception:
+                    pass
                 await guild.change_voice_state(channel=voice_channel)
             else:
                 if not voice_client.is_connected():
-                    voice_client = await voice_channel.connect()
+                    try:
+                        voice_client = await voice_channel.connect()
+                    except Exception:
+                        pass
                     await guild.change_voice_state(channel=voice_channel)
 
             if not self.discordBot.music[guild.id]['queue_history']:
