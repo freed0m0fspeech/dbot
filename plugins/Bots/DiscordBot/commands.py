@@ -641,7 +641,7 @@ class DiscordBotCommand:
         #     shutil.rmtree(f"/temp")
 
         infoThread = ResultThread(
-            lambda: get_best_info_media(info.get('original_url', info.get('url', '')), ydl_opts, 'scsearch'))
+            lambda: get_best_info_media(info.get('original_url', info.get('url', '')), ydl_opts))
         infoThread.start()
 
         time = perf_counter()
@@ -821,7 +821,7 @@ class DiscordBotCommand:
 
                 # info = await self.discordBot.client.loop.run_in_executor(None, lambda: get_best_info_media(text, ydl_opts, result_count=result_count))
                 infoThread = ResultThread(
-                    lambda: get_best_info_media(text, ydl_opts, search_engine='scsearch', result_count=result_count))
+                    lambda: get_best_info_media(text, ydl_opts, result_count=result_count))
                 infoThread.start()
 
                 time = perf_counter()
@@ -1441,7 +1441,7 @@ class DiscordBotCommand:
                     'logger': YouTubeLogFilter(),
                 }
 
-                infoThread = ResultThread(lambda: get_best_info_media(url, ydl_opts, 'scsearch'))
+                infoThread = ResultThread(lambda: get_best_info_media(url, ydl_opts))
                 infoThread.start()
 
                 time = perf_counter()
