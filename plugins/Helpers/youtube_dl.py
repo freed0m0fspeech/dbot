@@ -9,6 +9,7 @@ from pathlib import Path
 # import youtube_dl
 import yt_dlp as youtube_dl
 from yt_dlp import DownloadError, extractor
+import requests
 
 from datetime import datetime
 from datetime import timedelta
@@ -72,62 +73,35 @@ def is_supported_url_youtube(url):
     return False
 
 
-def get_info_media(title: str, ydl_opts=None, search_engine=None, result_count=1, download=False):
+def archive_search(title, result_count=1):
     """
+        Search Internet Archive for downloadable music by title or artist.
+        Returns a list of item URLs (default 1 result).
+        """
+    url = "https://archive.org/advancedsearch.php"
+    params = {
+        "q": f'title:({title}) AND mediatype:(audio) AND collection:(audio_music)',
+        "fl[]": ["identifier", "title", "format"],
+        "rows": result_count,
+        "page": 1,
+        "sort[]": "downloads desc",
+        "output": "json"
+    }
 
-    :param title:
-    :param ydl_opts:
-    :param search_engine:
-    :param result_count:
-    :return:
-    """
-    if ydl_opts is None:
-        ydl_opts = {
-            # 'format': 'best[ext!=wav]/best',
-            'quiet': False,
-            'ignoreerrors': True,
-            'noplaylist': True,
-        }
+    r = requests.get(url, params=params, timeout=10)
+    r.raise_for_status()
+    data = r.json()
 
-    ydl_opts['cookiefile'] = f"{Path(__file__).parent / 'coockies' / 'www.youtube.com_cookies.txt'}"
+    urls = []
+    for doc in data["response"]["docs"]:
+        # Only add items with actual audio files
+        if "format" in doc and any(f in doc["format"] for f in ["MP3", "VBR MP3", "FLAC"]):
+            urls.append(f"https://archive.org/details/{doc['identifier']}")
 
-    if re.match(regex_link, title):
-        url = title
-    else:
-        url = None
-
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        ydl.cache.remove()
-
-        if url:
-            try:
-                info = ydl.extract_info(url, download=download)
-            except DownloadError:
-                logging.warning('DownloadError')
-                return False
-        else:
-            if search_engine:
-                info = ydl.extract_info(f"{search_engine}{result_count}:{title}", download=download)
-            else:
-                try:
-                    info = ydl.extract_info(f"ytsearch{result_count}:{title}", download=download)
-                except DownloadError:
-                    try:
-                        info = ydl.extract_info(f"scsearch{result_count}:{title}", download=download)
-                    except DownloadError:
-                        logging.warning('DownloadError')
-                        return False
-
-    if not info:
-        return
-
-    if info['entries']:
-        return info['entries']
-    else:
-        return info
+    return urls
 
 
-def get_best_info_media(title: str, ydl_opts=None, search_engine=None, result_count=1, download=False):
+def get_best_info_media(title: str, ydl_opts=None, search_engine='Internet Archive', result_count=1, download=False):
     """
 
     :param title:
@@ -146,7 +120,7 @@ def get_best_info_media(title: str, ydl_opts=None, search_engine=None, result_co
             'socket_timeout': 10,
         }
 
-    ydl_opts['cookiefile'] = f"{Path(__file__).parent / 'cookies' / 'www.youtube.com_cookies.txt'}"
+    # ydl_opts['cookiefile'] = f"{Path(__file__).parent / 'cookies' / 'www.youtube.com_cookies.txt'}"
 
     if re.match(regex_link, title):
         url = title
@@ -167,7 +141,22 @@ def get_best_info_media(title: str, ydl_opts=None, search_engine=None, result_co
                 return False
         else:
             if search_engine:
-                info = ydl.extract_info(f"{search_engine}{result_count}:{title}", download=download)
+                if search_engine == 'Internet Archive':
+                    try:
+                        archive_results = archive_search(title, result_count)
+                        logging.info(f"Archive search results: {archive_results}")
+                        for archive_url in archive_results:
+                            info = ydl.extract_info(archive_url, download=download)
+
+                            if info:
+                                break
+
+                        if not info:
+                            return False
+                    except Exception as e:
+                        return False
+                else:
+                    info = ydl.extract_info(f"{search_engine}{result_count}:{title}", download=download)
             else:
                 try:
                     info = ydl.extract_info(f"ytsearch{result_count}:{title}", download=download)
@@ -182,6 +171,7 @@ def get_best_info_media(title: str, ydl_opts=None, search_engine=None, result_co
                 #     except DownloadError:
                 #         logging.warning('DownloadError')
                 #         return False
+
     if not info:
         return False
 

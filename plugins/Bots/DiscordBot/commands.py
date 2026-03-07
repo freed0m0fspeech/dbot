@@ -729,6 +729,9 @@ class DiscordBotCommand:
                          result_count: int = 1, leave: bool = False):
         webhook = await self._defer(interaction)
 
+        return await webhook.send('Музыка в боте временно отключена из-за блокировки со стороны YouTube и других провайдеров',
+                                  ephemeral=True)
+
         try:
             guild = interaction.guild
             user = interaction.user
@@ -899,6 +902,9 @@ class DiscordBotCommand:
     async def music_start(self, interaction: discord.Interaction):
         webhook = await self._defer(interaction)
 
+        return await webhook.send('Музыка в боте временно отключена из-за блокировки со стороны YouTube и других провайдеров',
+                                  ephemeral=True)
+
         try:
             guild = interaction.guild
             user = interaction.user
@@ -979,6 +985,9 @@ class DiscordBotCommand:
 
     async def music_seek(self, interaction: discord.Interaction, time: str):
         webhook = await self._defer(interaction)
+
+        return await webhook.send('Музыка в боте временно отключена из-за блокировки со стороны YouTube и других провайдеров',
+                                  ephemeral=True)
 
         try:
             guild = interaction.guild
@@ -1073,6 +1082,9 @@ class DiscordBotCommand:
     async def music_queue(self, interaction: discord.Interaction):
         webhook = await self._defer(interaction)
 
+        return await webhook.send('Музыка в боте временно отключена из-за блокировки со стороны YouTube и других провайдеров',
+                                  ephemeral=True)
+
         try:
             guild = interaction.guild
             user = interaction.user
@@ -1129,6 +1141,9 @@ class DiscordBotCommand:
     async def music_history(self, interaction: discord.Interaction):
         webhook = await self._defer(interaction)
 
+        return await webhook.send('Музыка в боте временно отключена из-за блокировки со стороны YouTube и других провайдеров',
+                                  ephemeral=True)
+
         try:
             guild = interaction.guild
             user = interaction.user
@@ -1174,6 +1189,9 @@ class DiscordBotCommand:
     async def music_shuffle(self, interaction: discord.Interaction):
         webhook = await self._defer(interaction)
 
+        return await webhook.send('Музыка в боте временно отключена из-за блокировки со стороны YouTube и других провайдеров',
+                                  ephemeral=True)
+
         try:
             guild = interaction.guild
             user = interaction.user
@@ -1203,6 +1221,9 @@ class DiscordBotCommand:
     async def music_reverse(self, interaction: discord.Interaction):
         webhook = await self._defer(interaction)
 
+        return await webhook.send('Музыка в боте временно отключена из-за блокировки со стороны YouTube и других провайдеров',
+                                  ephemeral=True)
+
         try:
             guild = interaction.guild
             user = interaction.user
@@ -1229,6 +1250,9 @@ class DiscordBotCommand:
 
     async def music_skip(self, interaction: discord.Interaction):
         webhook = await self._defer(interaction)
+
+        return await webhook.send('Музыка в боте временно отключена из-за блокировки со стороны YouTube и других провайдеров',
+                                  ephemeral=True)
 
         try:
             guild = interaction.guild
@@ -1278,6 +1302,9 @@ class DiscordBotCommand:
 
     async def music_pause(self, interaction: discord.Interaction):
         webhook = await self._defer(interaction)
+
+        return await webhook.send('Музыка в боте временно отключена из-за блокировки со стороны YouTube и других провайдеров',
+                                  ephemeral=True)
 
         try:
             guild = interaction.guild
@@ -1348,6 +1375,9 @@ class DiscordBotCommand:
     async def music_clear(self, interaction: discord.Interaction, count: int = None, start: int = None):
         webhook = await self._defer(interaction)
 
+        return await webhook.send('Музыка в боте временно отключена из-за блокировки со стороны YouTube и других провайдеров',
+                                  ephemeral=True)
+
         try:
             guild = interaction.guild
             user = interaction.user
@@ -1390,6 +1420,9 @@ class DiscordBotCommand:
 
     async def music_previous(self, interaction: discord.Interaction):
         webhook = await self._defer(interaction)
+
+        return await webhook.send('Музыка в боте временно отключена из-за блокировки со стороны YouTube и других провайдеров',
+                                  ephemeral=True)
 
         try:
             guild = interaction.guild
@@ -1492,6 +1525,9 @@ class DiscordBotCommand:
     async def music_now(self, interaction: discord.Interaction):
         webhook = await self._defer(interaction)
 
+        return await webhook.send('Музыка в боте временно отключена из-за блокировки со стороны YouTube и других провайдеров',
+                                  ephemeral=True)
+
         try:
             guild = interaction.guild
             user = interaction.user
@@ -1524,6 +1560,9 @@ class DiscordBotCommand:
     async def music_stop(self, interaction: discord.Interaction):
         webhook = await self._defer(interaction)
 
+        return await webhook.send('Музыка в боте временно отключена из-за блокировки со стороны YouTube и других провайдеров',
+                                  ephemeral=True)
+
         try:
             guild = interaction.guild
             user = interaction.user
@@ -1547,6 +1586,9 @@ class DiscordBotCommand:
 
     async def music_lyrics(self, interaction: discord.Interaction, text: str = None):
         webhook = await self._defer(interaction)
+
+        return await webhook.send('Музыка в боте временно отключена из-за блокировки со стороны YouTube и других провайдеров',
+                                  ephemeral=True)
 
         try:
             guild = interaction.guild
