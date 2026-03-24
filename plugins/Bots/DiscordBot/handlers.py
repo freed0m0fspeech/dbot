@@ -166,14 +166,17 @@ class DiscordBotHandler:
                             event_embed.set_thumbnail(url=after.avatar)
 
                     for attr in [attr for attr in dir(after) if not attr.startswith('_')]:
-                        if not hasattr(before, attr):
-                            continue
+                        try:
+                            if not hasattr(before, attr):
+                                continue
 
-                        if not hasattr(after, attr):
-                            continue
+                            if not hasattr(after, attr):
+                                continue
 
-                        value_before = getattr(before, attr)
-                        value_after = getattr(after, attr)
+                            value_before = getattr(before, attr)
+                            value_after = getattr(after, attr)
+                        except DeprecationWarning:
+                            continue # skip deprecated attributes
 
                         value = ''
 
@@ -199,6 +202,8 @@ class DiscordBotHandler:
                                 'embeds',
                                 'flags',
                                 'tags',
+                                'collectibles',
+                                'primary_guild',
                                 # 'self_mute',
                                 # 'self_deaf',
                                 # 'self_stream',
